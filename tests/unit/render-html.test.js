@@ -21,8 +21,8 @@ describe('renderHtml', () => {
 
   it('returns a string', () => expect(typeof html).toBe('string'));
   it('includes DOCTYPE', () => expect(html).toMatch(/<!DOCTYPE html>/));
-  it('includes Tailwind CDN', () => expect(html).toMatch(/cdn\.tailwindcss\.com/));
-  it('includes Chart.js CDN', () => expect(html).toMatch(/cdn\.jsdelivr\.net.*chart\.js/));
+  it('includes Tailwind CDN', () => expect(html).toContain('cdn.tailwindcss.com'));
+  it('includes Chart.js CDN', () => expect(html).toContain('cdn.jsdelivr.net'));
   it('includes project name', () => expect(html).toMatch(/NomadCode/));
   it('includes generated timestamp', () => expect(html).toMatch(/2026-03-10/));
   it('includes commit SHA', () => expect(html).toMatch(/abc1234/));

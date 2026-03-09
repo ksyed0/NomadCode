@@ -34,9 +34,13 @@ async function main() {
 
   const row = `| ${date} | ${sessionId} | ${branch} | ${inputTokens} | ${outputTokens} | ${cacheRead} | ${costUsd} |\n`;
 
-  if (!fs.existsSync(LOG_PATH)) fs.writeFileSync(LOG_PATH, HEADER, 'utf8');
-
-  fs.appendFileSync(LOG_PATH, row, 'utf8');
+  const fd = fs.openSync(LOG_PATH, 'a');
+  try {
+    if (fs.fstatSync(fd).size === 0) fs.writeSync(fd, Buffer.from(HEADER, 'utf8'));
+    fs.writeSync(fd, Buffer.from(row, 'utf8'));
+  } finally {
+    fs.closeSync(fd);
+  }
   process.stderr.write(`[capture-cost] Appended session cost: $${costUsd} on branch ${branch}\n`);
 }
 
