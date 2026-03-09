@@ -6,7 +6,7 @@
  *                   createDirectory, moveEntry, copyEntry, exists, documentDirectory.
  */
 
-import { FileSystemBridge } from '../../src/utils/FileSystemBridge';
+import { FileSystemBridge, GitBridge } from '../../src/utils/FileSystemBridge';
 
 // ---------------------------------------------------------------------------
 // Mock expo-file-system
@@ -48,9 +48,9 @@ describe('FileSystemBridge.listDirectory', () => {
   it('returns sorted entries (dirs first, then files)', async () => {
     mockGetInfoAsync
       .mockResolvedValueOnce({ exists: true, isDirectory: true }) // root
-      .mockResolvedValueOnce({ exists: true, isDirectory: true,  size: 0 }) // src/
-      .mockResolvedValueOnce({ exists: true, isDirectory: false, size: 100 }) // README.md
-      .mockResolvedValueOnce({ exists: true, isDirectory: false, size: 200 }); // App.tsx
+      .mockResolvedValueOnce({ exists: true, isDirectory: false, size: 100 }) // README.md (listed 1st)
+      .mockResolvedValueOnce({ exists: true, isDirectory: false, size: 200 }) // App.tsx (listed 2nd)
+      .mockResolvedValueOnce({ exists: true, isDirectory: true,  size: 0 }); // src/ (listed 3rd)
     mockReadDirectoryAsync.mockResolvedValueOnce(['README.md', 'App.tsx', 'src']);
 
     const entries = await FileSystemBridge.listDirectory('/docs/project');
@@ -223,5 +223,44 @@ describe('FileSystemBridge.exists', () => {
 describe('FileSystemBridge.documentDirectory', () => {
   it('returns the expo document directory', () => {
     expect(FileSystemBridge.documentDirectory).toBe('/docs/');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GitBridge (stub implementations)
+// ---------------------------------------------------------------------------
+
+describe('GitBridge', () => {
+  it('clone throws not-implemented', async () => {
+    await expect(GitBridge.clone('https://example.com/repo', '/dir')).rejects.toThrow('not yet implemented');
+  });
+
+  it('commit throws not-implemented', async () => {
+    await expect(
+      GitBridge.commit('/dir', 'msg', { name: 'Dev', email: 'dev@example.com' }),
+    ).rejects.toThrow('not yet implemented');
+  });
+
+  it('push throws not-implemented', async () => {
+    await expect(GitBridge.push('/dir')).rejects.toThrow('not yet implemented');
+  });
+
+  it('pull throws not-implemented', async () => {
+    await expect(GitBridge.pull('/dir')).rejects.toThrow('not yet implemented');
+  });
+
+  it('checkout throws not-implemented', async () => {
+    await expect(GitBridge.checkout('/dir', 'feature')).rejects.toThrow('not yet implemented');
+  });
+
+  it('status returns a default status object', async () => {
+    const s = await GitBridge.status('/dir');
+    expect(s.branch).toBe('main');
+    expect(s.modified).toEqual([]);
+  });
+
+  it('branches returns ["main"]', async () => {
+    const b = await GitBridge.branches('/dir');
+    expect(b).toEqual(['main']);
   });
 });

@@ -145,7 +145,7 @@ function buildJsonPreviewHtml(jsonSource: string): string {
     if(typeof v==='number')  return '<span class="num">'+v+'</span>';
     if(typeof v==='string')  return '<span class="str">"'
       +v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;')+'\"</span>';
+        .replace(/"/g,'&quot;')+'</span>';
     if(Array.isArray(v)){
       if(!v.length) return '[]';
       return '<details open><summary class="arr">Array['+v.length+']</summary>'

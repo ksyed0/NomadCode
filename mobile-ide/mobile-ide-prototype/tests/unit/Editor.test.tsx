@@ -7,19 +7,39 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
-import Editor, { EditorTab } from '../../src/components/Editor';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import Editor, { EditorTab, buildPreviewHtml, canPreview } from '../../src/components/Editor';
+
+// ---------------------------------------------------------------------------
+// Mock MonacoAssetManager so monacoHtml is set synchronously after mount
+// ---------------------------------------------------------------------------
+
+jest.mock('../../src/utils/MonacoAssetManager', () => ({
+  MonacoAssetManager: {
+    resolve: jest.fn().mockResolvedValue({ baseUrl: 'https://cdn.test', isOffline: false }),
+  },
+  buildMonacoHtml: jest.fn().mockReturnValue('<html>monaco</html>'),
+}));
 
 // ---------------------------------------------------------------------------
 // Mock react-native-webview
 // ---------------------------------------------------------------------------
 
 jest.mock('react-native-webview', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { View } = require('react-native');
-  const WebView = React.forwardRef((_props: object, _ref: unknown) => (
-    <View testID="webview" />
-  ));
+  const WebView = React.forwardRef((props: { onMessage?: (e: object) => void }, ref: unknown) => {
+    // Expose injectJavaScript via ref so webViewRef.current is non-null
+    React.useImperativeHandle(ref, () => ({ injectJavaScript: jest.fn() }));
+    // Fire the 'ready' message so editorReady becomes true
+    React.useEffect(() => {
+      props.onMessage?.({ nativeEvent: { data: JSON.stringify({ type: 'ready' }) } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    return <View testID="webview" />;
+  });
   WebView.displayName = 'WebView';
   return { WebView };
 });
@@ -108,9 +128,9 @@ describe('Editor — tab bar', () => {
     expect(screen.getByText('index.ts')).toBeTruthy();
   });
 
-  it('renders the WebView when at least one tab is open', () => {
+  it('renders the WebView when at least one tab is open', async () => {
     renderEditor([TAB_A], TAB_A.path);
-    expect(screen.getByTestId('webview')).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId('webview')).toBeTruthy());
   });
 
   it('renders a close button for each tab', () => {
@@ -175,5 +195,111 @@ describe('Editor — multiple tabs', () => {
 
   it('renders with null activeTabPath without crashing', () => {
     expect(() => renderEditor([TAB_A, TAB_B], null)).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Preview utilities
+// ---------------------------------------------------------------------------
+
+describe('canPreview', () => {
+  it.each([
+    ['markdown', true],
+    ['html',     true],
+    ['json',     true],
+    ['typescript', false],
+    ['javascript', false],
+    ['plaintext',  false],
+  ])('%s → %s', (lang, expected) => {
+    expect(canPreview(lang)).toBe(expected);
+  });
+});
+
+describe('buildPreviewHtml', () => {
+  it('returns markdown preview HTML for markdown language', () => {
+    const html = buildPreviewHtml('markdown', '# Hello');
+    expect(html).toContain('marked.parse');
+    expect(html).toContain('Hello');
+  });
+
+  it('returns HTML preview HTML for html language', () => {
+    const html = buildPreviewHtml('html', '<p>test</p>');
+    expect(html).toContain('iframe');
+    expect(html).toContain('sandbox');
+  });
+
+  it('returns JSON tree preview HTML for json language', () => {
+    const html = buildPreviewHtml('json', '{"key":"value"}');
+    expect(html).toContain('key');
+  });
+
+  it('returns JSON error preview when json is invalid', () => {
+    const html = buildPreviewHtml('json', 'not valid json');
+    expect(html).toContain('err');
+  });
+
+  it('returns no-preview message for unsupported language', () => {
+    const html = buildPreviewHtml('typescript', 'const x = 1;');
+    expect(html).toContain('No preview available');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Toolbar interactions — covers changeFontSize, handleToolbarAction branches
+// ---------------------------------------------------------------------------
+
+describe('Editor — toolbar interactions', () => {
+  it('decrements font size when A- is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByText('A-'));
+    expect(screen.getByText('13')).toBeTruthy();
+  });
+
+  it('increments font size when A+ is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByText('A+'));
+    expect(screen.getByText('15')).toBeTruthy();
+  });
+
+  it('sends a command when a toolbar action button is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    expect(() => fireEvent.press(screen.getByLabelText('Undo'))).not.toThrow();
+  });
+
+  it('toggles multicursor mode on and shows the badge', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByLabelText('Add cursor mode'));
+    expect(screen.getByText('+ CURSOR')).toBeTruthy();
+  });
+
+  it('dismisses multicursor badge when its close button is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByLabelText('Add cursor mode'));
+    expect(screen.getByText('+ CURSOR')).toBeTruthy();
+    fireEvent.press(screen.getByText('✕'));
+    expect(screen.queryByText('+ CURSOR')).toBeNull();
+  });
+
+  it('preview button is disabled for non-previewable language', async () => {
+    renderEditor([TAB_A], TAB_A.path); // TypeScript — not previewable
+    await waitFor(() => screen.getByTestId('webview'));
+    // isDisabled=true → onPress short-circuits, no crash
+    expect(() => fireEvent.press(screen.getByLabelText('Toggle preview'))).not.toThrow();
+    expect(screen.queryByText('PREVIEW')).toBeNull();
+  });
+
+  it('shows preview pane when preview is toggled for a markdown file', async () => {
+    const mdTab = makeTab({
+      path: '/docs/doc.md', name: 'doc.md', language: 'markdown', content: '# Hi',
+    });
+    renderEditor([mdTab], mdTab.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByLabelText('Toggle preview'));
+    expect(screen.getByText('PREVIEW')).toBeTruthy();
   });
 });

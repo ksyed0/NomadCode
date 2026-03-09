@@ -40,8 +40,8 @@ export const FileSystemBridge = {
           name,
           path: fullPath,
           isDirectory: entryInfo.isDirectory ?? false,
-          size: entryInfo.size,
-          modifiedAt: entryInfo.modificationTime,
+          size: entryInfo.exists ? entryInfo.size : undefined,
+          modifiedAt: entryInfo.exists ? entryInfo.modificationTime : undefined,
         };
       }),
     );

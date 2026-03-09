@@ -111,7 +111,7 @@ export default function FileExplorer({
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#2563EB" />
+        <ActivityIndicator testID="activity-indicator" color="#2563EB" />
       </View>
     );
   }

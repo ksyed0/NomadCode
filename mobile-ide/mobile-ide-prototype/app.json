@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "NomadCode",
+    "slug": "nomadcode",
+    "version": "0.1.0",
+    "orientation": "landscape",
+    "icon": "./assets/placeholder.png",
+    "splash": {
+      "image": "./assets/placeholder.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1e1e1e"
+    },
+    "platforms": ["ios", "android", "web"],
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nomadcode.mobileide"
+    },
+    "android": {
+      "package": "com.nomadcode.mobileide",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/placeholder.png",
+        "backgroundColor": "#1e1e1e"
+      }
+    }
+  }
+}
