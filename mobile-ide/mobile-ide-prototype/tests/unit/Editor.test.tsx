@@ -15,7 +15,9 @@ import Editor, { EditorTab } from '../../src/components/Editor';
 // ---------------------------------------------------------------------------
 
 jest.mock('react-native-webview', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { View } = require('react-native');
   const WebView = React.forwardRef((_props: object, _ref: unknown) => (
     <View testID="webview" />
