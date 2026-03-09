@@ -13,7 +13,13 @@ on:
       - main
       - develop
 
+# Cancel redundant runs on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # ── 1. Lint & Type-check ─────────────────────────────────────────────────
   lint-and-typecheck:
     name: Lint & Type-check
     runs-on: ubuntu-latest
@@ -40,8 +46,9 @@ jobs:
       - name: Type-check
         run: npm run type-check
 
+  # ── 2. Unit Tests + Coverage Gate (≥ 80%) ───────────────────────────────
   test:
-    name: Unit Tests
+    name: Unit Tests (coverage ≥ 80%)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -60,8 +67,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests with coverage
-        run: npm run test:coverage
+      # Jest fails the process (exit 1) when any threshold is not met
+      # because coverageThreshold is set in package.json.
+      - name: Run tests with coverage gate
+        run: npm run test:coverage -- --ci --forceExit --reporters=default --reporters=jest-junit
+        env:
+          CI: true
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -69,14 +80,137 @@ jobs:
         with:
           name: coverage-report
           path: mobile-ide/mobile-ide-prototype/coverage/
-          retention-days: 7
+          retention-days: 14
 
-  # Release job — only runs on release/* and hotfix/* branches targeting main
+      - name: Upload test results (JUnit)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: mobile-ide/mobile-ide-prototype/junit.xml
+          retention-days: 14
+
+      # Post a coverage summary as a PR comment (optional — requires
+      # write permissions; safe to remove if permissions are restricted)
+      - name: Coverage summary
+        if: github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2
+        continue-on-error: true
+        with:
+          json-summary-path: mobile-ide/mobile-ide-prototype/coverage/coverage-summary.json
+
+  # ── 3. Security — dependency audit ──────────────────────────────────────
+  security-audit:
+    name: Dependency Audit (npm audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-ide/mobile-ide-prototype
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Fail on high or critical vulnerabilities; moderate are reported but
+      # do not block the build (adjust --audit-level as required).
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      # Report on dev deps separately (informational, non-blocking)
+      - name: Audit dev dependencies (informational)
+        run: npm audit --audit-level=critical
+        continue-on-error: true
+
+  # ── 4. Security — static analysis (Semgrep) ─────────────────────────────
+  semgrep:
+    name: Static Analysis (Semgrep)
+    runs-on: ubuntu-latest
+    # Only run on PRs and pushes to develop/main-targeting branches
+    if: github.actor != 'dependabot[bot]'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: semgrep/semgrep-action@v1
+        with:
+          # Built-in rulesets — covers JS/TS security patterns
+          config: >-
+            p/javascript
+            p/typescript
+            p/react
+            p/secrets
+            p/owasp-top-ten
+        env:
+          # Optional: set SEMGREP_APP_TOKEN to upload findings to Semgrep Cloud
+          # SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+          SEMGREP_TIMEOUT: 300
+
+  # ── 5. Security — CodeQL (GitHub Advanced Security) ─────────────────────
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Extended security queries — catches more issues at the cost of more scan time
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'
+
+  # ── 6. Security — secret scanning (gitleaks) ────────────────────────────
+  gitleaks:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Full history needed to scan all commits
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── 7. Release (only on release/* and hotfix/* → main) ──────────────────
   create-release:
     name: Tag Release
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/hotfix/'))
-    needs: [lint-and-typecheck, test]
+    if: >
+      github.event_name == 'push' &&
+      (startsWith(github.ref, 'refs/heads/release/') ||
+       startsWith(github.ref, 'refs/heads/hotfix/'))
+    needs: [lint-and-typecheck, test, security-audit, semgrep, codeql, gitleaks]
 
     steps:
       - uses: actions/checkout@v4

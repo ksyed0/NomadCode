@@ -35,6 +35,7 @@
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "jest-expo": "~52.0.0",
+    "jest-junit": "^16.0.0",
     "typescript": "^5.3.3"
   },
   "jest": {
@@ -51,6 +52,8 @@
         "statements": 80
       }
     },
+    "coverageReporters": ["text", "lcov", "json-summary"],
+    "testResultsProcessor": "jest-junit",
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-webview)"
     ]
