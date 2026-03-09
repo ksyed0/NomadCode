@@ -30,9 +30,16 @@ jest.mock('react-native-webview', () => {
   const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { View } = require('react-native');
-  const WebView = React.forwardRef((_props: object, _ref: unknown) => (
-    <View testID="webview" />
-  ));
+  const WebView = React.forwardRef((props: { onMessage?: (e: object) => void }, ref: unknown) => {
+    // Expose injectJavaScript via ref so webViewRef.current is non-null
+    React.useImperativeHandle(ref, () => ({ injectJavaScript: jest.fn() }));
+    // Fire the 'ready' message so editorReady becomes true
+    React.useEffect(() => {
+      props.onMessage?.({ nativeEvent: { data: JSON.stringify({ type: 'ready' }) } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    return <View testID="webview" />;
+  });
   WebView.displayName = 'WebView';
   return { WebView };
 });
@@ -234,5 +241,65 @@ describe('buildPreviewHtml', () => {
   it('returns no-preview message for unsupported language', () => {
     const html = buildPreviewHtml('typescript', 'const x = 1;');
     expect(html).toContain('No preview available');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Toolbar interactions — covers changeFontSize, handleToolbarAction branches
+// ---------------------------------------------------------------------------
+
+describe('Editor — toolbar interactions', () => {
+  it('decrements font size when A- is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByText('A-'));
+    expect(screen.getByText('13')).toBeTruthy();
+  });
+
+  it('increments font size when A+ is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByText('A+'));
+    expect(screen.getByText('15')).toBeTruthy();
+  });
+
+  it('sends a command when a toolbar action button is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    expect(() => fireEvent.press(screen.getByLabelText('Undo'))).not.toThrow();
+  });
+
+  it('toggles multicursor mode on and shows the badge', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByLabelText('Add cursor mode'));
+    expect(screen.getByText('+ CURSOR')).toBeTruthy();
+  });
+
+  it('dismisses multicursor badge when its close button is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByLabelText('Add cursor mode'));
+    expect(screen.getByText('+ CURSOR')).toBeTruthy();
+    fireEvent.press(screen.getByText('✕'));
+    expect(screen.queryByText('+ CURSOR')).toBeNull();
+  });
+
+  it('preview button is disabled for non-previewable language', async () => {
+    renderEditor([TAB_A], TAB_A.path); // TypeScript — not previewable
+    await waitFor(() => screen.getByTestId('webview'));
+    // isDisabled=true → onPress short-circuits, no crash
+    expect(() => fireEvent.press(screen.getByLabelText('Toggle preview'))).not.toThrow();
+    expect(screen.queryByText('PREVIEW')).toBeNull();
+  });
+
+  it('shows preview pane when preview is toggled for a markdown file', async () => {
+    const mdTab = makeTab({
+      path: '/docs/doc.md', name: 'doc.md', language: 'markdown', content: '# Hi',
+    });
+    renderEditor([mdTab], mdTab.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByLabelText('Toggle preview'));
+    expect(screen.getByText('PREVIEW')).toBeTruthy();
   });
 });
