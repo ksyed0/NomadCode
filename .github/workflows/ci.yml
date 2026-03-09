@@ -3,15 +3,14 @@ name: CI
 on:
   push:
     branches:
+      - main
       - develop
       - 'feature/**'
       - 'bugfix/**'
       - 'release/**'
       - 'hotfix/**'
-  pull_request:
-    branches:
-      - main
-      - develop
+      - 'claude/**'
+  pull_request: # run on ALL pull requests regardless of base branch
 
 # Cancel redundant runs on the same branch
 concurrency:
@@ -50,7 +49,29 @@ jobs:
       - name: Type-check
         run: npm run type-check
 
-  # ── 2. Unit Tests + 80% Coverage Gate ────────────────────────────────────
+  # ── 2. Build Check ────────────────────────────────────────────────────────
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web export
+        run: npm run build
+        env:
+          CI: true
+
+  # ── 3. Unit Tests + 80% Coverage Gate ────────────────────────────────────
   test:
     name: Unit Tests (coverage ≥ 80%)
     runs-on: ubuntu-latest
@@ -99,12 +120,13 @@ jobs:
         with:
           json-summary-path: mobile-ide/mobile-ide-prototype/coverage/coverage-summary.json
 
-  # ── 3. Bundle Size Gate ───────────────────────────────────────────────────
+  # ── 4. Bundle Size Gate ───────────────────────────────────────────────────
   bundle-size:
     name: Bundle Size Check
     runs-on: ubuntu-latest
     # Only check on PRs so we get a meaningful diff comment
     if: github.event_name == 'pull_request'
+    needs: [build]
 
     steps:
       - uses: actions/checkout@v4
@@ -138,7 +160,7 @@ jobs:
           package_manager: npm
           directory: mobile-ide/mobile-ide-prototype
 
-  # ── 4. Security — Dependency Audit ────────────────────────────────────────
+  # ── 5. Security — Dependency Audit ────────────────────────────────────────
   security-audit:
     name: Dependency Audit (npm audit)
     runs-on: ubuntu-latest
@@ -164,7 +186,7 @@ jobs:
         run: npm audit --audit-level=critical
         continue-on-error: true
 
-  # ── 5. Security — Static Analysis (Semgrep) ───────────────────────────────
+  # ── 6. Security — Static Analysis (Semgrep) ───────────────────────────────
   semgrep:
     name: Static Analysis (Semgrep)
     runs-on: ubuntu-latest
@@ -185,7 +207,7 @@ jobs:
         env:
           SEMGREP_TIMEOUT: 300
 
-  # ── 6. Security — CodeQL ──────────────────────────────────────────────────
+  # ── 7. Security — CodeQL ──────────────────────────────────────────────────
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
@@ -216,7 +238,7 @@ jobs:
         with:
           category: '/language:${{ matrix.language }}'
 
-  # ── 7. Security — Secret Scanning (Gitleaks) ─────────────────────────────
+  # ── 8. Security — Secret Scanning (Gitleaks) ─────────────────────────────
   gitleaks:
     name: Secret Scanning (Gitleaks)
     runs-on: ubuntu-latest
@@ -231,7 +253,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ── 8. E2E Tests — iOS iPad Simulator ────────────────────────────────────
+  # ── 9. E2E Tests — iOS iPad Simulator ────────────────────────────────────
   e2e-ios:
     name: E2E Tests (iOS iPad Simulator)
     runs-on: macos-14
@@ -277,7 +299,7 @@ jobs:
           path: mobile-ide/mobile-ide-prototype/artifacts/
           retention-days: 7
 
-  # ── 9. E2E Tests — Android Emulator ──────────────────────────────────────
+  # ── 10. E2E Tests — Android Emulator ──────────────────────────────────────
   e2e-android:
     name: E2E Tests (Android Emulator)
     runs-on: ubuntu-latest
@@ -356,7 +378,7 @@ jobs:
           path: mobile-ide/mobile-ide-prototype/artifacts/
           retention-days: 7
 
-  # ── 10. Release gate — all jobs must pass ────────────────────────────────
+  # ── 11. Release gate — all jobs must pass ────────────────────────────────
   create-release:
     name: Tag Release
     runs-on: ubuntu-latest
@@ -366,6 +388,7 @@ jobs:
        startsWith(github.ref, 'refs/heads/hotfix/'))
     needs:
       - lint-and-typecheck
+      - build
       - test
       - security-audit
       - semgrep
