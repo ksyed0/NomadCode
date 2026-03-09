@@ -279,6 +279,10 @@ jobs:
       - name: Install CocoaPods
         run: sudo gem install cocoapods
 
+      - name: Generate native iOS project
+        run: npx expo prebuild --platform ios --no-install
+        working-directory: mobile-ide/mobile-ide-prototype
+
       - name: Install iOS pods
         run: npx pod-install
         working-directory: mobile-ide/mobile-ide-prototype/ios
@@ -355,6 +359,10 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
           script: echo "AVD created"
+
+      - name: Generate native Android project
+        run: npx expo prebuild --platform android --no-install
+        working-directory: mobile-ide/mobile-ide-prototype
 
       - name: Build Detox Android
         run: npm run test:e2e:build:android
