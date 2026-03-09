@@ -160,7 +160,7 @@ describe('TabletResponsive — phone layout', () => {
     fireEvent.press(screen.getByText('☰'));
     expect(screen.getByTestId('sidebar')).toBeTruthy();
     // The scrim is a TouchableOpacity sitting behind the drawer
-    fireEvent.press(screen.getByText('☰')); // close via toggle (scrim not easily queryable)
+    fireEvent.press(screen.getByText('✕')); // close via toggle (scrim not easily queryable)
     expect(screen.queryByTestId('sidebar')).toBeNull();
   });
 

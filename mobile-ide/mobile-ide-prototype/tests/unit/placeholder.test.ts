@@ -2,6 +2,8 @@
  * Unit tests — Editor utilities (getLanguageForFile)
  */
 
+jest.mock('react-native-webview', () => ({ WebView: 'WebView' }));
+
 import { getLanguageForFile } from '../../src/components/Editor';
 
 describe('getLanguageForFile', () => {

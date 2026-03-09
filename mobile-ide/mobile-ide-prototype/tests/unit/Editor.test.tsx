@@ -7,8 +7,19 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
-import Editor, { EditorTab } from '../../src/components/Editor';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import Editor, { EditorTab, buildPreviewHtml, canPreview } from '../../src/components/Editor';
+
+// ---------------------------------------------------------------------------
+// Mock MonacoAssetManager so monacoHtml is set synchronously after mount
+// ---------------------------------------------------------------------------
+
+jest.mock('../../src/utils/MonacoAssetManager', () => ({
+  MonacoAssetManager: {
+    resolve: jest.fn().mockResolvedValue({ baseUrl: 'https://cdn.test', isOffline: false }),
+  },
+  buildMonacoHtml: jest.fn().mockReturnValue('<html>monaco</html>'),
+}));
 
 // ---------------------------------------------------------------------------
 // Mock react-native-webview
@@ -110,9 +121,9 @@ describe('Editor — tab bar', () => {
     expect(screen.getByText('index.ts')).toBeTruthy();
   });
 
-  it('renders the WebView when at least one tab is open', () => {
+  it('renders the WebView when at least one tab is open', async () => {
     renderEditor([TAB_A], TAB_A.path);
-    expect(screen.getByTestId('webview')).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId('webview')).toBeTruthy());
   });
 
   it('renders a close button for each tab', () => {
@@ -177,5 +188,51 @@ describe('Editor — multiple tabs', () => {
 
   it('renders with null activeTabPath without crashing', () => {
     expect(() => renderEditor([TAB_A, TAB_B], null)).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Preview utilities
+// ---------------------------------------------------------------------------
+
+describe('canPreview', () => {
+  it.each([
+    ['markdown', true],
+    ['html',     true],
+    ['json',     true],
+    ['typescript', false],
+    ['javascript', false],
+    ['plaintext',  false],
+  ])('%s → %s', (lang, expected) => {
+    expect(canPreview(lang)).toBe(expected);
+  });
+});
+
+describe('buildPreviewHtml', () => {
+  it('returns markdown preview HTML for markdown language', () => {
+    const html = buildPreviewHtml('markdown', '# Hello');
+    expect(html).toContain('marked.parse');
+    expect(html).toContain('Hello');
+  });
+
+  it('returns HTML preview HTML for html language', () => {
+    const html = buildPreviewHtml('html', '<p>test</p>');
+    expect(html).toContain('iframe');
+    expect(html).toContain('sandbox');
+  });
+
+  it('returns JSON tree preview HTML for json language', () => {
+    const html = buildPreviewHtml('json', '{"key":"value"}');
+    expect(html).toContain('key');
+  });
+
+  it('returns JSON error preview when json is invalid', () => {
+    const html = buildPreviewHtml('json', 'not valid json');
+    expect(html).toContain('err');
+  });
+
+  it('returns no-preview message for unsupported language', () => {
+    const html = buildPreviewHtml('typescript', 'const x = 1;');
+    expect(html).toContain('No preview available');
   });
 });
