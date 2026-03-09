@@ -46,3 +46,47 @@ describe('parseReleasePlan', () => {
     it('parses task branch', () => expect(result.tasks[0].branch).toBe('feature/US-0001-open-file'));
   });
 });
+
+describe('parseReleasePlan — edge cases', () => {
+  it('returns empty arrays for empty input', () => {
+    const result = parseReleasePlan('');
+    expect(result.epics).toHaveLength(0);
+    expect(result.stories).toHaveLength(0);
+    expect(result.tasks).toHaveLength(0);
+  });
+
+  it('skips malformed blocks that have no recognised header', () => {
+    const md = '```\nNOT-AN-ID: something\n```';
+    const result = parseReleasePlan(md);
+    expect(result.epics).toHaveLength(0);
+  });
+
+  it('parses comma-separated dependencies', () => {
+    const md = '```\nEPIC-0010: Multi-dep\nDescription: Test\nRelease Target: v1\nStatus: Planned\nDependencies: EPIC-0001, EPIC-0002\n```';
+    const result = parseReleasePlan(md);
+    expect(result.epics[0].dependencies).toEqual(['EPIC-0001', 'EPIC-0002']);
+  });
+
+  it('handles empty dependency string', () => {
+    const md = '```\nEPIC-0011: No-dep\nDescription: Test\nRelease Target: v1\nStatus: Planned\nDependencies:\n```';
+    const result = parseReleasePlan(md);
+    expect(result.epics[0].dependencies).toEqual([]);
+  });
+
+  it('uses raw priority string when no (Px) wrapper', () => {
+    const md = '```\nUS-0099 (EPIC-0001): As a user, I want something.\nPriority: P1\nEstimate: S\nStatus: Planned\nBranch:\nAcceptance Criteria:\nDependencies: None\n```';
+    const result = parseReleasePlan(md);
+    expect(result.stories[0].priority).toBe('P1');
+  });
+
+  it('ignores blocks with no code-fence markers', () => {
+    const result = parseReleasePlan('No fences here at all');
+    expect(result.epics).toHaveLength(0);
+  });
+
+  it('handles multiple separate fenced blocks', () => {
+    const md = '```\nEPIC-0020: Alpha\nDescription: A\nRelease Target: v1\nStatus: Planned\nDependencies: None\n```\n\n```\nEPIC-0021: Beta\nDescription: B\nRelease Target: v1\nStatus: Planned\nDependencies: None\n```';
+    const result = parseReleasePlan(md);
+    expect(result.epics).toHaveLength(2);
+  });
+});
