@@ -177,9 +177,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Block on HIGH or CRITICAL vulnerabilities in production deps
+      # Block on HIGH or CRITICAL vulnerabilities in production deps.
+      # Uses audit-ci so known-unfixable issues (expo@52 tar CVEs) can be
+      # allowlisted in audit-ci.json without silencing all HIGH checks.
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+        run: npx --yes audit-ci@^7 --omit=dev
 
       # Report dev dep issues (informational — non-blocking)
       - name: Audit dev dependencies

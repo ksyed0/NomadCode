@@ -10,7 +10,8 @@
     "start": "npm --workspace=mobile-ide-prototype start",
     "build": "npm --workspace=mobile-ide-prototype build",
     "test": "npm --workspace=mobile-ide-prototype test",
-    "lint": "npm --workspace=mobile-ide-prototype lint"
+    "lint": "npm --workspace=mobile-ide-prototype lint",
+    "postinstall": "node scripts/patch-tar-interop.js"
   },
   "keywords": [
     "mobile",
@@ -22,10 +23,11 @@
   "author": "NomadCode",
   "license": "MIT",
   "devDependencies": {
+    "tar": "7.5.11",
     "typescript": "^5.3.3"
   },
   "overrides": {
-    "tar": "6.2.1",
+    "tar": "7.5.11",
     "cacache": ">=20.0.0"
   }
 }

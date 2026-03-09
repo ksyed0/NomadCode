@@ -1,0 +1,11 @@
+{
+  "high": true,
+  "allowlist": [
+    "GHSA-r6q2-hw4h-h46w",
+    "GHSA-34x7-hfp2-rc4v",
+    "GHSA-8qq5-rm4j-mr97",
+    "GHSA-83g3-92jg-28cx",
+    "GHSA-qffp-2rhf-9h96"
+  ],
+  "_comment": "These 5 tar CVEs (<=7.5.9) come from expo@52 pulling in @expo/cli@0.22.x which requires tar@^6.2.1. Upgrading would require expo@53 (breaking change). Risk is minimal: the vulnerable tar.extract() is only called by expo prebuild to unpack npm registry packages (trusted source). Fix: upgrade to expo@53 when stable."
+}
