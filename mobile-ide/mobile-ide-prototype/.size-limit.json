@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Main JS bundle (web export)",
+    "path": "dist/**/*.js",
+    "limit": "2 MB",
+    "gzip": true
+  },
+  {
+    "name": "Total assets (web export)",
+    "path": "dist/**/*",
+    "limit": "10 MB",
+    "gzip": false
+  }
+]

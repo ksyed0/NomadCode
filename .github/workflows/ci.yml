@@ -1,0 +1,392 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'release/**'
+      - 'hotfix/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+# Cancel redundant runs on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: mobile-ide/mobile-ide-prototype
+
+# ─────────────────────────────────────────────────────────────────────────────
+# JOBS
+# ─────────────────────────────────────────────────────────────────────────────
+jobs:
+
+  # ── 1. Lint & Type-check ──────────────────────────────────────────────────
+  lint-and-typecheck:
+    name: Lint & Type-check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run type-check
+
+  # ── 2. Unit Tests + 80% Coverage Gate ────────────────────────────────────
+  test:
+    name: Unit Tests (coverage ≥ 80%)
+    runs-on: ubuntu-latest
+    # Re-run flaky tests once before failing
+    continue-on-error: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # --ci exits 1 on threshold breach; --forceExit prevents hanging workers
+      - name: Run tests with coverage
+        run: npm run test:coverage -- --ci --forceExit --testRetry=1 --reporters=default --reporters=jest-junit
+        env:
+          CI: true
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: mobile-ide/mobile-ide-prototype/coverage/
+          retention-days: 14
+
+      - name: Upload JUnit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: mobile-ide/mobile-ide-prototype/junit.xml
+          retention-days: 14
+
+      # Post coverage diff comment on every PR
+      - name: Coverage PR comment
+        if: github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2
+        continue-on-error: true
+        with:
+          json-summary-path: mobile-ide/mobile-ide-prototype/coverage/coverage-summary.json
+
+  # ── 3. Bundle Size Gate ───────────────────────────────────────────────────
+  bundle-size:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    # Only check on PRs so we get a meaningful diff comment
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web export
+        run: npm run build
+        env:
+          CI: true
+
+      # Fails the job if any limit in .size-limit.json is exceeded
+      - name: Check bundle size
+        run: npm run size
+        env:
+          CI: true
+
+      # Post a size comparison comment on the PR
+      - name: Post size comment
+        uses: andresz1/size-limit-action@v1
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          package_manager: npm
+          directory: mobile-ide/mobile-ide-prototype
+
+  # ── 4. Security — Dependency Audit ────────────────────────────────────────
+  security-audit:
+    name: Dependency Audit (npm audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Block on HIGH or CRITICAL vulnerabilities in production deps
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      # Report dev dep issues (informational — non-blocking)
+      - name: Audit dev dependencies
+        run: npm audit --audit-level=critical
+        continue-on-error: true
+
+  # ── 5. Security — Static Analysis (Semgrep) ───────────────────────────────
+  semgrep:
+    name: Static Analysis (Semgrep)
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/javascript
+            p/typescript
+            p/react
+            p/secrets
+            p/owasp-top-ten
+        env:
+          SEMGREP_TIMEOUT: 300
+
+  # ── 6. Security — CodeQL ──────────────────────────────────────────────────
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'
+
+  # ── 7. Security — Secret Scanning (Gitleaks) ─────────────────────────────
+  gitleaks:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── 8. E2E Tests — iOS iPad Simulator ────────────────────────────────────
+  e2e-ios:
+    name: E2E Tests (iOS iPad Simulator)
+    runs-on: macos-14
+    # Only run on PRs targeting main — E2E is slow and expensive
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    needs: [lint-and-typecheck, test]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Detox CLI
+        run: npm install -g detox-cli
+
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods
+
+      - name: Install iOS pods
+        run: npx pod-install
+        working-directory: mobile-ide/mobile-ide-prototype/ios
+
+      - name: Build Detox iOS
+        run: npm run test:e2e:build:ios
+
+      - name: Run Detox E2E (iPad)
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload E2E artifacts on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: detox-artifacts-ios
+          path: mobile-ide/mobile-ide-prototype/artifacts/
+          retention-days: 7
+
+  # ── 9. E2E Tests — Android Emulator ──────────────────────────────────────
+  e2e-android:
+    name: E2E Tests (Android Emulator)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    needs: [lint-and-typecheck, test]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Detox CLI
+        run: npm install -g detox-cli
+
+      - name: Enable KVM (hardware acceleration)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34
+
+      - name: Create AVD and generate snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "AVD created"
+
+      - name: Build Detox Android
+        run: npm run test:e2e:build:android
+
+      - name: Run Detox E2E (Android)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: cd mobile-ide/mobile-ide-prototype && npm run test:e2e:android
+
+      - name: Upload E2E artifacts on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: detox-artifacts-android
+          path: mobile-ide/mobile-ide-prototype/artifacts/
+          retention-days: 7
+
+  # ── 10. Release gate — all jobs must pass ────────────────────────────────
+  create-release:
+    name: Tag Release
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' &&
+      (startsWith(github.ref, 'refs/heads/release/') ||
+       startsWith(github.ref, 'refs/heads/hotfix/'))
+    needs:
+      - lint-and-typecheck
+      - test
+      - security-audit
+      - semgrep
+      - codeql
+      - gitleaks
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from branch name
+        id: version
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          VERSION="${BRANCH#release/}"
+          VERSION="${VERSION#hotfix/}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          draft: true
+          generate_release_notes: true
