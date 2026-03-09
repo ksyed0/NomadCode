@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NomadCode — Plan Status</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>body { font-family: 'Inter', sans-serif; } code, .font-mono { font-family: 'JetBrains Mono', monospace; }</style>
+  
+  <style>
+  @media print {
+    #filter-bar, #tab-bar, .fixed { display: none !important; }
+    #tab-hierarchy, #tab-costs { display: block !important; }
+    #tab-kanban, #tab-traceability, #tab-charts, #tab-bugs { display: none !important; }
+    body { font-size: 11pt; }
+    .bg-slate-900 { background: white !important; color: black !important; }
+    .text-white, .text-blue-400, .text-slate-400 { color: black !important; }
+  }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  
+  <div class="bg-slate-900 text-white px-6 py-4 flex flex-wrap gap-6 items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-blue-400">NomadCode</h1>
+      <p class="text-slate-400 text-sm">Code from anywhere. &nbsp;·&nbsp; Updated 2026-03-09 &nbsp;·&nbsp; <code class="text-slate-500 text-xs">617c987</code></p>
+    </div>
+    <div class="flex gap-6 flex-wrap">
+      <div class="text-center"><div class="text-2xl font-bold">0</div><div class="text-xs text-slate-400">Stories</div></div>
+      <div class="text-center"><div class="text-2xl font-bold text-green-400">0%</div><div class="text-xs text-slate-400">Complete</div></div>
+      <div class="text-center"><div class="text-2xl font-bold text-yellow-400">$0.00</div><div class="text-xs text-slate-400">Projected</div></div>
+      <div class="text-center"><div class="text-2xl font-bold text-teal-400">$0.05</div><div class="text-xs text-slate-400">AI Cost</div></div>
+      <div class="text-center"><div class="text-2xl font-bold text-red-400">0.0%</div><div class="text-xs text-slate-400">Coverage</div></div>
+    </div>
+  </div>
+  
+  <div class="bg-white border-b border-slate-200 px-6 py-3 flex flex-wrap gap-3 items-center" id="filter-bar">
+    <select id="f-epic" onchange="applyFilters()" class="border border-slate-300 rounded px-2 py-1 text-sm">
+      <option value="">All Epics</option>
+    </select>
+    <select id="f-status" onchange="applyFilters()" class="border border-slate-300 rounded px-2 py-1 text-sm">
+      <option value="">All Statuses</option>
+      <option>In Progress</option><option>Planned</option><option>Done</option><option>Blocked</option>
+    </select>
+    <select id="f-priority" onchange="applyFilters()" class="border border-slate-300 rounded px-2 py-1 text-sm">
+      <option value="">All Priorities</option>
+      <option>P0</option><option>P1</option><option>P2</option>
+    </select>
+    <select id="f-type" onchange="applyFilters()" class="border border-slate-300 rounded px-2 py-1 text-sm">
+      <option value="">Stories + Bugs</option><option value="story">Stories only</option><option value="bug">Bugs only</option>
+    </select>
+    <input id="f-search" oninput="applyFilters()" type="text" placeholder="Search IDs, titles…"
+      class="border border-slate-300 rounded px-2 py-1 text-sm w-48" />
+    <button onclick="clearFilters()" class="text-sm text-slate-500 hover:text-slate-800 underline">Clear</button>
+  </div>
+  
+  <div class="border-b border-slate-200 bg-white px-6 flex gap-1" id="tab-bar">
+    
+    <button onclick="showTab('hierarchy')" id="tab-btn-hierarchy"
+      class="px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600">
+      Hierarchy
+    </button>
+    <button onclick="showTab('kanban')" id="tab-btn-kanban"
+      class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900">
+      Kanban
+    </button>
+    <button onclick="showTab('traceability')" id="tab-btn-traceability"
+      class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900">
+      Traceability
+    </button>
+    <button onclick="showTab('charts')" id="tab-btn-charts"
+      class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900">
+      Charts
+    </button>
+    <button onclick="showTab('costs')" id="tab-btn-costs"
+      class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900">
+      Costs
+    </button>
+    <button onclick="showTab('bugs')" id="tab-btn-bugs"
+      class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900">
+      Bugs
+    </button>
+  </div>
+  <div id="tab-content">
+    <div id="tab-hierarchy" class="p-6"></div>
+    <div id="tab-kanban" class="p-6 hidden"><div class="flex gap-4 overflow-x-auto">
+    <div class="flex-1 min-w-48">
+      <h3 class="text-sm font-semibold text-slate-600 mb-3 pb-1 border-b border-slate-200">To Do <span class="text-slate-400 font-normal">(0)</span></h3>
+      
+    </div>
+    <div class="flex-1 min-w-48">
+      <h3 class="text-sm font-semibold text-slate-600 mb-3 pb-1 border-b border-slate-200">Planned <span class="text-slate-400 font-normal">(0)</span></h3>
+      
+    </div>
+    <div class="flex-1 min-w-48">
+      <h3 class="text-sm font-semibold text-slate-600 mb-3 pb-1 border-b border-slate-200">In Progress <span class="text-slate-400 font-normal">(0)</span></h3>
+      
+    </div>
+    <div class="flex-1 min-w-48">
+      <h3 class="text-sm font-semibold text-slate-600 mb-3 pb-1 border-b border-slate-200">Blocked <span class="text-slate-400 font-normal">(0)</span></h3>
+      
+    </div>
+    <div class="flex-1 min-w-48">
+      <h3 class="text-sm font-semibold text-slate-600 mb-3 pb-1 border-b border-slate-200">Done <span class="text-slate-400 font-normal">(0)</span></h3>
+      
+    </div></div></div>
+    <div id="tab-traceability" class="p-6 hidden"><p class="text-slate-400">No test cases yet.</p></div>
+    
+  <div id="tab-charts" class="p-6 hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-slate-600 mb-3">Epic Progress</h3>
+        <canvas id="chart-epic-progress" height="200"></canvas>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-slate-600 mb-3">Cost Breakdown (Projected vs AI)</h3>
+        <canvas id="chart-cost-breakdown" height="200"></canvas>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-slate-600 mb-3">Test Coverage</h3>
+        <canvas id="chart-coverage" height="200"></canvas>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-slate-600 mb-3">AI Cost Timeline</h3>
+        <canvas id="chart-ai-timeline" height="200"></canvas>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-slate-600 mb-3">Burndown (Stories Remaining)</h3>
+        <canvas id="chart-burndown" height="200"></canvas>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-slate-600 mb-3">Budget Burn Rate</h3>
+        <canvas id="chart-burn-rate" height="200"></canvas>
+      </div>
+
+    </div>
+  </div>
+  <script>
+  function initCharts() {
+    new Chart(document.getElementById('chart-epic-progress'), {
+      type: 'bar',
+      data: { labels: [], datasets: [
+        { label: 'Done', data: [], backgroundColor: '#22c55e' },
+        { label: 'In Progress', data: [], backgroundColor: '#3b82f6' },
+        { label: 'Planned/To Do', data: [], backgroundColor: '#e2e8f0' },
+      ]},
+      options: { indexAxis: 'y', responsive: true, scales: { x: { stacked: true }, y: { stacked: true } } }
+    });
+    new Chart(document.getElementById('chart-cost-breakdown'), {
+      type: 'bar',
+      data: { labels: [], datasets: [
+        { label: 'Projected ($)', data: [], backgroundColor: '#f59e0b' },
+        { label: 'AI Cost ($)', data: [], backgroundColor: '#0d9488' },
+      ]},
+      options: { responsive: true }
+    });
+    new Chart(document.getElementById('chart-coverage'), {
+      type: 'doughnut',
+      data: { labels: ['Coverage', 'Gap'], datasets: [{ data: [0.0, 100], backgroundColor: ['#22c55e','#e2e8f0'], borderWidth: 0 }] },
+      options: { cutout: '70%', plugins: { legend: { display: false } } }
+    });
+    new Chart(document.getElementById('chart-ai-timeline'), {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Cumulative AI Cost ($)', data: [], borderColor: '#0d9488', tension: 0.3, fill: true, backgroundColor: 'rgba(13,148,136,0.1)' }] },
+      options: { responsive: true }
+    });
+    new Chart(document.getElementById('chart-burndown'), {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Stories Remaining', data: [], borderColor: '#3b82f6', tension: 0.3 }] },
+      options: { responsive: true }
+    });
+    new Chart(document.getElementById('chart-burn-rate'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ label: 'Session AI Spend ($)', data: [], backgroundColor: '#6366f1' }] },
+      options: { responsive: true }
+    });
+  }
+  </script>
+    
+  <div id="tab-costs" class="p-6 hidden overflow-x-auto">
+    <table class="w-full text-left text-sm border-collapse">
+      <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+        <tr>
+          <th class="px-3 py-2">Story</th><th class="px-3 py-2">Title</th><th class="px-3 py-2 text-center">Status</th>
+          <th class="px-3 py-2 text-center">Size</th><th class="px-3 py-2 text-right">Projected</th>
+          <th class="px-3 py-2 text-right">AI Cost</th><th class="px-3 py-2 text-right">Tokens (in/out)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot class="bg-slate-50 font-semibold">
+        <tr>
+          <td colspan="4" class="px-3 py-2 text-right text-sm">Totals</td>
+          <td class="px-3 py-2 text-right text-sm">$0.00</td>
+          <td class="px-3 py-2 text-right text-sm text-teal-600">$0.05</td>
+          <td class="px-3 py-2 text-right text-xs text-slate-400">1,000 / 200</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+    <div id="tab-bugs" class="p-6 hidden"><p class="text-slate-400">No bugs logged yet.</p></div>
+  </div>
+  
+  
+  <script>
+  const ALL_DATA = {"epics":[],"stories":[]};
+
+  function showTab(name) {
+    ['hierarchy','kanban','traceability','charts','costs','bugs'].forEach(t => {
+      const el = document.getElementById('tab-' + t);
+      const btn = document.getElementById('tab-btn-' + t);
+      if (el) el.classList.toggle('hidden', t !== name);
+      if (btn) {
+        btn.classList.toggle('border-blue-500', t === name);
+        btn.classList.toggle('text-blue-600', t === name);
+        btn.classList.toggle('border-transparent', t !== name);
+        btn.classList.toggle('text-slate-600', t !== name);
+      }
+    });
+    if (name === 'charts' && typeof initCharts === 'function') { initCharts(); initCharts = () => {}; }
+  }
+
+  function toggleEpic(id) {
+    const el = document.getElementById('epic-stories-' + id);
+    if (el) el.classList.toggle('hidden');
+  }
+  function toggleACs(id) {
+    const el = document.getElementById('acs-' + id);
+    if (el) el.classList.toggle('hidden');
+  }
+
+  function applyFilters() {
+    const epic = document.getElementById('f-epic').value;
+    const status = document.getElementById('f-status').value;
+    const priority = document.getElementById('f-priority').value;
+    const search = document.getElementById('f-search').value.toLowerCase();
+    document.querySelectorAll('.story-row').forEach(row => {
+      const matchEpic = !epic || row.dataset.epic === epic;
+      const matchStatus = !status || row.dataset.status === status;
+      const matchPriority = !priority || row.dataset.priority === priority;
+      const matchSearch = !search || row.innerText.toLowerCase().includes(search);
+      row.style.display = (matchEpic && matchStatus && matchPriority && matchSearch) ? '' : 'none';
+    });
+  }
+
+  function clearFilters() {
+    ['f-epic','f-status','f-priority','f-type'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-search').value = '';
+    applyFilters();
+  }
+  </script>
+</body>
+</html>
