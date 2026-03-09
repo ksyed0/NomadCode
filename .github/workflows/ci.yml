@@ -262,6 +262,7 @@ jobs:
     # Only run on PRs targeting main — E2E is slow and expensive
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
     needs: [lint-and-typecheck, test]
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
@@ -271,6 +272,22 @@ jobs:
           node-version: '20'
           cache: npm
           cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      # Cache Xcode DerivedData — reduces cold build from ~25 min to ~5 min.
+      # Must be placed before the build step; cache is saved at job end.
+      - name: Cache Xcode DerivedData
+        uses: irgaly/xcode-cache@v1
+        with:
+          key: xcode-deriveddata-${{ hashFiles('mobile-ide/mobile-ide-prototype/package-lock.json') }}
+          restore-keys: xcode-deriveddata-
+
+      # Cache the Pods directory keyed on npm deps (expo/RN version drives pod versions)
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: mobile-ide/mobile-ide-prototype/ios/Pods
+          key: pods-${{ hashFiles('mobile-ide/mobile-ide-prototype/package-lock.json') }}
+          restore-keys: pods-
 
       - name: Install dependencies
         run: npm ci
