@@ -1,0 +1,27 @@
+{
+  "name": "mobile-ide",
+  "version": "0.1.0",
+  "description": "A mobile-first integrated development environment",
+  "private": true,
+  "workspaces": [
+    "mobile-ide-prototype"
+  ],
+  "scripts": {
+    "start": "npm --workspace=mobile-ide-prototype start",
+    "build": "npm --workspace=mobile-ide-prototype build",
+    "test": "npm --workspace=mobile-ide-prototype test",
+    "lint": "npm --workspace=mobile-ide-prototype lint"
+  },
+  "keywords": [
+    "mobile",
+    "ide",
+    "editor",
+    "typescript",
+    "react-native"
+  ],
+  "author": "NomadCode",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
