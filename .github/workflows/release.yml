@@ -1,0 +1,53 @@
+name: Release
+
+# Runs on every merge to main and creates a versioned release automatically.
+# Uses semantic-release to determine the version bump from Conventional Commits:
+#   feat:     → MINOR bump  (e.g. 0.1.0 → 0.2.0)
+#   fix:      → PATCH bump  (e.g. 0.1.0 → 0.1.1)
+#   feat!: or BREAKING CHANGE: → MAJOR bump (e.g. 0.1.0 → 1.0.0)
+#   chore/docs/test/ci: → no release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write        # create tags and GitHub releases
+  issues: write          # comment on issues when they are included in a release
+  pull-requests: write   # comment on PRs when they are included in a release
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    # All CI gates must pass before a release is cut
+    # (enforce this via branch protection on main — not repeated here to avoid
+    #  circular dependencies in the workflow graph)
+
+    steps:
+      - name: Checkout (full history required by semantic-release)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
+
+      - name: Install release tools
+        run: npm install --no-save semantic-release \
+          @semantic-release/changelog \
+          @semantic-release/git \
+          @semantic-release/github \
+          @semantic-release/exec \
+          conventional-changelog-conventionalcommits
+
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
