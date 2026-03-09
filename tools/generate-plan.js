@@ -70,7 +70,15 @@ function main() {
   const generatedAt = new Date().toISOString();
   const commitSha = getCommitSha();
 
-  const data = { epics, stories, tasks, testCases, bugs, costs, atRisk, coverage, recentActivity, generatedAt, commitSha };
+  const sessionTimeline = [...costRows]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .reduce((acc, row) => {
+      const prev = acc.length ? acc[acc.length - 1].cumCost : 0;
+      acc.push({ date: row.date, cumCost: parseFloat((prev + row.costUsd).toFixed(4)) });
+      return acc;
+    }, []);
+
+  const data = { epics, stories, tasks, testCases, bugs, costs, atRisk, coverage, recentActivity, generatedAt, commitSha, sessionTimeline };
 
   const jsonPath = path.join(ROOT, 'Docs', 'plan-status.json');
   fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2), 'utf8');

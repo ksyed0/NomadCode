@@ -1,17 +1,1044 @@
 {
-  "epics": [],
-  "stories": [],
-  "tasks": [],
-  "testCases": [],
+  "epics": [
+    {
+      "id": "EPIC-0001",
+      "title": "Code Editing",
+      "description": "Core syntax-highlighted editor with file open/save, undo/redo, multi-tab support.",
+      "releaseTarget": "MVP (v0.1)",
+      "status": "In Progress",
+      "dependencies": []
+    },
+    {
+      "id": "EPIC-0002",
+      "title": "File Management",
+      "description": "File Explorer with full directory CRUD — browse, create, rename, delete, move.",
+      "releaseTarget": "MVP (v0.1)",
+      "status": "In Progress",
+      "dependencies": [
+        "EPIC-0001"
+      ]
+    },
+    {
+      "id": "EPIC-0003",
+      "title": "Terminal",
+      "description": "Integrated sandboxed terminal via Xterm.js + WASI for running build/test commands.",
+      "releaseTarget": "Release 0.5 (Beta)",
+      "status": "Planned",
+      "dependencies": [
+        "EPIC-0001",
+        "EPIC-0002"
+      ]
+    },
+    {
+      "id": "EPIC-0004",
+      "title": "Command Palette",
+      "description": "Fuzzy-search command palette accessible by gesture or Cmd+P for keyboard-free power workflows.",
+      "releaseTarget": "Release 0.5 (Beta)",
+      "status": "Planned",
+      "dependencies": [
+        "EPIC-0001"
+      ]
+    },
+    {
+      "id": "EPIC-0005",
+      "title": "Customization",
+      "description": "Light/dark themes, font size settings, and extension installation.",
+      "releaseTarget": "Release 1.0 (GA)",
+      "status": "Planned",
+      "dependencies": [
+        "EPIC-0001",
+        "EPIC-0002",
+        "EPIC-0003",
+        "EPIC-0004"
+      ]
+    },
+    {
+      "id": "EPIC-0006",
+      "title": "Plan Visualizer",
+      "description": "Self-updating HTML dashboard for project plan status, cost tracking, and traceability — auto-deployed to GitHub Pages.",
+      "releaseTarget": "MVP (v0.1)",
+      "status": "Done",
+      "dependencies": []
+    }
+  ],
+  "stories": [
+    {
+      "id": "US-0001",
+      "epicId": "EPIC-0001",
+      "title": "As a developer, I want to open a file on my device, so that I can read and edit existing code.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "In Progress",
+      "branch": "feature/US-0001-open-file",
+      "acs": [
+        {
+          "id": "AC-TBD",
+          "text": "File picker opens device file system",
+          "done": false
+        },
+        {
+          "id": "AC-TBD",
+          "text": "Selected file content loads in editor",
+          "done": false
+        },
+        {
+          "id": "AC-TBD",
+          "text": "File path displayed in editor header",
+          "done": false
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "US-0002",
+      "epicId": "EPIC-0001",
+      "title": "As a developer, I want to edit code with syntax highlighting, so that I can read code more easily.",
+      "priority": "P0",
+      "estimate": "L",
+      "status": "In Progress",
+      "branch": "feature/US-0002-syntax-highlighting",
+      "acs": [
+        {
+          "id": "AC-TBD",
+          "text": "TypeScript/JavaScript syntax highlighted correctly",
+          "done": false
+        },
+        {
+          "id": "AC-TBD",
+          "text": "Editor responsive to touch input (tap to position cursor)",
+          "done": false
+        },
+        {
+          "id": "AC-TBD",
+          "text": "Virtual keyboard adjusts editor viewport",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0001"
+      ]
+    },
+    {
+      "id": "US-0003",
+      "epicId": "EPIC-0001",
+      "title": "As a developer, I want to save my changes, so that my work is not lost.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0001",
+        "US-0002"
+      ]
+    },
+    {
+      "id": "US-0004",
+      "epicId": "EPIC-0001",
+      "title": "As a developer, I want to undo and redo changes, so that I can recover from mistakes.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0002"
+      ]
+    },
+    {
+      "id": "US-0005",
+      "epicId": "EPIC-0001",
+      "title": "As a developer, I want to search and replace text within a file, so that I can refactor code quickly.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0002"
+      ]
+    },
+    {
+      "id": "US-0006",
+      "epicId": "EPIC-0001",
+      "title": "As a developer, I want to view multiple files in tabs, so that I can work across files without losing context.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0001",
+        "US-0002"
+      ]
+    },
+    {
+      "id": "US-0007",
+      "epicId": "EPIC-0002",
+      "title": "As a developer, I want to browse my project directory tree, so that I can find and open any file.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "In Progress",
+      "branch": "",
+      "acs": [],
+      "dependencies": []
+    },
+    {
+      "id": "US-0008",
+      "epicId": "EPIC-0002",
+      "title": "As a developer, I want to create new files and folders, so that I can add to my project.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0007"
+      ]
+    },
+    {
+      "id": "US-0009",
+      "epicId": "EPIC-0002",
+      "title": "As a developer, I want to rename files and folders, so that I can keep my project organized.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0007"
+      ]
+    },
+    {
+      "id": "US-0010",
+      "epicId": "EPIC-0002",
+      "title": "As a developer, I want to delete files and folders, so that I can clean up my project.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0007"
+      ]
+    },
+    {
+      "id": "US-0011",
+      "epicId": "EPIC-0002",
+      "title": "As a developer, I want to move files via drag-and-drop, so that I can restructure my project intuitively.",
+      "priority": "P2",
+      "estimate": "L",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0007",
+        "US-0008",
+        "US-0009",
+        "US-0010"
+      ]
+    },
+    {
+      "id": "US-0012",
+      "epicId": "EPIC-0003",
+      "title": "As a developer, I want to open an integrated terminal, so that I can run commands without leaving the app.",
+      "priority": "P0",
+      "estimate": "XL",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "EPIC-0001",
+        "EPIC-0002"
+      ]
+    },
+    {
+      "id": "US-0013",
+      "epicId": "EPIC-0003",
+      "title": "As a developer, I want to run build and test commands, so that I can verify my code works.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0012"
+      ]
+    },
+    {
+      "id": "US-0014",
+      "epicId": "EPIC-0003",
+      "title": "As a developer, I want to see colored terminal output, so that I can parse logs more easily.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0012"
+      ]
+    },
+    {
+      "id": "US-0015",
+      "epicId": "EPIC-0004",
+      "title": "As a power user, I want to open a command palette, so that I can run any action without navigating menus.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "EPIC-0001"
+      ]
+    },
+    {
+      "id": "US-0016",
+      "epicId": "EPIC-0004",
+      "title": "As a power user, I want to search commands by name, so that I can find actions without memorizing locations.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0015"
+      ]
+    },
+    {
+      "id": "US-0017",
+      "epicId": "EPIC-0004",
+      "title": "As a power user, I want to see keyboard shortcuts in the palette, so that I can learn shortcuts over time.",
+      "priority": "P2",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0015",
+        "US-0016"
+      ]
+    },
+    {
+      "id": "US-0018",
+      "epicId": "EPIC-0005",
+      "title": "As a developer, I want to switch between light and dark themes, so that I can use the app comfortably in any environment.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "EPIC-0001"
+      ]
+    },
+    {
+      "id": "US-0019",
+      "epicId": "EPIC-0005",
+      "title": "As a developer, I want to change font size, so that I can read comfortably on my device.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "US-0018"
+      ]
+    },
+    {
+      "id": "US-0020",
+      "epicId": "EPIC-0005",
+      "title": "As a power user, I want to install extensions, so that I can enhance the IDE with tools I need.",
+      "priority": "P1",
+      "estimate": "XL",
+      "status": "Planned",
+      "branch": "",
+      "acs": [],
+      "dependencies": [
+        "EPIC-0001",
+        "EPIC-0002",
+        "EPIC-0003",
+        "EPIC-0004"
+      ]
+    },
+    {
+      "id": "US-0021",
+      "epicId": "EPIC-0006",
+      "title": "As a project lead, I want a plan status dashboard, so that I can see project health at a glance.",
+      "priority": "P0",
+      "estimate": "XL",
+      "status": "Done",
+      "branch": "feature/US-0021-plan-visualizer",
+      "acs": [
+        {
+          "id": "AC-0001",
+          "text": "HTML page generated from RELEASE_PLAN.md",
+          "done": true
+        },
+        {
+          "id": "AC-0002",
+          "text": "Filter by epic, status, priority, search",
+          "done": true
+        },
+        {
+          "id": "AC-0003",
+          "text": "Epic→Story→AC→TC hierarchy view",
+          "done": true
+        },
+        {
+          "id": "AC-0004",
+          "text": "All 7 Chart.js charts render on Charts tab",
+          "done": true
+        },
+        {
+          "id": "AC-0005",
+          "text": "Cost table shows projected and AI costs per story",
+          "done": true
+        },
+        {
+          "id": "AC-0006",
+          "text": "Traceability matrix links TCs to stories and ACs",
+          "done": true
+        },
+        {
+          "id": "AC-0007",
+          "text": "GitHub Actions auto-deploys to GitHub Pages on qualifying commits",
+          "done": true
+        },
+        {
+          "id": "AC-0008",
+          "text": "Claude Code stop hook appends cost rows to AI_COST_LOG.md",
+          "done": true
+        }
+      ],
+      "dependencies": []
+    }
+  ],
+  "tasks": [
+    {
+      "id": "TASK-0001",
+      "storyId": "US-0002",
+      "title": "Implement CodeMirror 6 in WebView for syntax-highlighted editing",
+      "type": "Dev",
+      "assignee": "Agent",
+      "status": "To Do",
+      "branch": "feature/US-0002-syntax-highlighting",
+      "notes": "Evaluate @codemirror/lang-javascript bundle size before integrating"
+    },
+    {
+      "id": "TASK-0002",
+      "storyId": "US-0001",
+      "title": "Wire FileSystemBridge to Expo FileSystem for real file read/write",
+      "type": "Dev",
+      "assignee": "Agent",
+      "status": "To Do",
+      "branch": "feature/US-0001-open-file",
+      "notes": "Currently uses placeholder implementation"
+    }
+  ],
+  "testCases": [
+    {
+      "id": "TC-0001",
+      "title": "renderHtml returns valid HTML document",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0002",
+      "title": "renderHtml includes DOCTYPE declaration",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0003",
+      "title": "renderHtml includes Tailwind CDN link",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0004",
+      "title": "renderHtml includes Chart.js CDN link",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0004",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0005",
+      "title": "renderHtml includes project name in output",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0006",
+      "title": "renderHtml includes generated timestamp",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0007",
+      "title": "renderHtml includes commit SHA",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0008",
+      "title": "renderHtml includes total projected cost",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0005",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0009",
+      "title": "renderHtml includes coverage percent",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0010",
+      "title": "renderHtml includes epic filter option",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0002",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0011",
+      "title": "renderHtml includes all 6 navigation tabs",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0012",
+      "title": "renderHtml marks at-risk story with warning badge",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0003",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0013",
+      "title": "renderHtml renders bug rows in bugs tab when bugs present",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0006",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0014",
+      "title": "renderHtml renders traceability matrix when test cases present",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0006",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0015",
+      "title": "renderHtml omits Recent Activity widget when activity list is empty",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0016",
+      "title": "renderHtml shows 0% complete when no stories",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0017",
+      "title": "renderHtml does not render at-risk badge for safe story",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0003",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0018",
+      "title": "renderHtml renders AC items with linked TC reference",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0003",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0019",
+      "title": "renderHtml renders AC items without linked TC",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0003",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0020",
+      "title": "renderHtml renders red coverage indicator when below 80%",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0021",
+      "title": "renderHtml uses grey badge for unknown story status",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0022",
+      "title": "renderHtml shows no stories message for empty epic",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0003",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0023",
+      "title": "renderHtml places done story in Done kanban column (shows 100%)",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0003",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0024",
+      "title": "renderHtml renders Fail cell in traceability matrix",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0006",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0025",
+      "title": "renderHtml renders all risk reason labels in title attribute",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0003",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0026",
+      "title": "renderHtml renders Blocked story in kanban board",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0003",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0027",
+      "title": "renderHtml shows question mark for missing story estimate",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0005",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0028",
+      "title": "renderHtml renders Not Run cell in traceability matrix",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0006",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0029",
+      "title": "parseReleasePlan parses epics and stories from RELEASE_PLAN.md",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0001",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0030",
+      "title": "parseCostLog extracts rows from AI_COST_LOG.md markdown table",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0008",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0031",
+      "title": "aggregateCostByBranch sums tokens and cost per branch",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0008",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0032",
+      "title": "parseCoverage extracts lines, branches, functions, statements percentages",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0004",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0033",
+      "title": "detectAtRisk flags stories missing test cases, no branch, or failed TC",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0003",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0034",
+      "title": "parseTestCases parses TC entries with status from TEST_CASES.md",
+      "relatedStory": "US-0021",
+      "relatedTask": "",
+      "relatedAC": "AC-0006",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    }
+  ],
   "bugs": [],
   "costs": {
+    "US-0001": {
+      "projectedUsd": 800,
+      "aiCostUsd": 1.47,
+      "inputTokens": 148000,
+      "outputTokens": 52000
+    },
+    "US-0002": {
+      "projectedUsd": 1600,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0003": {
+      "projectedUsd": 400,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0004": {
+      "projectedUsd": 400,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0005": {
+      "projectedUsd": 800,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0006": {
+      "projectedUsd": 800,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0007": {
+      "projectedUsd": 800,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0008": {
+      "projectedUsd": 400,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0009": {
+      "projectedUsd": 400,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0010": {
+      "projectedUsd": 400,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0011": {
+      "projectedUsd": 1600,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0012": {
+      "projectedUsd": 3200,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0013": {
+      "projectedUsd": 800,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0014": {
+      "projectedUsd": 400,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0015": {
+      "projectedUsd": 800,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0016": {
+      "projectedUsd": 400,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0017": {
+      "projectedUsd": 400,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0018": {
+      "projectedUsd": 800,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0019": {
+      "projectedUsd": 400,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0020": {
+      "projectedUsd": 3200,
+      "aiCostUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0021": {
+      "projectedUsd": 3200,
+      "aiCostUsd": 1.8275000000000001,
+      "inputTokens": 186000,
+      "outputTokens": 62200
+    },
     "_totals": {
-      "costUsd": 0.05,
-      "inputTokens": 1000,
-      "outputTokens": 200
+      "costUsd": 10.91,
+      "inputTokens": 1116000,
+      "outputTokens": 376200
     }
   },
-  "atRisk": {},
+  "atRisk": {
+    "US-0001": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": true
+    },
+    "US-0002": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": true
+    },
+    "US-0003": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0004": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0005": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0006": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0007": {
+      "missingTCs": false,
+      "noBranch": true,
+      "failedTCNoBug": false,
+      "isAtRisk": true
+    },
+    "US-0008": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0009": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0010": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0011": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0012": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0013": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0014": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0015": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0016": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0017": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0018": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0019": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0020": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0021": {
+      "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    }
+  },
   "coverage": {
     "lines": 0,
     "statements": 0,
@@ -21,6 +1048,44 @@
     "meetsTarget": false
   },
   "recentActivity": [],
-  "generatedAt": "2026-03-09T18:05:16.563Z",
-  "commitSha": "617c987"
+  "generatedAt": "2026-03-09T20:30:47.698Z",
+  "commitSha": "fa157e1",
+  "sessionTimeline": [
+    {
+      "date": "2026-03-01",
+      "cumCost": 0.84
+    },
+    {
+      "date": "2026-03-02",
+      "cumCost": 1.8525
+    },
+    {
+      "date": "2026-03-03",
+      "cumCost": 3.0075
+    },
+    {
+      "date": "2026-03-04",
+      "cumCost": 4.335
+    },
+    {
+      "date": "2026-03-05",
+      "cumCost": 5.805
+    },
+    {
+      "date": "2026-03-06",
+      "cumCost": 7.44
+    },
+    {
+      "date": "2026-03-07",
+      "cumCost": 9.0825
+    },
+    {
+      "date": "2026-03-08",
+      "cumCost": 10.86
+    },
+    {
+      "date": "2026-03-09",
+      "cumCost": 10.91
+    }
+  ]
 }

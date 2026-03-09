@@ -26,26 +26,63 @@ function badge(text) {
   return `<span class="inline-block px-2 py-0.5 rounded text-xs font-medium ${cls}">${text}</span>`;
 }
 
-function usd(n) { return `$${Number(n).toFixed(2)}`; }
+function usd(n) {
+  const num = Number(n);
+  return (num > 0 && num < 1) ? '$' + num.toFixed(2) : '$' + Math.round(num).toLocaleString('en-US');
+}
 function fmtNum(n) { return Number(n).toLocaleString(); }
 
 function renderTopBar(data) {
   const totalProjected = data.stories.reduce((s, st) => s + (TSHIRT_HOURS[st.estimate] || 0) * 100, 0);
   const totalAI = data.costs._totals.costUsd;
   const done = data.stories.filter(s => s.status === 'Done').length;
+  const inProgress = data.stories.filter(s => s.status === 'In Progress').length;
   const pct = data.stories.length ? Math.round((done / data.stories.length) * 100) : 0;
+  const cov = data.coverage;
+  const linesCovLabel = (cov.overall > 0) ? `${cov.overall.toFixed(1)}%` : 'N/A';
+  const linesCovClass = cov.overall > 0 ? (cov.meetsTarget ? 'text-green-400' : 'text-red-400') : 'text-slate-500';
+  const branchCov = cov.branches;
+  const branchLabel = (branchCov > 0) ? `${Number(branchCov).toFixed(1)}%` : 'N/A';
+  const branchClass = branchCov > 0 ? (branchCov >= 80 ? 'text-green-400' : 'text-red-400') : 'text-slate-500';
   return `
-  <div class="bg-slate-900 text-white px-6 py-4 flex flex-wrap gap-6 items-center justify-between">
-    <div>
-      <h1 class="text-2xl font-bold text-blue-400">NomadCode</h1>
-      <p class="text-slate-400 text-sm">Code from anywhere. &nbsp;·&nbsp; Updated ${data.generatedAt.slice(0,10)} &nbsp;·&nbsp; <code class="text-slate-500 text-xs">${data.commitSha}</code></p>
-    </div>
-    <div class="flex gap-6 flex-wrap">
-      <div class="text-center"><div class="text-2xl font-bold">${data.stories.length}</div><div class="text-xs text-slate-400">Stories</div></div>
-      <div class="text-center"><div class="text-2xl font-bold text-green-400">${pct}%</div><div class="text-xs text-slate-400">Complete</div></div>
-      <div class="text-center"><div class="text-2xl font-bold text-yellow-400">${usd(totalProjected)}</div><div class="text-xs text-slate-400">Projected</div></div>
-      <div class="text-center"><div class="text-2xl font-bold text-teal-400">${usd(totalAI)}</div><div class="text-xs text-slate-400">AI Cost</div></div>
-      <div class="text-center"><div class="text-2xl font-bold ${data.coverage.meetsTarget ? 'text-green-400' : 'text-red-400'}">${data.coverage.overall.toFixed(1)}%</div><div class="text-xs text-slate-400">Coverage</div></div>
+  <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white px-6 py-5 shadow-lg">
+    <div class="flex flex-wrap gap-4 items-start justify-between">
+      <div class="min-w-0">
+        <h1 class="text-3xl font-bold text-blue-400 tracking-tight">NomadCode</h1>
+        <p class="text-slate-400 text-sm mt-0.5">Code from anywhere.&nbsp;·&nbsp;Updated ${data.generatedAt.slice(0,10)}&nbsp;·&nbsp;<code class="text-slate-500 text-xs">${data.commitSha}</code></p>
+        <div class="mt-2.5 flex items-center gap-2">
+          <div class="bg-slate-700 rounded-full h-2 w-40 overflow-hidden">
+            <div class="bg-blue-500 h-2 rounded-full" style="width:${pct}%"></div>
+          </div>
+          <span class="text-xs text-slate-400">${done}/${data.stories.length} stories done</span>
+        </div>
+      </div>
+      <div class="flex gap-3 flex-wrap">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center min-w-[70px]">
+          <div class="text-2xl font-bold text-blue-300">${data.stories.length}</div>
+          <div class="text-xs text-slate-400 mt-0.5">Stories</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center min-w-[90px]">
+          <div class="text-2xl font-bold text-green-400">${pct}%</div>
+          <div class="text-xs text-slate-400 mt-0.5">${done} done · ${inProgress} active</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center min-w-[80px]">
+          <div class="text-xl font-bold text-yellow-400">${usd(totalProjected)}</div>
+          <div class="text-xs text-slate-400 mt-0.5">Projected</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center min-w-[80px]">
+          <div class="text-xl font-bold text-teal-400">${usd(totalAI)}</div>
+          <div class="text-xs text-slate-400 mt-0.5">AI Actual</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center min-w-[70px]">
+          <div class="text-2xl font-bold ${linesCovClass}">${linesCovLabel}</div>
+          <div class="text-xs text-slate-400 mt-0.5">Lines Cov</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center min-w-[70px]">
+          <div class="text-2xl font-bold ${branchClass}">${branchLabel}</div>
+          <div class="text-xs text-slate-400 mt-0.5">Branch Cov</div>
+        </div>
+      </div>
     </div>
   </div>`;
 }
@@ -193,8 +230,12 @@ function renderChartsTab(data) {
     return branchStories.reduce((sum, s) => sum + (data.costs[s.id] ? data.costs[s.id].aiCostUsd || 0 : 0), 0);
   }));
   const coveragePct = data.coverage.overall.toFixed(1);
-  const sessionDates = JSON.stringify([]);
-  const sessionCosts = JSON.stringify([]);
+  const timeline = data.sessionTimeline || [];
+  const sessionDates = JSON.stringify(timeline.map(s => s.date));
+  const sessionCosts = JSON.stringify(timeline.map(s => s.cumCost.toFixed(2)));
+  const sessionPerCosts = JSON.stringify(timeline.map((s, i) =>
+    (i === 0 ? s.cumCost : s.cumCost - timeline[i - 1].cumCost).toFixed(2)
+  ));
 
   return `
   <div id="tab-charts" class="p-6 hidden">
@@ -268,7 +309,7 @@ function renderChartsTab(data) {
     });
     new Chart(document.getElementById('chart-burn-rate'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ label: 'Session AI Spend ($)', data: [], backgroundColor: '#6366f1' }] },
+      data: { labels: ${sessionDates}, datasets: [{ label: 'Session AI Spend ($)', data: ${sessionPerCosts}, backgroundColor: '#6366f1' }] },
       options: { responsive: true }
     });
   }
