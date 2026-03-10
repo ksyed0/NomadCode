@@ -66,12 +66,12 @@ Dependencies: None
 US-0002 (EPIC-0001): As a developer, I want to edit code with syntax highlighting, so that I can read code more easily.
 Priority: High (P0)
 Estimate: L
-Status: In Progress
-Branch: feature/US-0002-syntax-highlighting
+Status: Done
+Branch: feature/US-0001-open-file
 Acceptance Criteria:
-  - [ ] AC-TBD: TypeScript/JavaScript syntax highlighted correctly
-  - [ ] AC-TBD: Editor responsive to touch input (tap to position cursor)
-  - [ ] AC-TBD: Virtual keyboard adjusts editor viewport
+  - [x] AC-0012: TypeScript/JavaScript syntax highlighted correctly (Monaco, 80+ languages)
+  - [x] AC-0013: Editor responsive to touch input (tap to position cursor, pinch-to-zoom)
+  - [x] AC-0014: Virtual keyboard adjusts editor viewport (Monaco WebView handles layout)
 Dependencies: US-0001
 
 US-0003 (EPIC-0001): As a developer, I want to save my changes, so that my work is not lost.
@@ -227,9 +227,9 @@ Dependencies: None
 TASK-0001 (US-0002): Implement CodeMirror 6 in WebView for syntax-highlighted editing
 Type: Dev
 Assignee: Agent
-Status: To Do
+Status: Deferred
 Branch: feature/US-0002-syntax-highlighting
-Notes: Evaluate @codemirror/lang-javascript bundle size before integrating
+Notes: Monaco (0.45.0) already satisfies all US-0002 ACs. CodeMirror 6 would reduce bundle size (~400 KB vs 2.5 MB) but requires reimplementing toolbar, multi-cursor, pinch-to-zoom, and offline cache. Deferred — revisit if bundle size becomes a measurable performance issue on lower-end devices.
 
 TASK-0002 (US-0001): Wire FileSystemBridge to Expo FileSystem for real file read/write
 Type: Dev
@@ -247,8 +247,8 @@ Notes: Run npm run test:coverage and report results
 TASK-0004 (Infrastructure): Set up develop branch and branch protection rules on GitHub
 Type: Infra
 Assignee: Agent
-Status: To Do
-Notes: Enable branch protection on main and develop via GitHub settings
+Status: Done
+Notes: develop branch created and pushed. Branch protection enabled on main and develop: require PR, require CI checks (lint, test, build, security, plan-visualizer-test), no force-push, no deletion.
 ```
 
 ---
