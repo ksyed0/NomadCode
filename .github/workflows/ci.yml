@@ -77,6 +77,8 @@ jobs:
     runs-on: ubuntu-latest
     # Re-run flaky tests once before failing
     continue-on-error: false
+    permissions:
+      pull-requests: write  # allow coverage comment on PR
 
     steps:
       - uses: actions/checkout@v4
@@ -112,13 +114,15 @@ jobs:
           path: mobile-ide/mobile-ide-prototype/junit.xml
           retention-days: 14
 
-      # Post coverage diff comment on every PR
+      # Post coverage diff comment on every PR.
+      # json-final-path must point to the coverage-final.json Jest produces.
       - name: Coverage PR comment
         if: github.event_name == 'pull_request'
         uses: davelosert/vitest-coverage-report-action@v2
         continue-on-error: true
         with:
           json-summary-path: mobile-ide/mobile-ide-prototype/coverage/coverage-summary.json
+          json-final-path: mobile-ide/mobile-ide-prototype/coverage/coverage-final.json
 
   # ── 4. Bundle Size Gate ───────────────────────────────────────────────────
   bundle-size:
@@ -157,7 +161,6 @@ jobs:
         continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          package_manager: npm
           directory: mobile-ide/mobile-ide-prototype
 
   # ── 5. Security — Dependency Audit ────────────────────────────────────────
@@ -227,16 +230,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: '/language:${{ matrix.language }}'
 
@@ -395,7 +398,7 @@ jobs:
       - name: Pin Kotlin version in generated build.gradle
         run: |
           sed -i "s/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25')/" \
-            mobile-ide/mobile-ide-prototype/android/build.gradle
+            android/build.gradle
 
       - name: Build Detox Android
         run: npm run test:e2e:build:android
@@ -419,7 +422,32 @@ jobs:
           path: mobile-ide/mobile-ide-prototype/artifacts/
           retention-days: 7
 
-  # ── 11. Release gate — all jobs must pass ────────────────────────────────
+  # ── 11. Plan Visualizer Tools Tests ──────────────────────────────────────
+  plan-visualizer-test:
+    name: Plan Visualizer Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:coverage -- --ci
+        env:
+          CI: true
+
+  # ── 12. Release gate — all jobs must pass ────────────────────────────────
   create-release:
     name: Tag Release
     runs-on: ubuntu-latest
@@ -431,6 +459,7 @@ jobs:
       - lint-and-typecheck
       - build
       - test
+      - plan-visualizer-test
       - security-audit
       - semgrep
       - codeql
