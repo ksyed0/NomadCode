@@ -7,8 +7,9 @@
  */
 
 import React from 'react';
+import { Platform } from 'react-native';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import Editor, { EditorTab, buildPreviewHtml, canPreview } from '../../src/components/Editor';
+import Editor, { EditorTab, buildPreviewHtml, canPreview, getLanguageForFile } from '../../src/components/Editor';
 
 // ---------------------------------------------------------------------------
 // Mock MonacoAssetManager so monacoHtml is set synchronously after mount
@@ -323,5 +324,98 @@ describe('Editor — toolbar interactions', () => {
     await waitFor(() => screen.getByTestId('webview'));
     fireEvent.press(screen.getByLabelText('Toggle preview'));
     expect(screen.getByText('PREVIEW')).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getLanguageForFile
+// ---------------------------------------------------------------------------
+
+describe('getLanguageForFile', () => {
+  it.each([
+    // TypeScript / JavaScript
+    ['App.tsx',        'typescript'],
+    ['index.ts',       'typescript'],
+    ['App.jsx',        'javascript'],
+    ['index.js',       'javascript'],
+    ['module.mjs',     'javascript'],
+    ['lib.cjs',        'javascript'],
+    // Web
+    ['style.css',      'css'],
+    ['theme.scss',     'scss'],
+    ['vars.less',      'less'],
+    ['index.html',     'html'],
+    ['page.htm',       'html'],
+    ['feed.xml',       'xml'],
+    // Data / config
+    ['config.json',    'json'],
+    ['settings.jsonc', 'json'],
+    ['README.md',      'markdown'],
+    ['post.mdx',       'markdown'],
+    ['ci.yaml',        'yaml'],
+    ['ci.yml',         'yaml'],
+    ['config.toml',    'ini'],
+    ['.env',           'ini'],
+    ['schema.sql',     'sql'],
+    ['query.graphql',  'graphql'],
+    // Systems languages
+    ['main.rs',        'rust'],
+    ['main.go',        'go'],
+    ['App.swift',      'swift'],
+    ['main.c',         'c'],
+    ['main.cpp',       'cpp'],
+    ['header.h',       'c'],
+    ['header.hpp',     'cpp'],
+    ['Main.java',      'java'],
+    ['Main.kt',        'kotlin'],
+    ['script.py',      'python'],
+    ['app.rb',         'ruby'],
+    ['index.php',      'php'],
+    // Shell
+    ['build.sh',       'shell'],
+    ['run.bash',       'shell'],
+    ['setup.zsh',      'shell'],
+    // Dockerfile
+    ['Dockerfile',     'dockerfile'],
+    ['Dockerfile.dev', 'dockerfile'],
+    // Unknown → plaintext
+    ['notes.txt',      'plaintext'],
+    ['binary.bin',     'plaintext'],
+    ['no-extension',   'plaintext'],
+  ])('%s → %s', (filename, expected) => {
+    expect(getLanguageForFile(filename)).toBe(expected);
+  });
+
+  it('is case-insensitive for extensions', () => {
+    expect(getLanguageForFile('APP.TSX')).toBe('typescript');
+    expect(getLanguageForFile('Index.JS')).toBe('javascript');
+    expect(getLanguageForFile('DOCKERFILE')).toBe('dockerfile');
+  });
+
+  it('handles files with multiple dots correctly', () => {
+    expect(getLanguageForFile('index.test.ts')).toBe('typescript');
+    expect(getLanguageForFile('config.prod.json')).toBe('json');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Keyboard avoidance
+// ---------------------------------------------------------------------------
+
+describe('Editor — keyboard avoidance', () => {
+  it('wraps the editor in a KeyboardAvoidingView with correct behavior and offset', async () => {
+    const { UNSAFE_getByProps } = renderEditor([TAB_A], TAB_A.path);
+    const kav = UNSAFE_getByProps({ testID: 'editor-keyboard-avoiding-view' });
+    expect(kav).toBeTruthy();
+    expect(kav.props.behavior).toBe(Platform.OS === 'ios' ? 'padding' : 'height');
+    expect(kav.props.keyboardVerticalOffset).toBe(0);
+  });
+
+  it('wraps the empty state in a KeyboardAvoidingView with correct behavior', () => {
+    const { UNSAFE_getByProps } = renderEditor([], null);
+    const kav = UNSAFE_getByProps({ testID: 'editor-keyboard-avoiding-view' });
+    expect(kav).toBeTruthy();
+    expect(kav.props.behavior).toBe(Platform.OS === 'ios' ? 'padding' : 'height');
+    expect(kav.props.keyboardVerticalOffset).toBe(0);
   });
 });

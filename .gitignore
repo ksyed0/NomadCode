@@ -3,3 +3,6 @@ Docs/coverage/
 
 # OS files
 .DS_Store
+
+# Git worktrees
+.worktrees/
