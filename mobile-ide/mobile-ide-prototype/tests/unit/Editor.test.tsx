@@ -199,6 +199,28 @@ describe('Editor — multiple tabs', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Path breadcrumb
+// ---------------------------------------------------------------------------
+
+describe('Editor — path breadcrumb', () => {
+  it('shows the active file path below the tab bar', () => {
+    renderEditor([TAB_A], TAB_A.path);
+    expect(screen.getByTestId('editor-path-breadcrumb')).toBeTruthy();
+    expect(screen.getByText('/docs/App.tsx')).toBeTruthy();
+  });
+
+  it('updates path when a different tab is active', () => {
+    renderEditor([TAB_A, TAB_B], TAB_B.path);
+    expect(screen.getByText('/docs/index.ts')).toBeTruthy();
+  });
+
+  it('does not render path bar in empty state', () => {
+    renderEditor([], null);
+    expect(screen.queryByTestId('editor-path-breadcrumb')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Preview utilities
 // ---------------------------------------------------------------------------
 
