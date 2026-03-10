@@ -399,7 +399,7 @@ jobs:
       - name: Pin Kotlin version in generated build.gradle
         run: |
           sed -i "s/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25')/" \
-            mobile-ide/mobile-ide-prototype/android/build.gradle
+            android/build.gradle
 
       - name: Build Detox Android
         run: npm run test:e2e:build:android
