@@ -20,6 +20,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -330,10 +332,14 @@ export default function Editor({
   // ── Empty state ───────────────────────────────────────────────────────────
   if (tabs.length === 0) {
     return (
-      <View style={styles.empty}>
+      <KeyboardAvoidingView
+        testID="editor-keyboard-avoiding-view"
+        style={styles.empty}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <Text style={styles.emptyTitle}>No files open</Text>
         <Text style={styles.emptyHint}>Select a file from the Explorer</Text>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -342,7 +348,12 @@ export default function Editor({
     : null;
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      testID="editor-keyboard-avoiding-view"
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
 
       {/* ── Tab bar ── */}
       <ScrollView
@@ -504,7 +515,7 @@ export default function Editor({
           </View>
         )}
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

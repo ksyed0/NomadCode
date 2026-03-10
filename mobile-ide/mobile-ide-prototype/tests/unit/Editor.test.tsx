@@ -396,3 +396,19 @@ describe('getLanguageForFile', () => {
     expect(getLanguageForFile('config.prod.json')).toBe('json');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Keyboard avoidance
+// ---------------------------------------------------------------------------
+
+describe('Editor — keyboard avoidance', () => {
+  it('wraps the editor in a KeyboardAvoidingView with testID', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    expect(screen.getByTestId('editor-keyboard-avoiding-view')).toBeTruthy();
+  });
+
+  it('wraps the empty state in a KeyboardAvoidingView with testID', () => {
+    renderEditor([], null);
+    expect(screen.getByTestId('editor-keyboard-avoiding-view')).toBeTruthy();
+  });
+});
