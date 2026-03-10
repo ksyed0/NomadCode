@@ -10,6 +10,9 @@ on:
       - 'Docs/AI_COST_LOG.md'
       - 'progress.md'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: write
   pages: write
