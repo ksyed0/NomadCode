@@ -77,13 +77,22 @@ Dependencies: US-0001
 US-0003 (EPIC-0001): As a developer, I want to save my changes, so that my work is not lost.
 Priority: High (P0)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/US-0003-save-undo-redo
+Acceptance Criteria:
+  - [x] AC-0015: Cmd+S in editor triggers file save to disk
+  - [x] AC-0016: Dirty indicator (●) appears on tab when content changes; clears after save
+  - [x] AC-0017: "File: Save" in command palette saves the active file
 Dependencies: US-0001, US-0002
 
 US-0004 (EPIC-0001): As a developer, I want to undo and redo changes, so that I can recover from mistakes.
 Priority: High (P0)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/US-0003-save-undo-redo
+Acceptance Criteria:
+  - [x] AC-0018: Undo toolbar button (↩) reverts last change in Monaco editor
+  - [x] AC-0019: Redo toolbar button (↪) restores reverted change in Monaco editor
 Dependencies: US-0002
 
 US-0005 (EPIC-0001): As a developer, I want to search and replace text within a file, so that I can refactor code quickly.

@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import Editor, { EditorTab, buildPreviewHtml, canPreview } from '../../src/components/Editor';
 
 // ---------------------------------------------------------------------------
@@ -23,7 +23,18 @@ jest.mock('../../src/utils/MonacoAssetManager', () => ({
 
 // ---------------------------------------------------------------------------
 // Mock react-native-webview
+// Captures onMessage + injectJavaScript so tests can simulate Monaco events.
+// Variables must be prefixed with "mock" to satisfy jest.mock() hoisting rules.
 // ---------------------------------------------------------------------------
+
+let mockOnMessage: ((e: object) => void) | undefined;
+let mockInjectJS: jest.Mock = jest.fn();
+
+function fireWebViewMessage(data: object) {
+  act(() => {
+    mockOnMessage?.({ nativeEvent: { data: JSON.stringify(data) } });
+  });
+}
 
 jest.mock('react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -31,8 +42,11 @@ jest.mock('react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { View } = require('react-native');
   const WebView = React.forwardRef((props: { onMessage?: (e: object) => void }, ref: unknown) => {
-    // Expose injectJavaScript via ref so webViewRef.current is non-null
-    React.useImperativeHandle(ref, () => ({ injectJavaScript: jest.fn() }));
+    mockOnMessage = props.onMessage;
+    React.useImperativeHandle(ref, () => {
+      mockInjectJS = jest.fn();
+      return { injectJavaScript: mockInjectJS };
+    });
     // Fire the 'ready' message so editorReady becomes true
     React.useEffect(() => {
       props.onMessage?.({ nativeEvent: { data: JSON.stringify({ type: 'ready' }) } });
@@ -195,6 +209,61 @@ describe('Editor — multiple tabs', () => {
 
   it('renders with null activeTabPath without crashing', () => {
     expect(() => renderEditor([TAB_A, TAB_B], null)).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// US-0003 — Save: Monaco message callbacks
+// ---------------------------------------------------------------------------
+
+describe('Editor — save (US-0003)', () => {
+  it('fires onSave with path and content when Monaco sends a save message', async () => {
+    const onSave = jest.fn();
+    renderEditor([TAB_A], TAB_A.path, { onSave });
+    await waitFor(() => screen.getByTestId('webview'));
+    fireWebViewMessage({ type: 'save', content: 'saved content' });
+    expect(onSave).toHaveBeenCalledWith('/docs/App.tsx', 'saved content');
+  });
+
+  it('fires onContentChange with path and content when Monaco sends contentChanged', async () => {
+    const onContentChange = jest.fn();
+    renderEditor([TAB_A], TAB_A.path, { onContentChange });
+    await waitFor(() => screen.getByTestId('webview'));
+    fireWebViewMessage({ type: 'contentChanged', content: 'edited text' });
+    expect(onContentChange).toHaveBeenCalledWith('/docs/App.tsx', 'edited text');
+  });
+
+  it('does not fire onSave when there is no active tab', async () => {
+    const onSave = jest.fn();
+    renderEditor([TAB_A, TAB_B], null, { onSave });
+    await waitFor(() => screen.getByTestId('webview'));
+    fireWebViewMessage({ type: 'save', content: 'anything' });
+    expect(onSave).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// US-0004 — Undo / Redo: toolbar sends correct commands to Monaco
+// ---------------------------------------------------------------------------
+
+describe('Editor — undo / redo (US-0004)', () => {
+  it('sends undo command to Monaco when ↩ is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByLabelText('Undo'));
+    // injectJavaScript double-encodes JSON: "type":"undo" → \"type\":\"undo\"
+    expect(mockInjectJS).toHaveBeenCalledWith(
+      expect.stringContaining('\\"type\\":\\"undo\\"'),
+    );
+  });
+
+  it('sends redo command to Monaco when ↪ is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByLabelText('Redo'));
+    expect(mockInjectJS).toHaveBeenCalledWith(
+      expect.stringContaining('\\"type\\":\\"redo\\"'),
+    );
   });
 });
 
