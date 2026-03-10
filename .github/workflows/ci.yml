@@ -123,7 +123,6 @@ jobs:
         with:
           json-summary-path: mobile-ide/mobile-ide-prototype/coverage/coverage-summary.json
           json-final-path: mobile-ide/mobile-ide-prototype/coverage/coverage-final.json
-          vite-config-path: mobile-ide/mobile-ide-prototype/jest.config.js
 
   # ── 4. Bundle Size Gate ───────────────────────────────────────────────────
   bundle-size:

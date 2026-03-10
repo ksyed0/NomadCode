@@ -71,7 +71,8 @@
     "coverageReporters": [
       "text",
       "lcov",
-      "json-summary"
+      "json-summary",
+      "json"
     ],
     "testResultsProcessor": "jest-junit",
     "transformIgnorePatterns": [
