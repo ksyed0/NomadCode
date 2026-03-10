@@ -124,7 +124,12 @@ Dependencies: US-0001, US-0002
 US-0007 (EPIC-0002): As a developer, I want to browse my project directory tree, so that I can find and open any file.
 Priority: High (P0)
 Estimate: M
-Status: In Progress
+Status: Done
+Branch: feature/US-0001-open-file
+Acceptance Criteria:
+  - [x] AC-0026: FileExplorer renders the device file tree in the sidebar, sorted directories-first then files alphabetically
+  - [x] AC-0027: Tapping a directory node expands it to show its children; tapping again collapses it
+  - [x] AC-0028: Tapping a file node fires onFileSelect with the full path; the active file is visually highlighted
 Dependencies: None
 
 US-0008 (EPIC-0002): As a developer, I want to create new files and folders, so that I can add to my project.
@@ -260,8 +265,8 @@ Notes: FileSystemBridge fully wired to expo-file-system (readFile, writeFile, li
 TASK-0003 (US-0001, US-0002): Achieve 80% unit test coverage on all Phase 1 components
 Type: Test
 Assignee: Agent
-Status: To Do
-Notes: Run npm run test:coverage and report results
+Status: Done
+Notes: Coverage verified 2026-03-10 — All files: 96.89% stmts, 91.01% branch, 97% funcs, 97.37% lines. 181 tests passing across 9 suites. All thresholds exceeded.
 
 TASK-0004 (Infrastructure): Set up develop branch and branch protection rules on GitHub
 Type: Infra
