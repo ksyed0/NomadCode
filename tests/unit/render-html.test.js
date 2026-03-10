@@ -13,6 +13,8 @@ const sampleData = {
   recentActivity: [{ date: '2026-03-10', summary: 'Implemented FileSystemBridge' }],
   generatedAt: '2026-03-10T12:00:00Z',
   commitSha: 'abc1234',
+  projectName: 'NomadCode',
+  tagline: 'Code from anywhere.',
 };
 
 describe('renderHtml', () => {

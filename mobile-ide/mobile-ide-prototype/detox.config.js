@@ -55,19 +55,17 @@ module.exports = {
       type: 'ios.simulator',
       device: {
         type: 'iPad Pro (12.9-inch) (6th generation)',
-        os: 'iOS 17.5',
       },
     },
     'iphone.sim': {
       type: 'ios.simulator',
       device: {
         type: 'iPhone 15',
-        os: 'iOS 17.5',
       },
     },
     'android.emu': {
       type: 'android.emulator',
-      device: { avdName: 'Pixel_7_API_34' },
+      device: { avdName: 'test' },
     },
   },
 

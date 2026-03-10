@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Claude Code stop hook — appends session cost to Docs/AI_COST_LOG.md.
+ * Claude Code stop hook — appends session cost to the configured AI cost log.
  * Receives session data as JSON via stdin.
  * Never overwrites existing rows.
  */
@@ -11,10 +11,29 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const LOG_PATH = path.join(__dirname, '..', 'Docs', 'AI_COST_LOG.md');
+const ROOT = path.join(__dirname, '..');
+
+const DEFAULTS = {
+  docs: { costLog: 'Docs/AI_COST_LOG.md' },
+};
+
+function loadConfig() {
+  const cfgPath = path.join(ROOT, 'plan-visualizer.config.json');
+  if (!fs.existsSync(cfgPath)) return DEFAULTS;
+  try {
+    const raw = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+    return {
+      docs: { ...DEFAULTS.docs, ...raw.docs },
+    };
+  } catch { return DEFAULTS; }
+}
+
 const HEADER = `# AI Cost Log\n\nAppend-only ledger of AI session costs. Never edit or delete rows.\nUpdated automatically by the Claude Code stop hook (\`tools/capture-cost.js\`).\n\n| Date | Session ID | Branch | Input Tokens | Output Tokens | Cache Read Tokens | Cost USD |\n|---|---|---|---|---|---|---|\n`;
 
 async function main() {
+  const config = loadConfig();
+  const LOG_PATH = path.join(ROOT, config.docs.costLog);
+
   let input = '';
   for await (const chunk of process.stdin) input += chunk;
 

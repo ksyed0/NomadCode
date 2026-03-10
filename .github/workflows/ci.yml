@@ -103,7 +103,7 @@ jobs:
         if: always()
         with:
           name: coverage-report
-          path: mobile-ide/mobile-ide-prototype/coverage/
+          path: Docs/coverage/
           retention-days: 14
 
       - name: Upload JUnit results
@@ -121,8 +121,8 @@ jobs:
         uses: davelosert/vitest-coverage-report-action@v2
         continue-on-error: true
         with:
-          json-summary-path: mobile-ide/mobile-ide-prototype/coverage/coverage-summary.json
-          json-final-path: mobile-ide/mobile-ide-prototype/coverage/coverage-final.json
+          json-summary-path: Docs/coverage/coverage-summary.json
+          json-final-path: Docs/coverage/coverage-final.json
 
   # ── 4. Bundle Size Gate ───────────────────────────────────────────────────
   bundle-size:

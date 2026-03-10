@@ -40,7 +40,6 @@ Thumbs.db
 *.sw?
 
 # Testing
-coverage/
 .nyc_output
 
 # React Native

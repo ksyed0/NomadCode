@@ -1,0 +1,5 @@
+# Generated coverage output — do not commit
+Docs/coverage/
+
+# OS files
+.DS_Store

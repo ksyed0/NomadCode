@@ -48,8 +48,8 @@ function renderTopBar(data) {
   <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white px-6 py-5 shadow-lg">
     <div class="flex flex-wrap gap-4 items-start justify-between">
       <div class="min-w-0">
-        <h1 class="text-3xl font-bold text-blue-400 tracking-tight">NomadCode</h1>
-        <p class="text-slate-400 text-sm mt-0.5">Code from anywhere.&nbsp;·&nbsp;Updated ${data.generatedAt.slice(0,10)}&nbsp;·&nbsp;<code class="text-slate-500 text-xs">${data.commitSha}</code></p>
+        <h1 class="text-3xl font-bold text-blue-400 tracking-tight">${data.projectName}</h1>
+        <p class="text-slate-400 text-sm mt-0.5">${data.tagline}&nbsp;·&nbsp;Updated ${data.generatedAt.slice(0,10)}&nbsp;·&nbsp;<code class="text-slate-500 text-xs">${data.commitSha}</code></p>
         <div class="mt-2.5 flex items-center gap-2">
           <div class="bg-slate-700 rounded-full h-2 w-40 overflow-hidden">
             <div class="bg-blue-500 h-2 rounded-full" style="width:${pct}%"></div>
@@ -469,7 +469,7 @@ function renderHtml(data) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NomadCode — Plan Status</title>
+  <title>${data.projectName} — Plan Status</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
