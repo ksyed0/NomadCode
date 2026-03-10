@@ -98,13 +98,23 @@ Dependencies: US-0002
 US-0005 (EPIC-0001): As a developer, I want to search and replace text within a file, so that I can refactor code quickly.
 Priority: Medium (P1)
 Estimate: M
-Status: Planned
+Status: Done
+Branch: feature/US-0005-US-0006-search-multitab
+Acceptance Criteria:
+  - [x] AC-0020: Find & Replace toolbar button opens Monaco's built-in find/replace widget
+  - [x] AC-0021: Pressing the Find & Replace button sends a findReplace command to Monaco
 Dependencies: US-0002
 
 US-0006 (EPIC-0001): As a developer, I want to view multiple files in tabs, so that I can work across files without losing context.
 Priority: Medium (P1)
 Estimate: M
-Status: Planned
+Status: Done
+Branch: feature/US-0005-US-0006-search-multitab
+Acceptance Criteria:
+  - [x] AC-0022: Multiple open files appear as tabs in the tab bar
+  - [x] AC-0023: Clicking a tab activates it and sends setContent with the file's content to Monaco
+  - [x] AC-0024: Active tab is visually highlighted
+  - [x] AC-0025: Closing a tab removes it from the tab bar
 Dependencies: US-0001, US-0002
 ```
 
