@@ -7,6 +7,7 @@
  */
 
 import React from 'react';
+import { Platform } from 'react-native';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import Editor, { EditorTab, buildPreviewHtml, canPreview, getLanguageForFile } from '../../src/components/Editor';
 
@@ -402,13 +403,19 @@ describe('getLanguageForFile', () => {
 // ---------------------------------------------------------------------------
 
 describe('Editor — keyboard avoidance', () => {
-  it('wraps the editor in a KeyboardAvoidingView with testID', async () => {
-    renderEditor([TAB_A], TAB_A.path);
-    expect(screen.getByTestId('editor-keyboard-avoiding-view')).toBeTruthy();
+  it('wraps the editor in a KeyboardAvoidingView with correct behavior and offset', async () => {
+    const { UNSAFE_getByProps } = renderEditor([TAB_A], TAB_A.path);
+    const kav = UNSAFE_getByProps({ testID: 'editor-keyboard-avoiding-view' });
+    expect(kav).toBeTruthy();
+    expect(kav.props.behavior).toBe(Platform.OS === 'ios' ? 'padding' : 'height');
+    expect(kav.props.keyboardVerticalOffset).toBe(0);
   });
 
-  it('wraps the empty state in a KeyboardAvoidingView with testID', () => {
-    renderEditor([], null);
-    expect(screen.getByTestId('editor-keyboard-avoiding-view')).toBeTruthy();
+  it('wraps the empty state in a KeyboardAvoidingView with correct behavior', () => {
+    const { UNSAFE_getByProps } = renderEditor([], null);
+    const kav = UNSAFE_getByProps({ testID: 'editor-keyboard-avoiding-view' });
+    expect(kav).toBeTruthy();
+    expect(kav.props.behavior).toBe(Platform.OS === 'ios' ? 'padding' : 'height');
+    expect(kav.props.keyboardVerticalOffset).toBe(0);
   });
 });

@@ -336,6 +336,7 @@ export default function Editor({
         testID="editor-keyboard-avoiding-view"
         style={styles.empty}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0} // Update when navigation header is added
       >
         <Text style={styles.emptyTitle}>No files open</Text>
         <Text style={styles.emptyHint}>Select a file from the Explorer</Text>
