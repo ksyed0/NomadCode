@@ -69,9 +69,9 @@ Estimate: L
 Status: In Progress
 Branch: feature/US-0002-syntax-highlighting
 Acceptance Criteria:
-  - [ ] AC-TBD: TypeScript/JavaScript syntax highlighted correctly
-  - [ ] AC-TBD: Editor responsive to touch input (tap to position cursor)
-  - [ ] AC-TBD: Virtual keyboard adjusts editor viewport
+  - [ ] AC-0012: TypeScript/JavaScript files receive correct syntax highlighting (language detected from extension)
+  - [ ] AC-0013: Editor is responsive to touch input — tap positions cursor, pinch adjusts font size
+  - [ ] AC-0014: Virtual keyboard raises the editor viewport so the cursor line remains visible
 Dependencies: US-0001
 
 US-0003 (EPIC-0001): As a developer, I want to save my changes, so that my work is not lost.
