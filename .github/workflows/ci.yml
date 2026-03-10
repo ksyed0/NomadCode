@@ -295,6 +295,11 @@ jobs:
       - name: Install Detox CLI
         run: npm install -g detox-cli
 
+      - name: Install applesimutils
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
+
       - name: Install CocoaPods
         run: sudo gem install cocoapods
 
@@ -382,6 +387,15 @@ jobs:
       - name: Generate native Android project
         run: npx expo prebuild --platform android --no-install
         working-directory: mobile-ide/mobile-ide-prototype
+
+      # expo prebuild regenerates android/ fresh, so the committed gradle.properties
+      # is overwritten. Pin kotlin-gradle-plugin to 1.9.25 here because the RN 0.76
+      # Gradle plugin resolves 1.9.24 by default, which is incompatible with
+      # expo-modules-core's Compose Compiler 1.5.15 (requires Kotlin >=1.9.25).
+      - name: Pin Kotlin version in generated build.gradle
+        run: |
+          sed -i "s/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')/classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25')/" \
+            mobile-ide/mobile-ide-prototype/android/build.gradle
 
       - name: Build Detox Android
         run: npm run test:e2e:build:android
