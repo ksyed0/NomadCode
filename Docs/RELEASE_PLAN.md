@@ -11,7 +11,7 @@ All artefact IDs are permanent — never reused. Consult `Docs/ID_REGISTRY.md` b
 EPIC-0001: Code Editing
 Description: Core syntax-highlighted editor with file open/save, undo/redo, multi-tab support.
 Release Target: MVP (v0.1)
-Status: In Progress
+Status: Done
 Dependencies: None
 
 EPIC-0002: File Management
@@ -66,36 +66,36 @@ Dependencies: None
 US-0002 (EPIC-0001): As a developer, I want to edit code with syntax highlighting, so that I can read code more easily.
 Priority: High (P0)
 Estimate: L
-Status: In Progress
+Status: Done
 Branch: feature/US-0002-syntax-highlighting
 Acceptance Criteria:
-  - [ ] AC-0012: TypeScript/JavaScript files receive correct syntax highlighting (language detected from extension)
-  - [ ] AC-0013: Editor is responsive to touch input — tap positions cursor, pinch adjusts font size
-  - [ ] AC-0014: Virtual keyboard raises the editor viewport so the cursor line remains visible
+  - [x] AC-0012: TypeScript/JavaScript files receive correct syntax highlighting (language detected from extension)
+  - [x] AC-0013: Editor is responsive to touch input — tap positions cursor, pinch adjusts font size
+  - [x] AC-0014: Virtual keyboard raises the editor viewport so the cursor line remains visible
 Dependencies: US-0001
 
 US-0003 (EPIC-0001): As a developer, I want to save my changes, so that my work is not lost.
 Priority: High (P0)
 Estimate: S
-Status: Planned
+Status: Done
 Dependencies: US-0001, US-0002
 
 US-0004 (EPIC-0001): As a developer, I want to undo and redo changes, so that I can recover from mistakes.
 Priority: High (P0)
 Estimate: S
-Status: Planned
+Status: Done
 Dependencies: US-0002
 
 US-0005 (EPIC-0001): As a developer, I want to search and replace text within a file, so that I can refactor code quickly.
 Priority: Medium (P1)
 Estimate: M
-Status: Planned
+Status: Done
 Dependencies: US-0002
 
 US-0006 (EPIC-0001): As a developer, I want to view multiple files in tabs, so that I can work across files without losing context.
 Priority: Medium (P1)
 Estimate: M
-Status: Planned
+Status: Done
 Dependencies: US-0001, US-0002
 ```
 
@@ -105,7 +105,7 @@ Dependencies: US-0001, US-0002
 US-0007 (EPIC-0002): As a developer, I want to browse my project directory tree, so that I can find and open any file.
 Priority: High (P0)
 Estimate: M
-Status: In Progress
+Status: Done
 Dependencies: None
 
 US-0008 (EPIC-0002): As a developer, I want to create new files and folders, so that I can add to my project.
