@@ -261,7 +261,7 @@ export default function Editor({
     webViewRef.current?.injectJavaScript(
       `window.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));true;`,
     );
-  }, [editorReady, activeTab?.path]);
+  }, [editorReady, activeTab]);
 
   // ── Messages from Monaco ─────────────────────────────────────────────────
   const handleMessage = useCallback(
