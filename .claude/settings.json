@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node tools/capture-cost.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && node tools/capture-cost.js"
           }
         ]
       }

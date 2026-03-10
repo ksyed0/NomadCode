@@ -379,6 +379,13 @@ export default function Editor({
         })}
       </ScrollView>
 
+      {/* ── Path breadcrumb ── */}
+      {activeTab && (
+        <View testID="editor-path-breadcrumb" style={styles.pathBar}>
+          <Text style={styles.pathText} numberOfLines={1}>{activeTab.path}</Text>
+        </View>
+      )}
+
       {/* ── Editor + optional preview split ── */}
       <View style={styles.editorArea}>
         {/* Monaco pane */}
@@ -576,6 +583,16 @@ const styles = StyleSheet.create({
   },
   mcBadgeText:  { color: '#FFF', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
   mcBadgeClose: { color: '#FFF', fontSize: 12 },
+  // Path breadcrumb
+  pathBar: {
+    height: 22,
+    backgroundColor: '#1E1E1E',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#2D2D2D',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  pathText: { color: '#6B7280', fontSize: 11 },
   // Empty state
   empty:      { flex: 1, backgroundColor: '#1E1E1E', alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { color: '#4B5563', fontSize: 16 },
