@@ -213,6 +213,60 @@ describe('Editor — multiple tabs', () => {
 });
 
 // ---------------------------------------------------------------------------
+// US-0005 — Search & Replace: toolbar sends findReplace command to Monaco
+// ---------------------------------------------------------------------------
+
+describe('Editor — find & replace (US-0005)', () => {
+  it('sends findReplace command to Monaco when the Find & Replace button is pressed', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByLabelText('Find & replace'));
+    expect(mockInjectJS).toHaveBeenCalledWith(
+      expect.stringContaining('\\"type\\":\\"findReplace\\"'),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// US-0006 — Multi-tab: switching active tab sends setContent to Monaco
+// ---------------------------------------------------------------------------
+
+describe('Editor — multi-tab content switching (US-0006)', () => {
+  it('sends setContent with the new tab content and language when active tab changes', async () => {
+    const pyTab = makeTab({
+      path: '/docs/server.py',
+      name: 'server.py',
+      content: 'x = 42',
+      language: 'python',
+    });
+    const { rerender } = renderEditor([TAB_A, pyTab], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    mockInjectJS.mockClear();
+    rerender(
+      <Editor
+        tabs={[TAB_A, pyTab]}
+        activeTabPath={pyTab.path}
+        onTabChange={jest.fn()}
+        onTabClose={jest.fn()}
+        onContentChange={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(mockInjectJS).toHaveBeenCalledWith(
+        expect.stringContaining('\\"type\\":\\"setContent\\"'),
+      ),
+    );
+    expect(mockInjectJS).toHaveBeenCalledWith(
+      expect.stringContaining('x = 42'),
+    );
+    expect(mockInjectJS).toHaveBeenCalledWith(
+      expect.stringContaining('python'),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // US-0003 — Save: Monaco message callbacks
 // ---------------------------------------------------------------------------
 
