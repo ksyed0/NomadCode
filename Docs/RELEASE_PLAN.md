@@ -17,7 +17,7 @@ Dependencies: None
 EPIC-0002: File Management
 Description: File Explorer with full directory CRUD — browse, create, rename, delete, move.
 Release Target: MVP (v0.1)
-Status: In Progress
+Status: Done
 Dependencies: EPIC-0001
 
 EPIC-0003: Terminal
@@ -111,25 +111,40 @@ Dependencies: None
 US-0008 (EPIC-0002): As a developer, I want to create new files and folders, so that I can add to my project.
 Priority: High (P0)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/epic-0002-file-management
+Acceptance Criteria:
+  - [x] AC-0015: New file created at correct path + tree refreshed (TC-0041..TC-0048)
+  - [x] AC-0016: New folder created at correct path + tree refreshed (TC-0049..TC-0052)
 Dependencies: US-0007
 
 US-0009 (EPIC-0002): As a developer, I want to rename files and folders, so that I can keep my project organized.
 Priority: High (P0)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/epic-0002-file-management
+Acceptance Criteria:
+  - [x] AC-0017: Rename via moveEntry + tree refreshed; modal pre-filled with current name (TC-0053..TC-0058)
 Dependencies: US-0007
 
 US-0010 (EPIC-0002): As a developer, I want to delete files and folders, so that I can clean up my project.
 Priority: High (P0)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/epic-0002-file-management
+Acceptance Criteria:
+  - [x] AC-0018: Confirmed delete calls deleteEntry + tree refreshed (TC-0059..TC-0065)
+  - [x] AC-0019: Cancel skips deleteEntry — no tree change (TC-0061)
 Dependencies: US-0007
 
-US-0011 (EPIC-0002): As a developer, I want to move files via drag-and-drop, so that I can restructure my project intuitively.
+US-0011 (EPIC-0002): As a developer, I want to move files and folders, so that I can restructure my project intuitively.
 Priority: Low (P2)
 Estimate: L
-Status: Planned
+Status: Done
+Branch: feature/epic-0002-file-management
+Acceptance Criteria:
+  - [x] AC-0020: Move to valid destination calls moveEntry + onFileMove + tree reloaded (TC-0066..TC-0077)
+  - [x] AC-0021: Self-move and descendant-move blocked with error alert (TC-0073..TC-0074)
 Dependencies: US-0007, US-0008, US-0009, US-0010
 ```
 

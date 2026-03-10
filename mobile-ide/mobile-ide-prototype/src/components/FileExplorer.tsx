@@ -2,10 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  Modal,
+  Alert,
+  Dimensions,
 } from 'react-native';
 import { FileSystemBridge, FileEntry } from '../utils/FileSystemBridge';
 
@@ -14,12 +18,49 @@ interface FileExplorerProps {
   onFileSelect: (filePath: string) => void;
   onFileCreate?: (filePath: string) => void;
   onFileDelete?: (filePath: string) => void;
+  onFileRename?: (oldPath: string, newPath: string) => void;
+  onFileMove?: (from: string, to: string) => void;
 }
 
 interface TreeNode extends FileEntry {
   depth: number;
   expanded?: boolean;
   children?: TreeNode[];
+}
+
+type NameModalMode = 'create-file' | 'create-dir' | 'rename';
+
+interface NameModalState {
+  visible: boolean;
+  mode: NameModalMode;
+  initialValue: string;
+  targetNode: TreeNode | null;
+}
+
+interface MovePickerState {
+  visible: boolean;
+  sourceNode: TreeNode;
+}
+
+// ---------------------------------------------------------------------------
+// Helper functions
+// ---------------------------------------------------------------------------
+
+function parentDir(path: string): string {
+  return path.substring(0, path.lastIndexOf('/'));
+}
+
+function resolveParentPath(node: TreeNode): string {
+  return node.isDirectory ? node.path : parentDir(node.path);
+}
+
+function isDescendantOrSelf(src: string, dest: string): boolean {
+  return dest === src || dest.startsWith(src + '/');
+}
+
+function showErrorAlert(err: unknown): void {
+  const message = err instanceof Error ? err.message : 'Unexpected error';
+  Alert.alert('Operation Failed', message);
 }
 
 /**
@@ -30,10 +71,21 @@ export default function FileExplorer({
   rootPath,
   onFileSelect,
   onFileDelete,
+  onFileCreate,
+  onFileRename,
+  onFileMove,
 }: FileExplorerProps) {
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // EPIC-0002 state
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [contextTarget, setContextTarget] = useState<TreeNode | null>(null);
+  const [nameModal, setNameModal] = useState<NameModalState | null>(null);
+  const [nameInputValue, setNameInputValue] = useState('');
+  const [movePicker, setMovePicker] = useState<MovePickerState | null>(null);
+  const [pickerNodes, setPickerNodes] = useState<TreeNode[]>([]);
+  const [pickerSelectedPath, setPickerSelectedPath] = useState<string | null>(null);
 
   const loadDirectory = useCallback(async (path: string, depth: number): Promise<TreeNode[]> => {
     const entries = await FileSystemBridge.listDirectory(path);
@@ -51,6 +103,45 @@ export default function FileExplorer({
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [rootPath, loadDirectory]);
+
+  // ---------------------------------------------------------------------------
+  // Refresh helpers
+  // ---------------------------------------------------------------------------
+
+  const refreshTree = useCallback(async () => {
+    try {
+      const fresh = await loadDirectory(rootPath, 0);
+      setNodes(fresh);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [rootPath, loadDirectory]);
+
+  const refreshContainingDir = useCallback(
+    async (_node: TreeNode) => {
+      const fresh = await loadDirectory(rootPath, 0);
+      setNodes(fresh);
+    },
+    [rootPath, loadDirectory],
+  );
+
+  // ---------------------------------------------------------------------------
+  // Move picker loader (dirs-only traversal)
+  // ---------------------------------------------------------------------------
+
+  const loadPickerTree = useCallback(
+    async (dirPath: string, depth: number): Promise<TreeNode[]> => {
+      const entries = await FileSystemBridge.listDirectory(dirPath);
+      return entries
+        .filter((e) => e.isDirectory)
+        .map((d) => ({ ...d, depth, expanded: false }));
+    },
+    [],
+  );
+
+  // ---------------------------------------------------------------------------
+  // Tree interaction
+  // ---------------------------------------------------------------------------
 
   const handlePress = useCallback(
     async (node: TreeNode) => {
@@ -88,6 +179,138 @@ export default function FileExplorer({
     [loadDirectory, onFileSelect],
   );
 
+  // ---------------------------------------------------------------------------
+  // Context menu actions
+  // ---------------------------------------------------------------------------
+
+  const handleContextNewFile = useCallback(() => {
+    const target = contextTarget;
+    setContextTarget(null);
+    setNameInputValue('');
+    setNameModal({ visible: true, mode: 'create-file', initialValue: '', targetNode: target });
+  }, [contextTarget]);
+
+  const handleContextNewFolder = useCallback(() => {
+    const target = contextTarget;
+    setContextTarget(null);
+    setNameInputValue('');
+    setNameModal({ visible: true, mode: 'create-dir', initialValue: '', targetNode: target });
+  }, [contextTarget]);
+
+  const handleContextRename = useCallback(() => {
+    const target = contextTarget;
+    setContextTarget(null);
+    const initial = target?.name ?? '';
+    setNameInputValue(initial);
+    setNameModal({ visible: true, mode: 'rename', initialValue: initial, targetNode: target });
+  }, [contextTarget]);
+
+  const handleContextDelete = useCallback(() => {
+    const target = contextTarget!;
+    setContextTarget(null);
+
+    const isDir = target.isDirectory;
+    const title = isDir ? 'Delete Folder' : 'Delete File';
+    const msg = `Are you sure you want to delete "${target.name}"?`;
+
+    Alert.alert(title, msg, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await FileSystemBridge.deleteEntry(target.path);
+            onFileDelete?.(target.path);
+            await refreshContainingDir(target);
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        },
+      },
+    ]);
+  }, [contextTarget, onFileDelete, refreshContainingDir]);
+
+  const handleContextMove = useCallback(async () => {
+    const target = contextTarget!;
+    setContextTarget(null);
+
+    const dirs = await loadPickerTree(rootPath, 0);
+    setPickerNodes(dirs);
+    setPickerSelectedPath(null);
+    setMovePicker({ visible: true, sourceNode: target });
+  }, [contextTarget, loadPickerTree, rootPath]);
+
+  // ---------------------------------------------------------------------------
+  // Name modal confirm
+  // ---------------------------------------------------------------------------
+
+  const handleNameConfirm = useCallback(async () => {
+    if (!nameModal) return;
+    const { mode, targetNode } = nameModal;
+    const trimmed = nameInputValue.trim();
+    if (!trimmed) return;
+
+    const parentPath = resolveParentPath(targetNode!);
+    const newPath = `${parentPath}/${trimmed}`;
+
+    setNameModal(null);
+    setNameInputValue('');
+
+    try {
+      if (mode === 'create-file') {
+        await FileSystemBridge.createFile(newPath);
+        onFileCreate?.(newPath);
+        await refreshContainingDir(targetNode!);
+      } else if (mode === 'create-dir') {
+        await FileSystemBridge.createDirectory(newPath);
+        await refreshContainingDir(targetNode!);
+      } else if (mode === 'rename') {
+        const oldPath = targetNode!.path;
+        await FileSystemBridge.moveEntry(oldPath, newPath);
+        onFileRename?.(oldPath, newPath);
+        await refreshContainingDir(targetNode!);
+      }
+    } catch (err) {
+      showErrorAlert(err);
+    }
+  }, [nameModal, nameInputValue, onFileCreate, onFileRename, refreshContainingDir]);
+
+  const handleNameCancel = useCallback(() => {
+    setNameModal(null);
+    setNameInputValue('');
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Move picker confirm
+  // ---------------------------------------------------------------------------
+
+  const handleMoveConfirm = useCallback(async () => {
+    if (!movePicker || !pickerSelectedPath) return;
+    const { sourceNode } = movePicker;
+    const destPath = `${pickerSelectedPath}/${sourceNode.name}`;
+
+    setMovePicker(null);
+    setPickerSelectedPath(null);
+
+    try {
+      await FileSystemBridge.moveEntry(sourceNode.path, destPath);
+      onFileMove?.(sourceNode.path, destPath);
+      await refreshTree();
+    } catch (err) {
+      showErrorAlert(err);
+    }
+  }, [movePicker, pickerSelectedPath, onFileMove, refreshTree]);
+
+  const handleMoveCancel = useCallback(() => {
+    setMovePicker(null);
+    setPickerSelectedPath(null);
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Renderers
+  // ---------------------------------------------------------------------------
+
   const renderNode = ({ item }: { item: TreeNode }) => (
     <TouchableOpacity
       style={[
@@ -96,7 +319,7 @@ export default function FileExplorer({
         item.path === selectedPath && styles.selectedRow,
       ]}
       onPress={() => handlePress(item)}
-      onLongPress={() => onFileDelete?.(item.path)}
+      onLongPress={() => setContextTarget(item)}
       activeOpacity={0.7}
     >
       <Text style={styles.icon}>
@@ -108,6 +331,37 @@ export default function FileExplorer({
     </TouchableOpacity>
   );
 
+  const renderPickerNode = ({ item }: { item: TreeNode }) => {
+    const isSource = movePicker ? isDescendantOrSelf(movePicker.sourceNode.path, item.path) || item.path === movePicker.sourceNode.path : false;
+    const isSelected = item.path === pickerSelectedPath;
+    return (
+      <TouchableOpacity
+        testID={`picker-row-${item.path}`}
+        style={[
+          styles.pickerRow,
+          { paddingLeft: 12 + item.depth * 16 },
+          isSelected && styles.pickerRowSelected,
+          isSource && styles.pickerRowDisabled,
+        ]}
+        onPress={() => {
+          if (!isSource) setPickerSelectedPath(item.path);
+        }}
+        disabled={isSource}
+        accessibilityState={{ disabled: isSource }}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.icon}>▸</Text>
+        <Text style={[styles.name, styles.directoryName]} numberOfLines={1}>
+          {item.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  // ---------------------------------------------------------------------------
+  // Loading / render
+  // ---------------------------------------------------------------------------
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -115,6 +369,9 @@ export default function FileExplorer({
       </View>
     );
   }
+
+  const nameConfirmDisabled = nameInputValue.trim() === '';
+  const moveConfirmDisabled = pickerSelectedPath === null;
 
   return (
     <View style={styles.container}>
@@ -128,9 +385,149 @@ export default function FileExplorer({
         removeClippedSubviews
         initialNumToRender={30}
       />
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Context menu modal                                                   */}
+      {/* ------------------------------------------------------------------ */}
+      <Modal
+        visible={contextTarget !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setContextTarget(null)}
+      >
+        <TouchableOpacity
+          testID="context-menu-backdrop"
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={() => setContextTarget(null)}
+        >
+          <View testID="context-menu" style={styles.contextMenuPanel}>
+            <Text testID="context-menu-title" style={styles.contextMenuTitle}>
+              {contextTarget?.name ?? ''}
+            </Text>
+
+            <TouchableOpacity testID="ctx-new-file" style={styles.contextMenuItem} onPress={handleContextNewFile}>
+              <Text style={styles.contextMenuItemText}>New File</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity testID="ctx-new-folder" style={styles.contextMenuItem} onPress={handleContextNewFolder}>
+              <Text style={styles.contextMenuItemText}>New Folder</Text>
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+            <TouchableOpacity testID="ctx-rename" style={styles.contextMenuItem} onPress={handleContextRename}>
+              <Text style={styles.contextMenuItemText}>Rename</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity testID="ctx-move" style={styles.contextMenuItem} onPress={handleContextMove}>
+              <Text style={styles.contextMenuItemText}>Move to...</Text>
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+            <TouchableOpacity testID="ctx-delete" style={styles.contextMenuItem} onPress={handleContextDelete}>
+              <Text style={[styles.contextMenuItemText, styles.destructive]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Name input modal (create-file / create-dir / rename)                */}
+      {/* ------------------------------------------------------------------ */}
+      <Modal
+        visible={nameModal?.visible === true}
+        transparent
+        animationType="fade"
+        onRequestClose={handleNameCancel}
+      >
+        <View testID="name-input-modal" style={styles.nameModalBackdrop}>
+          <View style={styles.nameModalPanel}>
+            <Text style={styles.nameModalTitle}>
+              {nameModal?.mode === 'create-file'
+                ? 'New File'
+                : nameModal?.mode === 'create-dir'
+                ? 'New Folder'
+                : 'Rename'}
+            </Text>
+            <TextInput
+              testID="name-input"
+              style={styles.nameInput}
+              value={nameInputValue}
+              onChangeText={setNameInputValue}
+              autoFocus
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="Enter name…"
+              placeholderTextColor="#475569"
+            />
+            <View style={styles.nameModalButtons}>
+              <TouchableOpacity
+                testID="name-cancel-btn"
+                style={[styles.btn, styles.btnSecondary]}
+                onPress={handleNameCancel}
+              >
+                <Text style={styles.btnSecondaryText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="name-confirm-btn"
+                style={[styles.btn, styles.btnPrimary, nameConfirmDisabled && styles.btnDisabled]}
+                onPress={handleNameConfirm}
+                disabled={nameConfirmDisabled}
+                accessibilityState={{ disabled: nameConfirmDisabled }}
+              >
+                <Text style={styles.btnPrimaryText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Move picker modal                                                    */}
+      {/* ------------------------------------------------------------------ */}
+      <Modal
+        visible={movePicker?.visible === true}
+        transparent
+        animationType="slide"
+        onRequestClose={handleMoveCancel}
+      >
+        <View testID="move-picker-modal" style={styles.movePickerBackdrop}>
+          <View style={styles.movePickerPanel}>
+            <Text style={styles.nameModalTitle}>Move to…</Text>
+            <FlatList
+              data={pickerNodes}
+              keyExtractor={(item) => item.path}
+              renderItem={renderPickerNode}
+              style={styles.pickerList}
+            />
+            <View style={styles.nameModalButtons}>
+              <TouchableOpacity
+                testID="move-picker-cancel-btn"
+                style={[styles.btn, styles.btnSecondary]}
+                onPress={handleMoveCancel}
+              >
+                <Text style={styles.btnSecondaryText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="move-here-btn"
+                style={[styles.btn, styles.btnPrimary, moveConfirmDisabled && styles.btnDisabled]}
+                onPress={handleMoveConfirm}
+                disabled={moveConfirmDisabled}
+                accessibilityState={{ disabled: moveConfirmDisabled }}
+              >
+                <Text style={styles.btnPrimaryText}>Move Here</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -179,5 +576,133 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#1E293B',
+  },
+
+  // Context menu
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.53)',
+    justifyContent: 'flex-end',
+  },
+  contextMenuPanel: {
+    backgroundColor: '#1E293B',
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+    paddingBottom: 32,
+  },
+  contextMenuTitle: {
+    color: '#64748B',
+    fontSize: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  contextMenuItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  contextMenuItemText: {
+    color: '#E2E8F0',
+    fontSize: 14,
+  },
+  destructive: {
+    color: '#EF4444',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#334155',
+    marginVertical: 4,
+  },
+
+  // Name input modal
+  nameModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.53)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nameModalPanel: {
+    width: '85%',
+    backgroundColor: '#1E293B',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  nameModalTitle: {
+    color: '#E2E8F0',
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  nameInput: {
+    color: '#E2E8F0',
+    backgroundColor: '#0F172A',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#334155',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  nameModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  btn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  btnPrimary: {
+    backgroundColor: '#2563EB',
+  },
+  btnPrimaryText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  btnSecondary: {
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  btnSecondaryText: {
+    color: '#94A3B8',
+    fontSize: 14,
+  },
+  btnDisabled: {
+    opacity: 0.4,
+  },
+
+  // Move picker
+  movePickerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.53)',
+    justifyContent: 'flex-end',
+  },
+  movePickerPanel: {
+    backgroundColor: '#1E293B',
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+    maxHeight: SCREEN_HEIGHT * 0.6,
+    paddingBottom: 32,
+  },
+  pickerList: {
+    flex: 1,
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingRight: 12,
+  },
+  pickerRowSelected: {
+    backgroundColor: '#2563EB22',
+  },
+  pickerRowDisabled: {
+    opacity: 0.4,
   },
 });
