@@ -55,12 +55,12 @@ Dependencies: None
 US-0001 (EPIC-0001): As a developer, I want to open a file on my device, so that I can read and edit existing code.
 Priority: High (P0)
 Estimate: M
-Status: In Progress
+Status: Done
 Branch: feature/US-0001-open-file
 Acceptance Criteria:
-  - [ ] AC-TBD: File picker opens device file system
-  - [ ] AC-TBD: Selected file content loads in editor
-  - [ ] AC-TBD: File path displayed in editor header
+  - [x] AC-0009: FileExplorer displays the device file tree in the sidebar
+  - [x] AC-0010: Tapping a file loads its content into the editor
+  - [x] AC-0011: Active file path is displayed in the editor path bar
 Dependencies: None
 
 US-0002 (EPIC-0001): As a developer, I want to edit code with syntax highlighting, so that I can read code more easily.
@@ -234,9 +234,9 @@ Notes: Evaluate @codemirror/lang-javascript bundle size before integrating
 TASK-0002 (US-0001): Wire FileSystemBridge to Expo FileSystem for real file read/write
 Type: Dev
 Assignee: Agent
-Status: To Do
+Status: Done
 Branch: feature/US-0001-open-file
-Notes: Currently uses placeholder implementation
+Notes: FileSystemBridge fully wired to expo-file-system (readFile, writeFile, listDirectory, etc). FileExplorer and App.tsx openFile() wired end-to-end. Path breadcrumb added to Editor. All ACs met.
 
 TASK-0003 (US-0001, US-0002): Achieve 80% unit test coverage on all Phase 1 components
 Type: Test
