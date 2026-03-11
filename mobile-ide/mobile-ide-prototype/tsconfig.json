@@ -4,18 +4,27 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@components/*": ["src/components/*"],
-      "@utils/*": ["src/utils/*"],
-      "@layout/*": ["src/layout/*"],
-      "@extensions/*": ["src/extensions/*"],
-      "@assets/*": ["assets/*"]
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@layout/*": [
+        "src/layout/*"
+      ],
+      "@extensions/*": [
+        "src/extensions/*"
+      ],
+      "@assets/*": [
+        "assets/*"
+      ]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.d.ts",
-    "expo-env.d.ts"
+    ".expo/types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",
