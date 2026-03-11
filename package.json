@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "plan:test": "jest --watchAll=false",
+    "plan:test:coverage": "jest --watchAll=false --coverage",
+    "plan:generate": "node tools/generate-plan.js"
   },
   "devDependencies": {
     "jest": "29.7.0"
