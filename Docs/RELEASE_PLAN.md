@@ -78,24 +78,39 @@ US-0003 (EPIC-0001): As a developer, I want to save my changes, so that my work 
 Priority: High (P0)
 Estimate: S
 Status: Done
+Acceptance Criteria:
+  - [x] AC-0022: Cmd+S / toolbar Save triggers onSave with the active file path and current content
+  - [x] AC-0023: After save, the dirty indicator (●) is removed from the active tab
+  - [x] AC-0024: Saving a file with no changes (clean tab) calls onSave without error
 Dependencies: US-0001, US-0002
 
 US-0004 (EPIC-0001): As a developer, I want to undo and redo changes, so that I can recover from mistakes.
 Priority: High (P0)
 Estimate: S
 Status: Done
+Acceptance Criteria:
+  - [x] AC-0025: Pressing the Undo toolbar button sends the undo command to Monaco without throwing
+  - [x] AC-0026: Pressing the Redo toolbar button sends the redo command to Monaco without throwing
 Dependencies: US-0002
 
 US-0005 (EPIC-0001): As a developer, I want to search and replace text within a file, so that I can refactor code quickly.
 Priority: Medium (P1)
 Estimate: M
 Status: Done
+Acceptance Criteria:
+  - [x] AC-0027: Pressing the Find toolbar button sends the find command to Monaco without throwing
+  - [x] AC-0028: Find toolbar button is accessible via aria-label and has a minimum 44pt touch target
 Dependencies: US-0002
 
 US-0006 (EPIC-0001): As a developer, I want to view multiple files in tabs, so that I can work across files without losing context.
 Priority: Medium (P1)
 Estimate: M
 Status: Done
+Acceptance Criteria:
+  - [x] AC-0029: Tab bar renders one tab per open file with correct label
+  - [x] AC-0030: Tapping a tab calls onTabChange with that file's path
+  - [x] AC-0031: Pressing the × close button calls onTabClose with the correct path
+  - [x] AC-0032: Dirty tabs show ● prefix; clean tabs show no indicator
 Dependencies: US-0001, US-0002
 ```
 
@@ -106,6 +121,10 @@ US-0007 (EPIC-0002): As a developer, I want to browse my project directory tree,
 Priority: High (P0)
 Estimate: M
 Status: Done
+Acceptance Criteria:
+  - [x] AC-0033: FileExplorer renders all file and directory entries returned by FileSystemBridge
+  - [x] AC-0034: Tapping a directory expands it and shows its children; tapping again collapses it
+  - [x] AC-0035: Long-pressing any entry opens a context menu with New File, New Folder, Rename, Move to, and Delete options
 Dependencies: None
 
 US-0008 (EPIC-0002): As a developer, I want to create new files and folders, so that I can add to my project.
@@ -155,18 +174,31 @@ US-0012 (EPIC-0003): As a developer, I want to open an integrated terminal, so t
 Priority: High (P0)
 Estimate: XL
 Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0036: Terminal component renders the TERMINAL header and a prompt character ($) on mount
+  - [ ] AC-0037: Terminal accepts a workingDirectory prop and displays it in the welcome output
+  - [ ] AC-0038: Terminal input clears after a command is submitted
+  - [ ] AC-0039: Virtual keyboard raises the terminal viewport on iOS via KeyboardAvoidingView
 Dependencies: EPIC-0001, EPIC-0002
 
 US-0013 (EPIC-0003): As a developer, I want to run build and test commands, so that I can verify my code works.
 Priority: High (P0)
 Estimate: M
 Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0040: Submitting a command echoes it in the output prefixed with $
+  - [ ] AC-0041: The onCommand callback is invoked with the exact command string on submit
+  - [ ] AC-0042: Submitting an empty string does not add a line or call onCommand
 Dependencies: US-0012
 
 US-0014 (EPIC-0003): As a developer, I want to see colored terminal output, so that I can parse logs more easily.
 Priority: Medium (P1)
 Estimate: S
 Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0043: Command echo lines are rendered in a distinct color (green/success style)
+  - [ ] AC-0044: Error/unknown-command lines are rendered in the error color (Coral #EF4444)
+  - [ ] AC-0045: Regular output lines are rendered in the standard text color
 Dependencies: US-0012
 ```
 
@@ -177,18 +209,29 @@ US-0015 (EPIC-0004): As a power user, I want to open a command palette, so that 
 Priority: Medium (P1)
 Estimate: M
 Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0046: CommandPalette renders a search input that auto-focuses on mount
+  - [ ] AC-0047: CommandPalette renders all provided commands when the query is empty
+  - [ ] AC-0048: Tapping outside the panel (backdrop) dismisses the keyboard
 Dependencies: EPIC-0001
 
 US-0016 (EPIC-0004): As a power user, I want to search commands by name, so that I can find actions without memorizing locations.
 Priority: Medium (P1)
 Estimate: S
 Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0049: Typing a query filters commands to those matching label or description (case-insensitive)
+  - [ ] AC-0050: When no commands match the query, a "No commands found" message is shown
+  - [ ] AC-0051: Pressing Enter selects the first result in the filtered list
 Dependencies: US-0015
 
 US-0017 (EPIC-0004): As a power user, I want to see keyboard shortcuts in the palette, so that I can learn shortcuts over time.
 Priority: Low (P2)
 Estimate: S
 Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0052: Commands with a shortcut field display the shortcut in a badge alongside the label
+  - [ ] AC-0053: Commands without a shortcut field show no badge (no empty badge rendered)
 Dependencies: US-0015, US-0016
 ```
 
@@ -199,18 +242,31 @@ US-0018 (EPIC-0005): As a developer, I want to switch between light and dark the
 Priority: Medium (P1)
 Estimate: M
 Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0054: App renders using Deep Slate (#0F172A) background in dark mode by default
+  - [ ] AC-0055: A theme toggle switches the editor and UI surfaces to Off-White (#F9FAFB) background
+  - [ ] AC-0056: All text/background pairs in both themes meet WCAG 4.5:1 contrast for normal text
 Dependencies: EPIC-0001
 
 US-0019 (EPIC-0005): As a developer, I want to change font size, so that I can read comfortably on my device.
 Priority: Medium (P1)
 Estimate: S
 Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0057: Pressing A+ in the editor toolbar increments the Monaco font size by 1pt
+  - [ ] AC-0058: Pressing A- in the editor toolbar decrements the Monaco font size by 1pt
+  - [ ] AC-0059: The current font size value is displayed in the toolbar between the A- and A+ buttons
 Dependencies: US-0018
 
 US-0020 (EPIC-0005): As a power user, I want to install extensions, so that I can enhance the IDE with tools I need.
 Priority: Medium (P1)
 Estimate: XL
 Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0060: An extension manifest can be registered in ExtensionRegistry and retrieved by id
+  - [ ] AC-0061: activateExtension registers the manifest and returns valid sandbox HTML containing the extension source
+  - [ ] AC-0062: deactivateExtension removes the extension from ExtensionRegistry
+  - [ ] AC-0063: Extensions run in an isolated WebView sandbox — the sandbox HTML wraps source in try/catch
 Dependencies: EPIC-0001, EPIC-0002, EPIC-0003, EPIC-0004
 ```
 
