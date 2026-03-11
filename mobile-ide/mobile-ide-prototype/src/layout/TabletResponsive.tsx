@@ -61,6 +61,11 @@ interface TabletResponsiveProps {
 const MIN_TERMINAL_HEIGHT = 120;
 const MAX_TERMINAL_HEIGHT = 400;
 
+/** Exported for unit-testing the resize-drag arithmetic. */
+export function clampTerminalHeight(current: number, dy: number): number {
+  return Math.max(MIN_TERMINAL_HEIGHT, Math.min(MAX_TERMINAL_HEIGHT, current - dy));
+}
+
 export default function TabletResponsive({
   sidebar,
   main,
@@ -78,11 +83,7 @@ export default function TabletResponsive({
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gs) => {
-        const next = Math.max(
-          MIN_TERMINAL_HEIGHT,
-          Math.min(MAX_TERMINAL_HEIGHT, (terminalHeight) - gs.dy),
-        );
-        onTerminalHeightChange?.(next);
+        onTerminalHeightChange?.(clampTerminalHeight(terminalHeight, gs.dy));
       },
     }),
   ).current;
@@ -141,6 +142,7 @@ export default function TabletResponsive({
         <>
           {/* Scrim — tap to close */}
           <TouchableOpacity
+            testID="sidebar-scrim"
             style={styles.scrim}
             activeOpacity={1}
             onPress={() => setPhoneSidebarOpen(false)}
