@@ -700,42 +700,42 @@ TC-0121: Terminal renders the TERMINAL header label on mount
 Related Story: US-0012
 Related AC: AC-0036
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0122: Terminal renders the $ prompt character on mount
 Related Story: US-0012
 Related AC: AC-0036
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0123: Terminal welcome output includes the workingDirectory value
 Related Story: US-0012
 Related AC: AC-0037
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0124: Terminal welcome output includes "NomadCode Terminal" banner
 Related Story: US-0012
 Related AC: AC-0037
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0125: submitting a command clears the text input to empty string
 Related Story: US-0012
 Related AC: AC-0038
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0126: Terminal wraps content in a KeyboardAvoidingView
 Related Story: US-0012
 Related AC: AC-0039
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 ## US-0013: Run Commands
@@ -744,35 +744,35 @@ TC-0127: submitted command appears in output prefixed with $
 Related Story: US-0013
 Related AC: AC-0040
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0128: "help" command outputs available commands list
 Related Story: US-0013
 Related AC: AC-0040
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0129: onCommand callback is called with the submitted command string
 Related Story: US-0013
 Related AC: AC-0041
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0130: submitting empty input does not add an output line
 Related Story: US-0013
 Related AC: AC-0042
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0131: submitting empty input does not call onCommand
 Related Story: US-0013
 Related AC: AC-0042
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 ## US-0014: Colored Terminal Output
@@ -781,28 +781,28 @@ TC-0132: command echo line renders with commandLine style (green)
 Related Story: US-0014
 Related AC: AC-0043
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0133: unknown command output uses error line style (Coral red)
 Related Story: US-0014
 Related AC: AC-0044
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0134: "echo" command output renders as a plain output line
 Related Story: US-0014
 Related AC: AC-0045
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0135: pwd output renders as a plain output line
 Related Story: US-0014
 Related AC: AC-0045
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 ## US-0015: Open Command Palette

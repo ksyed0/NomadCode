@@ -358,28 +358,28 @@
       "title": "As a developer, I want to open an integrated terminal, so that I can run commands without leaving the app.",
       "priority": "P0",
       "estimate": "XL",
-      "status": "Planned",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
       "acs": [
         {
           "id": "AC-0036",
           "text": "Terminal component renders the TERMINAL header and a prompt character ($) on mount",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0037",
           "text": "Terminal accepts a workingDirectory prop and displays it in the welcome output",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0038",
           "text": "Terminal input clears after a command is submitted",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0039",
           "text": "Virtual keyboard raises the terminal viewport on iOS via KeyboardAvoidingView",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -393,23 +393,23 @@
       "title": "As a developer, I want to run build and test commands, so that I can verify my code works.",
       "priority": "P0",
       "estimate": "M",
-      "status": "Planned",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
       "acs": [
         {
           "id": "AC-0040",
           "text": "Submitting a command echoes it in the output prefixed with $",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0041",
           "text": "The onCommand callback is invoked with the exact command string on submit",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0042",
           "text": "Submitting an empty string does not add a line or call onCommand",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -422,23 +422,23 @@
       "title": "As a developer, I want to see colored terminal output, so that I can parse logs more easily.",
       "priority": "P1",
       "estimate": "S",
-      "status": "Planned",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
       "acs": [
         {
           "id": "AC-0043",
           "text": "Command echo lines are rendered in a distinct color (green/success style)",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0044",
           "text": "Error/unknown-command lines are rendered in the error color (Coral #EF4444)",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0045",
           "text": "Regular output lines are rendered in the standard text color",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -1656,7 +1656,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0036",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1666,7 +1666,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0036",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1676,7 +1676,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0037",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1686,7 +1686,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0037",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1696,7 +1696,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0038",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1706,7 +1706,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0039",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1716,7 +1716,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0040",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1726,7 +1726,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0040",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1736,7 +1736,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0041",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1746,7 +1746,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0042",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1756,7 +1756,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0042",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1766,7 +1766,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0043",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1776,7 +1776,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0044",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1786,7 +1786,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0045",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -1796,7 +1796,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0045",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2354,11 +2354,11 @@
     }
   },
   "coverage": {
-    "lines": 99.61,
-    "statements": 97.46,
-    "functions": 96.73,
-    "branches": 83.87,
-    "overall": 83.87,
+    "lines": 96.84,
+    "statements": 95.46,
+    "functions": 97.72,
+    "branches": 85,
+    "overall": 85,
     "meetsTarget": true,
     "available": true
   },
@@ -2372,8 +2372,8 @@
       "summary": "Continued from previous context window (PR #5 / US-0021 Plan Visualizer CI fixes); **Security audit fix**: Replaced `npm audit --omit=dev --audit-level=high` with `npx audit-ci@^7 --omit=dev`; created `mobile-ide/mobile-ide-prototype/audit-ci.json` allowlisting 5 tar CVEs (unfixable while on expo@52); **Workspace tar fix**: Bumped `mobile-ide/package.json` tar dep `6.2.1` → `7.5.11`; added CJS interop shim `mobile-ide/scripts/patch-tar-interop.js`; added `postinstall` script"
     }
   ],
-  "generatedAt": "2026-03-11T17:49:33.717Z",
-  "commitSha": "f52466a",
+  "generatedAt": "2026-03-11T21:53:03.113Z",
+  "commitSha": "4708f9d",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
@@ -2441,6 +2441,22 @@
     },
     {
       "date": "2026-03-10",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
       "cumCost": 10.91
     },
     {
