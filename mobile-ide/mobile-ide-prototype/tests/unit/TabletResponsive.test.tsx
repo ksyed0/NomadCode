@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Text } from 'react-native';
+import { PanResponder, Text } from 'react-native';
 import TabletResponsive, { clampTerminalHeight, useIsTablet } from '../../src/layout/TabletResponsive';
 import { renderHook } from '@testing-library/react-native';
 
@@ -248,7 +248,7 @@ describe('TabletResponsive — terminal resize handle', () => {
     // (raw responder event firing crashes due to internal touchHistory math)
     let capturedCallbacks: Record<string, (...args: unknown[]) => unknown> = {};
     const spy = jest
-      .spyOn(require('react-native').PanResponder, 'create')
+      .spyOn(PanResponder, 'create')
       .mockImplementation((cbs: Record<string, (...args: unknown[]) => unknown>) => {
         capturedCallbacks = cbs;
         return { panHandlers: {} };
