@@ -56,7 +56,7 @@ describe('renderHtml — traceability tab', () => {
     const dataWithTCs = { ...sampleData, testCases: [{ id: 'TC-0001', relatedStory: 'US-0001', relatedAC: 'AC-0001', status: 'Pass', defect: 'None', title: 'Test', type: 'Functional' }] };
     const html = renderHtml(dataWithTCs);
     expect(html).toMatch(/TC-0001/);
-    expect(html).toMatch(/P=Pass/);
+    expect(html).toMatch(/Legend/);
   });
 });
 
@@ -65,6 +65,28 @@ describe('renderHtml — no recent activity', () => {
     const dataNoActivity = { ...sampleData, recentActivity: [] };
     const html = renderHtml(dataNoActivity);
     expect(html).not.toMatch(/Recent Activity/);
+  });
+});
+
+describe('renderHtml — recent activity panel', () => {
+  it('renders full-height panel with activity items', () => {
+    const html = renderHtml(sampleData);
+    expect(html).toMatch(/id="activity-panel"/);
+    expect(html).toMatch(/id="activity-expanded"/);
+    expect(html).toMatch(/id="activity-collapsed"/);
+    expect(html).toMatch(/toggleActivityPanel/);
+  });
+
+  it('panel starts at 280px width by default', () => {
+    const html = renderHtml(sampleData);
+    expect(html).toMatch(/width:280px/);
+    expect(html).toMatch(/padding-right:280px/);
+  });
+
+  it('collapsed strip contains vertical label text', () => {
+    const html = renderHtml(sampleData);
+    expect(html).toMatch(/writing-mode:vertical-rl/);
+    expect(html).toMatch(/initActivityPanel/);
   });
 });
 
@@ -221,6 +243,20 @@ describe('renderHtml — bugs with lessonEncoded No', () => {
   });
 });
 
+describe('renderHtml — XSS escaping', () => {
+  it('escapes HTML special chars in user fields', () => {
+    const xssData = {
+      ...sampleData,
+      projectName: '<script>alert(1)</script>',
+      stories: [{ ...sampleData.stories[0], title: 'A & B <test>' }],
+    };
+    const html = renderHtml(xssData);
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).toContain('A &amp; B &lt;test&gt;');
+  });
+});
+
 describe('renderHtml — traceability with Not Run TC', () => {
   it('renders Not Run cell in traceability matrix', () => {
     const dataNotRunTC = {
@@ -229,5 +265,37 @@ describe('renderHtml — traceability with Not Run TC', () => {
     };
     const html = renderHtml(dataNotRunTC);
     expect(html).toMatch(/TC-0003/);
+  });
+});
+
+describe('renderHtml — sticky header (BUG-0004 regression)', () => {
+  it('wraps header in a sticky container', () => {
+    const html = renderHtml(sampleData);
+    expect(html).toContain('sticky top-0 z-30');
+  });
+});
+
+describe('renderHtml — projected cost from data.costs (BUG-0006)', () => {
+  it('uses data.costs.projectedUsd not TSHIRT_HOURS', () => {
+    const html = renderHtml(sampleData);
+    expect(html).toMatch(/\$800/);
+  });
+});
+
+describe('renderHtml — f-type filter (BUG-0009)', () => {
+  it('includes f-type select in filter bar', () => {
+    expect(renderHtml(sampleData)).toContain('id="f-type"');
+  });
+  it('assigns bug-row class to bug table rows', () => {
+    const dataWithBug = { ...sampleData, bugs: [{ id: 'BUG-0001', title: 'Crash', severity: 'High', status: 'Open', relatedStory: 'US-0001', fixBranch: 'bugfix/BUG-0001', lessonEncoded: 'No' }] };
+    expect(renderHtml(dataWithBug)).toContain('bug-row');
+  });
+});
+
+describe('renderHtml — coverage available false shows N/A (BUG-0010)', () => {
+  it('shows N/A when coverage not available', () => {
+    const noFile = { ...sampleData, coverage: { lines: 0, overall: 0, branches: 0, meetsTarget: false, available: false } };
+    const html = renderHtml(noFile);
+    expect(html).toMatch(/N\/A/);
   });
 });
