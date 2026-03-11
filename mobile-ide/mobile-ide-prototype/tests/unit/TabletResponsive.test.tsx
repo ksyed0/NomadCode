@@ -212,3 +212,35 @@ describe('TabletResponsive — custom dimensions', () => {
     ).not.toThrow();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Resize handle
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — terminal resize handle', () => {
+  beforeEach(() => setWidth(1024));
+
+  it('renders terminal-resize-handle when terminal is provided', () => {
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        terminalHeight={220}
+        onTerminalHeightChange={jest.fn()}
+      />
+    );
+    expect(screen.getByTestId('terminal-resize-handle')).toBeTruthy();
+  });
+
+  it('does not render resize handle when terminal is null', () => {
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={null}
+      />
+    );
+    expect(screen.queryByTestId('terminal-resize-handle')).toBeNull();
+  });
+});
