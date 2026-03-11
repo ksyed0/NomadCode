@@ -41,3 +41,7 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-11 | eba6324c-1de0-4372-b8bd-77d59d38460a | chore/install-plan-visualizer | 0 | 0 | 0 | 0.0000 |
 | 2026-03-11 | eba6324c-1de0-4372-b8bd-77d59d38460a | chore/install-plan-visualizer | 0 | 0 | 0 | 0.0000 |
 | 2026-03-11 | eba6324c-1de0-4372-b8bd-77d59d38460a | chore/install-plan-visualizer | 0 | 0 | 0 | 0.0000 |
+| 2026-03-11 | 389686bf-3bf1-4c15-b1dc-0cab3fa1e706 | feature/epic-0003-terminal | 0 | 0 | 0 | 0.0000 |
+| 2026-03-11 | 389686bf-3bf1-4c15-b1dc-0cab3fa1e706 | feature/epic-0003-terminal | 0 | 0 | 0 | 0.0000 |
+| 2026-03-11 | 389686bf-3bf1-4c15-b1dc-0cab3fa1e706 | feature/epic-0003-terminal | 0 | 0 | 0 | 0.0000 |
+| 2026-03-11 | 389686bf-3bf1-4c15-b1dc-0cab3fa1e706 | feature/epic-0003-terminal | 0 | 0 | 0 | 0.0000 |
