@@ -2,6 +2,7 @@
 module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/tests/unit/**/*.test.js'],
+  coverageDirectory: 'Docs/coverage',
   collectCoverageFrom: ['tools/lib/**/*.js'],
   coverageReporters: ['text', 'lcov', 'json-summary'],
   coverageThreshold: {

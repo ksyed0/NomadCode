@@ -8,6 +8,6 @@ Always consult before creating a new artefact. Update immediately after assignin
 | EPIC | EPIC-0007 | EPIC-0006 |
 | US | US-0022 | US-0021 |
 | TASK | TASK-0005 | TASK-0004 |
-| AC | AC-0022 | AC-0021 |
-| TC | TC-0081 | TC-0080 |
+| AC | AC-0064 | AC-0063 |
+| TC | TC-0163 | TC-0162 |
 | BUG | BUG-0001 | — |
