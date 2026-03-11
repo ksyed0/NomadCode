@@ -271,11 +271,7 @@ export default function App() {
             onSave={saveFile}
           />
         }
-        terminal={
-          showTerminal ? (
-            <Terminal workingDirectory={ROOT_PATH} onCommand={console.log} />
-          ) : null
-        }
+        terminal={<Terminal workingDirectory={ROOT_PATH} onCommand={console.log} visible={showTerminal} />}
       />
 
       {/* ── Floating action buttons (bottom-right) ───────────────────────── */}
