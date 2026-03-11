@@ -14,3 +14,11 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-07 | sess_ci_001 | claude/setup-mobile-ide-structure-9YOhz | 170000 | 55000 | 145000 | 1.6425 |
 | 2026-03-08 | sess_viz_001 | feature/US-0021-plan-visualizer | 185000 | 62000 | 158000 | 1.7775 |
 | 2026-03-09 | test_001 | feature/US-0021-plan-visualizer | 1000 | 200 | 0 | 0.0500 |
+| 2026-03-10 | bf590266-d7d5-4c71-8415-27245b2c5425 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-10 | bf590266-d7d5-4c71-8415-27245b2c5425 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-10 | bf590266-d7d5-4c71-8415-27245b2c5425 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-10 | bf590266-d7d5-4c71-8415-27245b2c5425 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-10 | bf590266-d7d5-4c71-8415-27245b2c5425 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-10 | d0a20854-d083-4ca0-8ab3-e6353836202b | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-10 | d0a20854-d083-4ca0-8ab3-e6353836202b | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-10 | d0a20854-d083-4ca0-8ab3-e6353836202b | develop | 0 | 0 | 0 | 0.0000 |

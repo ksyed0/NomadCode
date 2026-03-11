@@ -5,7 +5,7 @@
       "title": "Code Editing",
       "description": "Core syntax-highlighted editor with file open/save, undo/redo, multi-tab support.",
       "releaseTarget": "MVP (v0.1)",
-      "status": "In Progress",
+      "status": "Done",
       "dependencies": []
     },
     {
@@ -13,7 +13,7 @@
       "title": "File Management",
       "description": "File Explorer with full directory CRUD — browse, create, rename, delete, move.",
       "releaseTarget": "MVP (v0.1)",
-      "status": "In Progress",
+      "status": "Done",
       "dependencies": [
         "EPIC-0001"
       ]
@@ -95,23 +95,23 @@
       "title": "As a developer, I want to edit code with syntax highlighting, so that I can read code more easily.",
       "priority": "P0",
       "estimate": "L",
-      "status": "In Progress",
+      "status": "Done",
       "branch": "feature/US-0002-syntax-highlighting",
       "acs": [
         {
-          "id": "AC-TBD",
-          "text": "TypeScript/JavaScript syntax highlighted correctly",
-          "done": false
+          "id": "AC-0012",
+          "text": "TypeScript/JavaScript files receive correct syntax highlighting (language detected from extension)",
+          "done": true
         },
         {
-          "id": "AC-TBD",
-          "text": "Editor responsive to touch input (tap to position cursor)",
-          "done": false
+          "id": "AC-0013",
+          "text": "Editor is responsive to touch input — tap positions cursor, pinch adjusts font size",
+          "done": true
         },
         {
-          "id": "AC-TBD",
-          "text": "Virtual keyboard adjusts editor viewport",
-          "done": false
+          "id": "AC-0014",
+          "text": "Virtual keyboard raises the editor viewport so the cursor line remains visible",
+          "done": true
         }
       ],
       "dependencies": [
@@ -124,7 +124,7 @@
       "title": "As a developer, I want to save my changes, so that my work is not lost.",
       "priority": "P0",
       "estimate": "S",
-      "status": "Planned",
+      "status": "Done",
       "branch": "",
       "acs": [],
       "dependencies": [
@@ -138,7 +138,7 @@
       "title": "As a developer, I want to undo and redo changes, so that I can recover from mistakes.",
       "priority": "P0",
       "estimate": "S",
-      "status": "Planned",
+      "status": "Done",
       "branch": "",
       "acs": [],
       "dependencies": [
@@ -151,7 +151,7 @@
       "title": "As a developer, I want to search and replace text within a file, so that I can refactor code quickly.",
       "priority": "P1",
       "estimate": "M",
-      "status": "Planned",
+      "status": "Done",
       "branch": "",
       "acs": [],
       "dependencies": [
@@ -164,7 +164,7 @@
       "title": "As a developer, I want to view multiple files in tabs, so that I can work across files without losing context.",
       "priority": "P1",
       "estimate": "M",
-      "status": "Planned",
+      "status": "Done",
       "branch": "",
       "acs": [],
       "dependencies": [
@@ -178,7 +178,7 @@
       "title": "As a developer, I want to browse my project directory tree, so that I can find and open any file.",
       "priority": "P0",
       "estimate": "M",
-      "status": "In Progress",
+      "status": "Done",
       "branch": "",
       "acs": [],
       "dependencies": []
@@ -189,9 +189,20 @@
       "title": "As a developer, I want to create new files and folders, so that I can add to my project.",
       "priority": "P0",
       "estimate": "S",
-      "status": "Planned",
-      "branch": "",
-      "acs": [],
+      "status": "Done",
+      "branch": "feature/epic-0002-file-management",
+      "acs": [
+        {
+          "id": "AC-0015",
+          "text": "New file created at correct path + tree refreshed (TC-0041..TC-0048)",
+          "done": true
+        },
+        {
+          "id": "AC-0016",
+          "text": "New folder created at correct path + tree refreshed (TC-0049..TC-0052)",
+          "done": true
+        }
+      ],
       "dependencies": [
         "US-0007"
       ]
@@ -202,9 +213,15 @@
       "title": "As a developer, I want to rename files and folders, so that I can keep my project organized.",
       "priority": "P0",
       "estimate": "S",
-      "status": "Planned",
-      "branch": "",
-      "acs": [],
+      "status": "Done",
+      "branch": "feature/epic-0002-file-management",
+      "acs": [
+        {
+          "id": "AC-0017",
+          "text": "Rename via moveEntry + tree refreshed; modal pre-filled with current name (TC-0053..TC-0058)",
+          "done": true
+        }
+      ],
       "dependencies": [
         "US-0007"
       ]
@@ -215,9 +232,20 @@
       "title": "As a developer, I want to delete files and folders, so that I can clean up my project.",
       "priority": "P0",
       "estimate": "S",
-      "status": "Planned",
-      "branch": "",
-      "acs": [],
+      "status": "Done",
+      "branch": "feature/epic-0002-file-management",
+      "acs": [
+        {
+          "id": "AC-0018",
+          "text": "Confirmed delete calls deleteEntry + tree refreshed (TC-0059..TC-0065)",
+          "done": true
+        },
+        {
+          "id": "AC-0019",
+          "text": "Cancel skips deleteEntry — no tree change (TC-0061)",
+          "done": true
+        }
+      ],
       "dependencies": [
         "US-0007"
       ]
@@ -225,12 +253,23 @@
     {
       "id": "US-0011",
       "epicId": "EPIC-0002",
-      "title": "As a developer, I want to move files via drag-and-drop, so that I can restructure my project intuitively.",
+      "title": "As a developer, I want to move files and folders, so that I can restructure my project intuitively.",
       "priority": "P2",
       "estimate": "L",
-      "status": "Planned",
-      "branch": "",
-      "acs": [],
+      "status": "Done",
+      "branch": "feature/epic-0002-file-management",
+      "acs": [
+        {
+          "id": "AC-0020",
+          "text": "Move to valid destination calls moveEntry + onFileMove + tree reloaded (TC-0066..TC-0077)",
+          "done": true
+        },
+        {
+          "id": "AC-0021",
+          "text": "Self-move and descendant-move blocked with error alert (TC-0073..TC-0074)",
+          "done": true
+        }
+      ],
       "dependencies": [
         "US-0007",
         "US-0008",
@@ -950,33 +989,33 @@
     },
     "US-0007": {
       "missingTCs": false,
-      "noBranch": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "isAtRisk": false
+    },
+    "US-0008": {
+      "missingTCs": true,
+      "noBranch": false,
       "failedTCNoBug": false,
       "isAtRisk": true
     },
-    "US-0008": {
-      "missingTCs": false,
-      "noBranch": false,
-      "failedTCNoBug": false,
-      "isAtRisk": false
-    },
     "US-0009": {
-      "missingTCs": false,
+      "missingTCs": true,
       "noBranch": false,
       "failedTCNoBug": false,
-      "isAtRisk": false
+      "isAtRisk": true
     },
     "US-0010": {
-      "missingTCs": false,
+      "missingTCs": true,
       "noBranch": false,
       "failedTCNoBug": false,
-      "isAtRisk": false
+      "isAtRisk": true
     },
     "US-0011": {
-      "missingTCs": false,
+      "missingTCs": true,
       "noBranch": false,
       "failedTCNoBug": false,
-      "isAtRisk": false
+      "isAtRisk": true
     },
     "US-0012": {
       "missingTCs": false,
@@ -1057,8 +1096,8 @@
       "summary": "Continued from previous context window (PR #5 / US-0021 Plan Visualizer CI fixes); **Security audit fix**: Replaced `npm audit --omit=dev --audit-level=high` with `npx audit-ci@^7 --omit=dev`; created `mobile-ide/mobile-ide-prototype/audit-ci.json` allowlisting 5 tar CVEs (unfixable while on expo@52); **Workspace tar fix**: Bumped `mobile-ide/package.json` tar dep `6.2.1` → `7.5.11`; added CJS interop shim `mobile-ide/scripts/patch-tar-interop.js`; added `postinstall` script"
     }
   ],
-  "generatedAt": "2026-03-10T11:57:12.577Z",
-  "commitSha": "675b28d",
+  "generatedAt": "2026-03-11T02:13:02.025Z",
+  "commitSha": "908aba2",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
@@ -1094,6 +1133,38 @@
     },
     {
       "date": "2026-03-09",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-10",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-10",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-10",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-10",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-10",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-10",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-10",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-10",
       "cumCost": 10.91
     }
   ],
