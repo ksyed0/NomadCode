@@ -30,13 +30,13 @@ jobs:
 
     steps:
       - name: Checkout (full history required by semantic-release)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: 'npm'

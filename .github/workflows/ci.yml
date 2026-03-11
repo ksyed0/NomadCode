@@ -35,9 +35,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -58,9 +58,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -84,9 +84,9 @@ jobs:
       pull-requests: write  # allow coverage comment on PR
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -102,7 +102,7 @@ jobs:
           CI: true
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.0
         if: always()
         with:
           name: coverage-report
@@ -110,7 +110,7 @@ jobs:
           retention-days: 14
 
       - name: Upload JUnit results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.0
         if: always()
         with:
           name: test-results
@@ -136,9 +136,9 @@ jobs:
     needs: [build]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -172,9 +172,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -201,7 +201,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - name: Run Semgrep
         uses: semgrep/semgrep-action@v1
@@ -230,7 +230,7 @@ jobs:
         language: [javascript-typescript]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
@@ -252,7 +252,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
@@ -271,9 +271,9 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -326,7 +326,7 @@ jobs:
           CI: true
 
       - name: Upload E2E artifacts on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.0
         if: failure()
         with:
           name: detox-artifacts-ios
@@ -341,9 +341,9 @@ jobs:
     needs: [lint-and-typecheck, test]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -418,7 +418,7 @@ jobs:
           script: cd mobile-ide/mobile-ide-prototype && npm run test:e2e:android
 
       - name: Upload E2E artifacts on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.0
         if: failure()
         with:
           name: detox-artifacts-android
@@ -434,9 +434,9 @@ jobs:
         working-directory: .
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -469,7 +469,7 @@ jobs:
       - gitleaks
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - name: Extract version from branch name
         id: version
