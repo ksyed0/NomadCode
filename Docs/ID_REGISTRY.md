@@ -9,5 +9,5 @@ Always consult before creating a new artefact. Update immediately after assignin
 | US | US-0022 | US-0021 |
 | TASK | TASK-0005 | TASK-0004 |
 | AC | AC-0064 | AC-0063 |
-| TC | TC-0163 | TC-0162 |
+| TC | TC-0185 | TC-0184 |
 | BUG | BUG-0001 | — |

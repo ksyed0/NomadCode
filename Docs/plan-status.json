@@ -451,23 +451,23 @@
       "title": "As a power user, I want to open a command palette, so that I can run any action without navigating menus.",
       "priority": "P1",
       "estimate": "M",
-      "status": "Planned",
+      "status": "Done",
       "branch": "",
       "acs": [
         {
           "id": "AC-0046",
           "text": "CommandPalette renders a search input that auto-focuses on mount",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0047",
           "text": "CommandPalette renders all provided commands when the query is empty",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0048",
           "text": "Tapping outside the panel (backdrop) dismisses the keyboard",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -480,23 +480,23 @@
       "title": "As a power user, I want to search commands by name, so that I can find actions without memorizing locations.",
       "priority": "P1",
       "estimate": "S",
-      "status": "Planned",
+      "status": "Done",
       "branch": "",
       "acs": [
         {
           "id": "AC-0049",
           "text": "Typing a query filters commands to those matching label or description (case-insensitive)",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0050",
           "text": "When no commands match the query, a \"No commands found\" message is shown",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0051",
           "text": "Pressing Enter selects the first result in the filtered list",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -509,18 +509,18 @@
       "title": "As a power user, I want to see keyboard shortcuts in the palette, so that I can learn shortcuts over time.",
       "priority": "P2",
       "estimate": "S",
-      "status": "Planned",
+      "status": "Done",
       "branch": "",
       "acs": [
         {
           "id": "AC-0052",
           "text": "Commands with a shortcut field display the shortcut in a badge alongside the label",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0053",
           "text": "Commands without a shortcut field show no badge (no empty badge rendered)",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -2364,6 +2364,10 @@
   },
   "recentActivity": [
     {
+      "date": "2026-03-11",
+      "summary": "Installed PlanVisualizer tooling via `install.sh` (tools/, tests/, jest.config.js, GitHub Actions workflow); Fixed `plan-visualizer.yml`: path filters `docs/` → `Docs/` (Linux case-sensitive); Pages artifact path `./docs` → `./Docs`; Confirmed `.claude/settings.json` Stop hook already present (`node tools/capture-cost.js`)"
+    },
+    {
       "date": "2026-03-09",
       "summary": "Connected local working directory to GitHub repo `ksyed0/NomadCode`; Pulled latest code from `origin/main` (commit 13fec40); Read AGENTS.md and all existing documentation in `mobile-ide/docs/`"
     },
@@ -2372,8 +2376,8 @@
       "summary": "Continued from previous context window (PR #5 / US-0021 Plan Visualizer CI fixes); **Security audit fix**: Replaced `npm audit --omit=dev --audit-level=high` with `npx audit-ci@^7 --omit=dev`; created `mobile-ide/mobile-ide-prototype/audit-ci.json` allowlisting 5 tar CVEs (unfixable while on expo@52); **Workspace tar fix**: Bumped `mobile-ide/package.json` tar dep `6.2.1` → `7.5.11`; added CJS interop shim `mobile-ide/scripts/patch-tar-interop.js`; added `postinstall` script"
     }
   ],
-  "generatedAt": "2026-03-11T21:53:03.113Z",
-  "commitSha": "4708f9d",
+  "generatedAt": "2026-03-12T18:17:06.010Z",
+  "commitSha": "fc25ea3",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
@@ -2521,6 +2525,34 @@
     },
     {
       "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
       "cumCost": 10.91
     }
   ],
