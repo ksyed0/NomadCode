@@ -19,21 +19,25 @@ export interface Command {
 }
 
 interface CommandPaletteProps {
+  /** Whether the palette is visible */
+  visible: boolean;
   commands: Command[];
+  /** Dismiss without selecting (back button, backdrop tap) */
+  onClose: () => void;
+  /** Select a command — parent is responsible for also calling onClose */
   onSelect: (command: Command) => void;
   placeholder?: string;
 }
 
-/**
- * CommandPalette — fuzzy-searchable overlay for commands, files, and symbols.
- * Triggered by swipe gesture or keyboard shortcut (Cmd+P / Ctrl+P).
- */
 export function CommandPalette({
+  visible,
   commands,
+  onClose,
   onSelect,
   placeholder = 'Search commands…',
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const filtered = useMemo(() => {
     if (!query) return commands;
@@ -45,6 +49,11 @@ export function CommandPalette({
     );
   }, [query, commands]);
 
+  const handleQueryChange = useCallback((text: string) => {
+    setQuery(text);
+    setSelectedIndex(0);
+  }, []);
+
   const handleSelect = useCallback(
     (cmd: Command) => {
       Keyboard.dismiss();
@@ -53,49 +62,95 @@ export function CommandPalette({
     [onSelect],
   );
 
-  const renderItem = ({ item, index }: { item: Command; index: number }) => (
-    <TouchableOpacity
-      style={[styles.item, index === 0 && styles.itemFirst]}
-      onPress={() => handleSelect(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.itemContent}>
-        <Text style={styles.itemLabel}>{item.label}</Text>
-        {item.description && (
-          <Text style={styles.itemDescription} numberOfLines={1}>
-            {item.description}
-          </Text>
-        )}
-      </View>
-      {item.shortcut && (
-        <View style={styles.shortcutBadge}>
-          <Text style={styles.shortcutText}>{item.shortcut}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+  const handleSubmit = useCallback(() => {
+    if (filtered[selectedIndex]) {
+      handleSelect(filtered[selectedIndex]);
+    }
+  }, [filtered, selectedIndex, handleSelect]);
+
+  const handleKeyPress = useCallback(
+    (e: { nativeEvent: { key: string } }) => {
+      const { key } = e.nativeEvent;
+      if (key === 'ArrowDown') {
+        setSelectedIndex((i) => Math.min(i + 1, filtered.length - 1));
+      } else if (key === 'ArrowUp') {
+        setSelectedIndex((i) => Math.max(i - 1, 0));
+      }
+    },
+    [filtered.length],
   );
 
-  return (
-    <Modal transparent animationType="fade" onRequestClose={() => onSelect(commands[0])}>
+  const handleBackdropPress = useCallback(() => {
+    Keyboard.dismiss();
+    onClose();
+  }, [onClose]);
+
+  const renderItem = ({ item, index }: { item: Command; index: number }) => {
+    const isSelected = index === selectedIndex;
+    return (
       <TouchableOpacity
-        style={styles.backdrop}
-        activeOpacity={1}
-        onPress={() => Keyboard.dismiss()}
+        onPress={() => handleSelect(item)}
+        activeOpacity={0.7}
       >
+        <View
+          testID={`item-${index}`}
+          style={[
+            styles.item,
+            index === 0 && styles.itemFirst,
+            isSelected && styles.itemSelected,
+          ]}
+        >
+          <View style={styles.itemContent}>
+            <Text style={[styles.itemLabel, isSelected && styles.itemLabelSelected]}>
+              {item.label}
+            </Text>
+            {item.description && (
+              <Text style={styles.itemDescription} numberOfLines={1}>
+                {item.description}
+              </Text>
+            )}
+          </View>
+          {item.shortcut && (
+            <View style={styles.shortcutBadge}>
+              <Text style={styles.shortcutText}>{item.shortcut}</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <Modal
+      transparent
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View style={styles.container}>
+        {/* Backdrop — absolutely positioned behind the panel */}
+        <TouchableOpacity
+          testID="palette-backdrop"
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={handleBackdropPress}
+        />
+        {/* Panel — rendered on top of backdrop; touches here do not bubble */}
         <View style={styles.panel}>
           <View style={styles.searchRow}>
             <Text style={styles.searchIcon}>⌘</Text>
             <TextInput
               style={styles.searchInput}
               value={query}
-              onChangeText={setQuery}
+              onChangeText={handleQueryChange}
               placeholder={placeholder}
               placeholderTextColor="#475569"
               autoFocus
               autoCorrect={false}
               autoCapitalize="none"
               returnKeyType="done"
-              onSubmitEditing={() => filtered[0] && handleSelect(filtered[0])}
+              onSubmitEditing={handleSubmit}
+              onKeyPress={handleKeyPress}
             />
           </View>
           <FlatList
@@ -109,13 +164,13 @@ export function CommandPalette({
             }
           />
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  container: {
     flex: 1,
     backgroundColor: '#00000088',
     alignItems: 'center',
@@ -163,12 +218,19 @@ const styles = StyleSheet.create({
   itemFirst: {
     borderTopWidth: 0,
   },
+  itemSelected: {
+    backgroundColor: '#2563EB',
+  },
   itemContent: {
     flex: 1,
   },
   itemLabel: {
     color: '#E2E8F0',
     fontSize: 14,
+  },
+  itemLabelSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   itemDescription: {
     color: '#64748B',
