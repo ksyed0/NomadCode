@@ -31,7 +31,7 @@ Running log of what was done each session, errors, test results, and blockers.
 - EPIC-0001 (Code Editing): Done
 - EPIC-0002 (File Management): Done
 - EPIC-0003 (Terminal): Planned (branch exists, no implementation yet)
-- EPIC-0004 (Command Palette): **Done** — PR open for review
+- EPIC-0004 (Command Palette): **Done** — merged to develop
 - EPIC-0005 (Customization): Planned
 
 ### Test Status
@@ -47,9 +47,17 @@ Running log of what was done each session, errors, test results, and blockers.
 - `tests/unit/App.test.tsx` — new file, 5 tests
 - `BUGS.md` — CP-1–CP-5 documented
 
+### Post-PR Fix
+- Discovered plan visualizer showing 0 bugs despite BUGS.md having 5 entries
+- Root cause 1: config pointed to `Docs/BUGS.md` (didn't exist); root BUGS.md was ignored
+- Root cause 2: parser expects `BUG-XXXX:` lines; root BUGS.md used `CP-1`/markdown headings
+- Fix: created `Docs/BUGS.md` in machine-readable format (BUG-0001–BUG-0005, all Status: Fixed)
+- Updated root BUGS.md with BUG-IDs and FIXED status; ID_REGISTRY BUG next → BUG-0006
+- Dashboard now reports 5 bugs correctly
+- PR #16 merged → develop
+
 ### Next Session Pick-up
-1. Merge EPIC-0004 PR → develop
-2. Start EPIC-0003 (Terminal): US-0012, US-0013, US-0014
+1. Start EPIC-0003 (Terminal): US-0012, US-0013, US-0014
    - `Terminal.tsx` stub already exists
    - Need: xterm.js integration, WASI sandbox, resize handle wiring
 
