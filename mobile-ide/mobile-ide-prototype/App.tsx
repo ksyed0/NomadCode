@@ -275,6 +275,7 @@ export default function App() {
         terminal={<Terminal workingDirectory={ROOT_PATH} onCommand={console.log} visible={showTerminal} />}
         terminalHeight={terminalHeight}
         onTerminalHeightChange={setTerminalHeight}
+        onOpenPalette={() => setShowPalette(true)}
       />
 
       {/* ── Floating action buttons (bottom-right) ───────────────────────── */}
@@ -301,12 +302,12 @@ export default function App() {
       </View>
 
       {/* ── Command palette modal ─────────────────────────────────────────── */}
-      {showPalette && (
-        <CommandPalette
-          commands={paletteCommands}
-          onSelect={handlePaletteSelect}
-        />
-      )}
+      <CommandPalette
+        visible={showPalette}
+        commands={paletteCommands}
+        onClose={() => setShowPalette(false)}
+        onSelect={handlePaletteSelect}
+      />
     </SafeAreaView>
   );
 }
