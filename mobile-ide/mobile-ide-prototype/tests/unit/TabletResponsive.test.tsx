@@ -8,7 +8,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { PanResponder, Text } from 'react-native';
-import TabletResponsive, { clampTerminalHeight, useIsTablet } from '../../src/layout/TabletResponsive';
+import TabletResponsive, { clampTerminalHeight, isDownwardSwipe, useIsTablet } from '../../src/layout/TabletResponsive';
 import { renderHook } from '@testing-library/react-native';
 
 // ---------------------------------------------------------------------------
@@ -294,5 +294,134 @@ describe('clampTerminalHeight', () => {
 
   it('clamps to MAX_TERMINAL_HEIGHT (400) when dragging too far up', () => {
     expect(clampTerminalHeight(220, -300)).toBe(400);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isDownwardSwipe utility
+// ---------------------------------------------------------------------------
+
+describe('isDownwardSwipe', () => {
+  it('returns true when dy > 40 and vy > 0.3', () => {
+    expect(isDownwardSwipe(50, 0.4)).toBe(true);
+  });
+
+  it('returns false when dy is exactly 40 (not strictly greater)', () => {
+    expect(isDownwardSwipe(40, 0.4)).toBe(false);
+  });
+
+  it('returns false when vy is exactly 0.3 (not strictly greater)', () => {
+    expect(isDownwardSwipe(50, 0.3)).toBe(false);
+  });
+
+  it('returns false when dy is below threshold', () => {
+    expect(isDownwardSwipe(30, 0.4)).toBe(false);
+  });
+
+  it('returns false when vy is below threshold', () => {
+    expect(isDownwardSwipe(50, 0.2)).toBe(false);
+  });
+
+  it('returns true at minimum passing values (dy=41, vy=0.31)', () => {
+    expect(isDownwardSwipe(41, 0.31)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Swipe gesture zone
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — swipe gesture zone', () => {
+  beforeEach(() => setWidth(1024));
+
+  it('renders swipe-zone testID in main area (tablet)', () => {
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(screen.getByTestId('swipe-zone')).toBeTruthy();
+  });
+
+  it('renders swipe-zone on phone layout too', () => {
+    setWidth(375);
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(screen.getByTestId('swipe-zone')).toBeTruthy();
+  });
+
+  it('calls onOpenPalette when swipe-down gesture is released', () => {
+    let capturedSwipeCbs: Record<string, (...args: unknown[]) => unknown> = {};
+    let callIdx = 0;
+    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((cbs) => {
+      // First call = terminal resize; second call = swipe zone
+      if (callIdx++ === 1) {
+        capturedSwipeCbs = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+      }
+      return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
+    });
+
+    const onOpenPalette = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        onOpenPalette={onOpenPalette}
+      />,
+    );
+
+    expect(capturedSwipeCbs.onStartShouldSetPanResponder?.()).toBe(true);
+    capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.4 });
+    expect(onOpenPalette).toHaveBeenCalledTimes(1);
+
+    spy.mockRestore();
+    callIdx = 0;
+  });
+
+  it('does not call onOpenPalette for swipes below threshold', () => {
+    let capturedSwipeCbs: Record<string, (...args: unknown[]) => unknown> = {};
+    let callIdx = 0;
+    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((cbs) => {
+      if (callIdx++ === 1) {
+        capturedSwipeCbs = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+      }
+      return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
+    });
+
+    const onOpenPalette = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        onOpenPalette={onOpenPalette}
+      />,
+    );
+
+    capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 30, vy: 0.4 }); // dy too small
+    capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.2 }); // vy too small
+    expect(onOpenPalette).not.toHaveBeenCalled();
+
+    spy.mockRestore();
+    callIdx = 0;
+  });
+
+  it('does not crash when onOpenPalette is not provided', () => {
+    let capturedSwipeCbs: Record<string, (...args: unknown[]) => unknown> = {};
+    let callIdx = 0;
+    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((cbs) => {
+      if (callIdx++ === 1) {
+        capturedSwipeCbs = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+      }
+      return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
+    });
+
+    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />);
+    expect(() =>
+      capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.4 }),
+    ).not.toThrow();
+
+    spy.mockRestore();
+    callIdx = 0;
   });
 });
