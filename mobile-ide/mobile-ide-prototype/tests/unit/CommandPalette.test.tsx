@@ -123,6 +123,13 @@ describe('CommandPalette — AC-0049/0050 filtering', () => {
     expect(screen.queryByText('Git: Show Status')).toBeNull();
   });
 
+  it('AC-0049: filters case-insensitively with uppercase query', () => {
+    renderPalette();
+    fireEvent.changeText(screen.getByPlaceholderText(/Search commands/i), 'GIT');
+    expect(screen.getByText('Git: Show Status')).toBeTruthy();
+    expect(screen.queryByText('File: Save')).toBeNull();
+  });
+
   it('AC-0049: shows all commands when query is cleared', () => {
     renderPalette();
     const input = screen.getByPlaceholderText(/Search commands/i);
@@ -217,6 +224,18 @@ describe('CommandPalette — keyboard navigation', () => {
     fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowUp' } });
     fireEvent(input, 'submitEditing');
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'file-save' }));
+  });
+
+  it('ArrowDown on last item stays on last item', () => {
+    const { onSelect } = renderPalette();
+    const input = screen.getByPlaceholderText(/Search commands/i);
+    // Press ArrowDown 10 times — should clamp at last item (index 3 for 4-item fixture)
+    for (let i = 0; i < 10; i++) {
+      fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowDown' } });
+    }
+    fireEvent(input, 'submitEditing');
+    // Last item in makeCommands() is 'git-status' (index 3)
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'git-status' }));
   });
 
   it('query change resets selectedIndex to 0', () => {
