@@ -4,6 +4,57 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 4 — 2026-03-12
+
+### What Was Done
+- Merged PR #15 (feature/epic-0003-terminal → develop); 282 tests passing
+- Checked out `develop`, pulled latest
+- Brainstormed EPIC-0004 Command Palette: audited existing `CommandPalette.tsx`, chose full audit+rebuild with visible/onClose API, keyboard navigation, and swipe gesture trigger
+- Logged 5 bugs to `BUGS.md` (CP-1–CP-5): onRequestClose fire, backdrop-only-dismiss, missing explicit tests, uncovered lines, no swipe trigger
+- Wrote design doc: `Docs/plans/2026-03-12-epic-0004-command-palette-design.md`
+- Wrote implementation plan: `Docs/plans/2026-03-12-epic-0004-command-palette-plan.md`
+- Created feature branch `feature/epic-0004-command-palette` from develop
+- Executed subagent-driven development (5 tasks):
+  - Task 1: 26-test suite for CommandPalette (all 8 ACs + keyboard nav + edge cases)
+  - Task 2: Rebuilt `CommandPalette.tsx` — visible/onClose API, keyboard nav (ArrowDown/Up/Enter), absolute backdrop, design-system colors
+  - Task 3: TabletResponsive swipe zone tests (isDownwardSwipe utility + 5 swipe gesture tests)
+  - Task 4: Added `isDownwardSwipe` export + swipe zone (PanResponder) to `TabletResponsive.tsx`; `onOpenPalette` prop
+  - Task 5: Updated `App.tsx` — visible/onClose pattern, memoized paletteCommands, onOpenPalette wired; added `tests/unit/App.test.tsx` (5 tests)
+- Updated plan-status.json: EPIC-0004/US-0015–0017 → Done, AC-0046–AC-0053 → done, TC-0136–0148 → Pass, TC-0163–0184 added
+- Updated RELEASE_PLAN.md: all EPIC-0004 ACs checked
+- ID_REGISTRY updated: TC next → TC-0185
+- HTML dashboard regenerated
+
+### Current State
+- Branch: `feature/epic-0004-command-palette` — PR open, targeting `develop`
+- 311 tests passing, 0 failing (10 suites)
+- EPIC-0001 (Code Editing): Done
+- EPIC-0002 (File Management): Done
+- EPIC-0003 (Terminal): Planned (branch exists, no implementation yet)
+- EPIC-0004 (Command Palette): **Done** — PR open for review
+- EPIC-0005 (Customization): Planned
+
+### Test Status
+- 311 mobile unit tests passing (10 suites), 0 failing
+- Coverage: ≥80% on all new/modified files
+
+### Key Files Modified
+- `src/components/CommandPalette.tsx` — full rebuild
+- `src/layout/TabletResponsive.tsx` — isDownwardSwipe + swipe zone
+- `App.tsx` — visible/onClose + onOpenPalette
+- `tests/unit/CommandPalette.test.tsx` — 26 tests
+- `tests/unit/TabletResponsive.test.tsx` — swipe zone tests added
+- `tests/unit/App.test.tsx` — new file, 5 tests
+- `BUGS.md` — CP-1–CP-5 documented
+
+### Next Session Pick-up
+1. Merge EPIC-0004 PR → develop
+2. Start EPIC-0003 (Terminal): US-0012, US-0013, US-0014
+   - `Terminal.tsx` stub already exists
+   - Need: xterm.js integration, WASI sandbox, resize handle wiring
+
+---
+
 ## Session 3 — 2026-03-11
 
 ### What Was Done

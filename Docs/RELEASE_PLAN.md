@@ -211,30 +211,30 @@ Dependencies: US-0012
 US-0015 (EPIC-0004): As a power user, I want to open a command palette, so that I can run any action without navigating menus.
 Priority: Medium (P1)
 Estimate: M
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0046: CommandPalette renders a search input that auto-focuses on mount
-  - [ ] AC-0047: CommandPalette renders all provided commands when the query is empty
-  - [ ] AC-0048: Tapping outside the panel (backdrop) dismisses the keyboard
+  - [x] AC-0046: CommandPalette renders a search input that auto-focuses on mount
+  - [x] AC-0047: CommandPalette renders all provided commands when the query is empty
+  - [x] AC-0048: Tapping outside the panel (backdrop) dismisses the keyboard
 Dependencies: EPIC-0001
 
 US-0016 (EPIC-0004): As a power user, I want to search commands by name, so that I can find actions without memorizing locations.
 Priority: Medium (P1)
 Estimate: S
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0049: Typing a query filters commands to those matching label or description (case-insensitive)
-  - [ ] AC-0050: When no commands match the query, a "No commands found" message is shown
-  - [ ] AC-0051: Pressing Enter selects the first result in the filtered list
+  - [x] AC-0049: Typing a query filters commands to those matching label or description (case-insensitive)
+  - [x] AC-0050: When no commands match the query, a "No commands found" message is shown
+  - [x] AC-0051: Pressing Enter selects the first result in the filtered list
 Dependencies: US-0015
 
 US-0017 (EPIC-0004): As a power user, I want to see keyboard shortcuts in the palette, so that I can learn shortcuts over time.
 Priority: Low (P2)
 Estimate: S
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0052: Commands with a shortcut field display the shortcut in a badge alongside the label
-  - [ ] AC-0053: Commands without a shortcut field show no badge (no empty badge rendered)
+  - [x] AC-0052: Commands with a shortcut field display the shortcut in a badge alongside the label
+  - [x] AC-0053: Commands without a shortcut field show no badge (no empty badge rendered)
 Dependencies: US-0015, US-0016
 ```
 

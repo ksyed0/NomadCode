@@ -52,6 +52,8 @@ interface TabletResponsiveProps {
   terminalHeight?: number;
   /** Called when user drags the resize handle */
   onTerminalHeightChange?: (height: number) => void;
+  /** Called when user swipes down on the main editor area to open command palette */
+  onOpenPalette?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,6 +68,11 @@ export function clampTerminalHeight(current: number, dy: number): number {
   return Math.max(MIN_TERMINAL_HEIGHT, Math.min(MAX_TERMINAL_HEIGHT, current - dy));
 }
 
+/** Exported for unit-testing the swipe-to-open predicate. */
+export function isDownwardSwipe(dy: number, vy: number): boolean {
+  return dy > 40 && vy > 0.3;
+}
+
 export default function TabletResponsive({
   sidebar,
   main,
@@ -73,12 +80,16 @@ export default function TabletResponsive({
   sidebarWidth = SIDEBAR_WIDTH,
   terminalHeight = TERMINAL_HEIGHT,
   onTerminalHeightChange,
+  onOpenPalette,
 }: TabletResponsiveProps) {
   const isTablet = useIsTablet();
   const [phoneSidebarOpen, setPhoneSidebarOpen] = useState(false);
 
   const showTerminal = terminal !== null;
 
+  // NOTE: PanResponder callbacks close over props at mount time.
+  // Callers must pass stable callback references (e.g. via useCallback)
+  // to avoid stale-closure issues on re-render.
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -88,6 +99,28 @@ export default function TabletResponsive({
     }),
   ).current;
 
+  // NOTE: Same stale-closure caveat as panResponder above.
+  const swipePanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderRelease: (_, gs) => {
+        if (isDownwardSwipe(gs.dy, gs.vy)) {
+          onOpenPalette?.();
+        }
+      },
+    }),
+  ).current;
+
+  // Shared gesture zone — placed at the top of the main editor area in both layouts.
+  // Captures downward swipes to open the command palette.
+  const swipeZoneView = (
+    <View
+      testID="swipe-zone"
+      style={styles.swipeZone}
+      {...swipePanResponder.panHandlers}
+    />
+  );
+
   // ── Tablet layout ──────────────────────────────────────────────────────────
   if (isTablet) {
     return (
@@ -95,7 +128,10 @@ export default function TabletResponsive({
         {/* Main row: sidebar + editor */}
         <View style={styles.row}>
           <View style={[styles.sidebar, { width: sidebarWidth }]}>{sidebar}</View>
-          <View style={styles.mainArea}>{main}</View>
+          <View style={styles.mainArea}>
+            {swipeZoneView}
+            {main}
+          </View>
         </View>
 
         {/* Terminal strip at bottom */}
@@ -119,7 +155,10 @@ export default function TabletResponsive({
   return (
     <View style={styles.root}>
       {/* Editor fills the top area */}
-      <View style={styles.phoneMainArea}>{main}</View>
+      <View style={styles.phoneMainArea}>
+        {swipeZoneView}
+        {main}
+      </View>
 
       {/* Terminal slides up from the bottom */}
       {showTerminal && (
@@ -178,6 +217,11 @@ const styles = StyleSheet.create({
   },
   mainArea: {
     flex: 1,
+  },
+  swipeZone: {
+    height: 8,
+    width: '100%',
+    backgroundColor: 'transparent',
   },
   resizeHandle: {
     height: 6,

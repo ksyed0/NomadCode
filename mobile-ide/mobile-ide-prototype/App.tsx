@@ -11,7 +11,7 @@
  * Future cloud/sync integration points are marked with: // CLOUD_HOOK
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -187,7 +187,7 @@ export default function App() {
   // Command palette commands
   // ---------------------------------------------------------------------------
 
-  const paletteCommands: Command[] = [
+  const paletteCommands = useMemo<Command[]>(() => [
     {
       id: 'file-save',
       label: 'File: Save',
@@ -223,7 +223,7 @@ export default function App() {
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
-  ];
+  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath]);
 
   const handlePaletteSelect = useCallback((cmd: Command) => {
     setShowPalette(false);
@@ -275,6 +275,7 @@ export default function App() {
         terminal={<Terminal workingDirectory={ROOT_PATH} onCommand={console.log} visible={showTerminal} />}
         terminalHeight={terminalHeight}
         onTerminalHeightChange={setTerminalHeight}
+        onOpenPalette={() => setShowPalette(true)}
       />
 
       {/* ── Floating action buttons (bottom-right) ───────────────────────── */}
@@ -301,12 +302,12 @@ export default function App() {
       </View>
 
       {/* ── Command palette modal ─────────────────────────────────────────── */}
-      {showPalette && (
-        <CommandPalette
-          commands={paletteCommands}
-          onSelect={handlePaletteSelect}
-        />
-      )}
+      <CommandPalette
+        visible={showPalette}
+        commands={paletteCommands}
+        onClose={() => setShowPalette(false)}
+        onSelect={handlePaletteSelect}
+      />
     </SafeAreaView>
   );
 }
