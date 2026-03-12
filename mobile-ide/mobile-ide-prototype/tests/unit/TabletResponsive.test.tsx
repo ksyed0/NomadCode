@@ -246,11 +246,16 @@ describe('TabletResponsive — terminal resize handle', () => {
   it('calls onTerminalHeightChange when PanResponder move fires', () => {
     // Capture the PanResponder callbacks so we can invoke them directly in tests
     // (raw responder event firing crashes due to internal touchHistory math)
+    // NOTE: TabletResponsive creates two PanResponders — terminal resize (index 0)
+    //       and swipe zone (index 1). We capture only the first (index 0) here.
     let capturedCallbacks: Record<string, (...args: unknown[]) => unknown> = {};
+    let callIdx = 0;
     const spy = jest
       .spyOn(PanResponder, 'create')
       .mockImplementation((cbs) => {
-        capturedCallbacks = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+        if (callIdx++ === 0) {
+          capturedCallbacks = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+        }
         return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
       });
 
