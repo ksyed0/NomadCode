@@ -4,6 +4,44 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 4 — 2026-03-12
+
+### What Was Done
+- Implemented EPIC-0003: Terminal Enhancement on `feature/epic-0003-terminal`
+  - **Fix remount bug**: `visible` prop + `display:none` replaces conditional mount so history survives toggle; App.tsx always mounts Terminal
+  - **`ls` command**: wired to `FileSystemBridge.listDirectory` (empty + error handling)
+  - **`cd` command**: stateful `cwd` state with absolute and relative path support; `pwd` uses live `cwd`
+  - **Command history**: ring buffer (max 50) with ↑/↓ on-screen nav buttons (`testID="history-up/down"`)
+  - **Long-press copy**: `TouchableOpacity` wrapping each output line; `Clipboard.setString` on `onLongPress`
+  - **Drag-resize handle**: `PanResponder` above terminal strip in `TabletResponsive`; height clamped 120–400px; `App.tsx` owns `terminalHeight` state; exported `clampTerminalHeight` for unit testing
+  - **Coverage**: 282 tests passing, TabletResponsive 100% all axes, overall 95%+ statements
+  - **Docs**: US-0012/0013/0014 → Done; TC-0121..TC-0135 → Pass; dashboard regenerated
+- Fixed CI lint error: `require('react-native')` → proper `import { PanResponder }`
+- Fixed CI type errors: removed invalid `cursor:'row-resize'` RN style; cast PanResponder mock via `unknown`
+- Fixed branch protection mismatch: updated required checks from short names (`lint`, `test`, `build`, `security`, `plan-visualizer-test`) to match actual workflow job names (`Lint & Type-check`, `Unit Tests (coverage ≥ 80%)`, etc.)
+- PR #15 open, all CI checks green, ready to merge
+
+### Current State
+- Branch: `feature/epic-0003-terminal` — PR #15 open against `develop`
+- EPIC-0001 (Code Editing): Done
+- EPIC-0002 (File Management): Done
+- EPIC-0003 (Terminal): Done (pending PR #15 merge)
+- EPIC-0004 (Command Palette): Planned — next up
+- EPIC-0005 (Customization): Planned
+- EPIC-0006 (Plan Visualizer): Done
+
+### Test Status
+- Mobile unit tests: 282 passing, coverage ≥ 80% all files
+- Plan Visualizer: 138 tests passing
+
+### Next Session Pick-up
+1. Merge PR #15 (EPIC-0003)
+2. Implement EPIC-0004: Command Palette (US-0015, US-0016, US-0017)
+   - `CommandPalette.tsx` stub exists with existing tests
+   - Stories: open palette, search by name, show keyboard shortcuts
+
+---
+
 ## Session 3 — 2026-03-11
 
 ### What Was Done
