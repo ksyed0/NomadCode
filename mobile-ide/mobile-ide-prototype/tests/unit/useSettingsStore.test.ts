@@ -1,3 +1,10 @@
+/**
+ * Unit tests — useSettingsStore
+ *
+ * AsyncStorage is mocked so tests run in Node without a device.
+ * Coverage: default state, setTheme, setFontSize (with clamp), setWorkspacePath, completeSetup.
+ */
+
 import { act, renderHook } from '@testing-library/react-native';
 
 // Mock AsyncStorage before importing the store
@@ -7,8 +14,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   removeItem: jest.fn(() => Promise.resolve()),
 }));
 
-// Import AFTER mock is set up
-const { default: useSettingsStore } = require('../../src/stores/useSettingsStore');
+import useSettingsStore from '../../src/stores/useSettingsStore';
 
 beforeEach(() => {
   useSettingsStore.setState({
