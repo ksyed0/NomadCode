@@ -334,6 +334,27 @@ describe('isDownwardSwipe', () => {
 describe('TabletResponsive — swipe gesture zone', () => {
   beforeEach(() => setWidth(1024));
 
+  // Shared spy state for PanResponder tests
+  let capturedSwipeCbs: Record<string, (...args: unknown[]) => unknown> = {};
+  let swipeSpy: jest.SpyInstance | null = null;
+
+  function installSwipeSpy() {
+    capturedSwipeCbs = {};
+    let callIdx = 0;
+    swipeSpy = jest.spyOn(PanResponder, 'create').mockImplementation((cbs) => {
+      // First call = terminal resize PanResponder; second call = swipe zone
+      if (callIdx++ === 1) {
+        capturedSwipeCbs = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+      }
+      return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
+    });
+  }
+
+  afterEach(() => {
+    swipeSpy?.mockRestore();
+    swipeSpy = null;
+  });
+
   it('renders swipe-zone testID in main area (tablet)', () => {
     render(
       <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
@@ -350,16 +371,7 @@ describe('TabletResponsive — swipe gesture zone', () => {
   });
 
   it('calls onOpenPalette when swipe-down gesture is released', () => {
-    let capturedSwipeCbs: Record<string, (...args: unknown[]) => unknown> = {};
-    let callIdx = 0;
-    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((cbs) => {
-      // First call = terminal resize; second call = swipe zone
-      if (callIdx++ === 1) {
-        capturedSwipeCbs = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
-      }
-      return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
-    });
-
+    installSwipeSpy();
     const onOpenPalette = jest.fn();
     render(
       <TabletResponsive
@@ -373,21 +385,10 @@ describe('TabletResponsive — swipe gesture zone', () => {
     expect(capturedSwipeCbs.onStartShouldSetPanResponder?.()).toBe(true);
     capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.4 });
     expect(onOpenPalette).toHaveBeenCalledTimes(1);
-
-    spy.mockRestore();
-    callIdx = 0;
   });
 
   it('does not call onOpenPalette for swipes below threshold', () => {
-    let capturedSwipeCbs: Record<string, (...args: unknown[]) => unknown> = {};
-    let callIdx = 0;
-    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((cbs) => {
-      if (callIdx++ === 1) {
-        capturedSwipeCbs = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
-      }
-      return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
-    });
-
+    installSwipeSpy();
     const onOpenPalette = jest.fn();
     render(
       <TabletResponsive
@@ -400,28 +401,20 @@ describe('TabletResponsive — swipe gesture zone', () => {
 
     capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 30, vy: 0.4 }); // dy too small
     capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.2 }); // vy too small
-    expect(onOpenPalette).not.toHaveBeenCalled();
-
-    spy.mockRestore();
-    callIdx = 0;
+    expect(onOpenPalette).toHaveBeenCalledTimes(0);
   });
 
   it('does not crash when onOpenPalette is not provided', () => {
-    let capturedSwipeCbs: Record<string, (...args: unknown[]) => unknown> = {};
-    let callIdx = 0;
-    const spy = jest.spyOn(PanResponder, 'create').mockImplementation((cbs) => {
-      if (callIdx++ === 1) {
-        capturedSwipeCbs = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
-      }
-      return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
-    });
-
-    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />);
+    installSwipeSpy();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+      />,
+    );
     expect(() =>
       capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.4 }),
     ).not.toThrow();
-
-    spy.mockRestore();
-    callIdx = 0;
   });
 });
