@@ -7,7 +7,7 @@
 
 ## EPIC-0004 — Command Palette (detected 2026-03-12)
 
-### CP-1 — `onRequestClose` fires first command on Android back [OPEN]
+### BUG-0001 / CP-1 — `onRequestClose` fires first command on Android back [FIXED]
 
 **Severity:** High
 **File:** `mobile-ide/mobile-ide-prototype/src/components/CommandPalette.tsx` line 78
@@ -24,7 +24,7 @@ for both selection and dismissal.
 
 ---
 
-### CP-2 — Backdrop press does not close the palette [OPEN]
+### BUG-0002 / CP-2 — Backdrop press does not close the palette [FIXED]
 
 **Severity:** Medium
 **File:** `mobile-ide/mobile-ide-prototype/src/components/CommandPalette.tsx` line 81
@@ -39,7 +39,7 @@ leaves the palette modal visible. Users who expect tapping the backdrop to close
 
 ---
 
-### CP-3 — AC-0046, AC-0048, AC-0053 have no explicit tests [OPEN]
+### BUG-0003 / CP-3 — AC-0046, AC-0048, AC-0053 have no explicit tests [FIXED]
 
 **Severity:** Low
 **File:** `mobile-ide/mobile-ide-prototype/tests/unit/CommandPalette.test.tsx`
@@ -53,7 +53,7 @@ Three acceptance criteria lack named tests:
 
 ---
 
-### CP-4 — Lines 79–83 of CommandPalette.tsx are uncovered [OPEN]
+### BUG-0004 / CP-4 — Lines 79–83 of CommandPalette.tsx are uncovered [FIXED]
 
 **Severity:** Low
 **File:** `mobile-ide/mobile-ide-prototype/src/components/CommandPalette.tsx` lines 79–83
@@ -65,7 +65,7 @@ by the test suite. This means the CP-1 bug could not have been caught by tests.
 
 ---
 
-### CP-5 — No swipe gesture trigger [OPEN]
+### BUG-0005 / CP-5 — No swipe gesture trigger [FIXED]
 
 **Severity:** Low (spec requirement, not crash)
 **File:** `mobile-ide/mobile-ide-prototype/src/layout/TabletResponsive.tsx`

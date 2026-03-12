@@ -2070,7 +2070,58 @@
       "defect": "None"
     }
   ],
-  "bugs": [],
+  "bugs": [
+    {
+      "id": "BUG-0001",
+      "title": "onRequestClose fires first command on Android back (CP-1)",
+      "severity": "High",
+      "relatedStory": "US-0015",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0004-command-palette",
+      "lessonEncoded": "No"
+    },
+    {
+      "id": "BUG-0002",
+      "title": "Backdrop press does not close the palette (CP-2)",
+      "severity": "Medium",
+      "relatedStory": "US-0015",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0004-command-palette",
+      "lessonEncoded": "No"
+    },
+    {
+      "id": "BUG-0003",
+      "title": "AC-0046, AC-0048, AC-0053 had no explicit tests (CP-3)",
+      "severity": "Low",
+      "relatedStory": "US-0015",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0004-command-palette",
+      "lessonEncoded": "No"
+    },
+    {
+      "id": "BUG-0004",
+      "title": "Lines 79-83 of CommandPalette.tsx were uncovered by tests (CP-4)",
+      "severity": "Low",
+      "relatedStory": "US-0015",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0004-command-palette",
+      "lessonEncoded": "No"
+    },
+    {
+      "id": "BUG-0005",
+      "title": "No swipe gesture trigger for command palette (CP-5)",
+      "severity": "Low",
+      "relatedStory": "US-0015",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0004-command-palette",
+      "lessonEncoded": "No"
+    }
+  ],
   "costs": {
     "US-0001": {
       "projectedUsd": 800,
@@ -2364,6 +2415,10 @@
   },
   "recentActivity": [
     {
+      "date": "2026-03-12",
+      "summary": "Merged PR #15 (feature/epic-0003-terminal → develop); 282 tests passing; Checked out `develop`, pulled latest; Brainstormed EPIC-0004 Command Palette: audited existing `CommandPalette.tsx`, chose full audit+rebuild with visible/onClose API, keyboard navigation, and swipe gesture trigger"
+    },
+    {
       "date": "2026-03-11",
       "summary": "Installed PlanVisualizer tooling via `install.sh` (tools/, tests/, jest.config.js, GitHub Actions workflow); Fixed `plan-visualizer.yml`: path filters `docs/` → `Docs/` (Linux case-sensitive); Pages artifact path `./docs` → `./Docs`; Confirmed `.claude/settings.json` Stop hook already present (`node tools/capture-cost.js`)"
     },
@@ -2376,8 +2431,8 @@
       "summary": "Continued from previous context window (PR #5 / US-0021 Plan Visualizer CI fixes); **Security audit fix**: Replaced `npm audit --omit=dev --audit-level=high` with `npx audit-ci@^7 --omit=dev`; created `mobile-ide/mobile-ide-prototype/audit-ci.json` allowlisting 5 tar CVEs (unfixable while on expo@52); **Workspace tar fix**: Bumped `mobile-ide/package.json` tar dep `6.2.1` → `7.5.11`; added CJS interop shim `mobile-ide/scripts/patch-tar-interop.js`; added `postinstall` script"
     }
   ],
-  "generatedAt": "2026-03-12T18:17:06.010Z",
-  "commitSha": "fc25ea3",
+  "generatedAt": "2026-03-12T18:49:24.519Z",
+  "commitSha": "1ef83de",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
@@ -2549,6 +2604,10 @@
     },
     {
       "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
       "cumCost": 10.91
     },
     {
