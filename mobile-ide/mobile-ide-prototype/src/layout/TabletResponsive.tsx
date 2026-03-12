@@ -87,6 +87,9 @@ export default function TabletResponsive({
 
   const showTerminal = terminal !== null;
 
+  // NOTE: PanResponder callbacks close over props at mount time.
+  // Callers must pass stable callback references (e.g. via useCallback)
+  // to avoid stale-closure issues on re-render.
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -96,6 +99,7 @@ export default function TabletResponsive({
     }),
   ).current;
 
+  // NOTE: Same stale-closure caveat as panResponder above.
   const swipePanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -107,6 +111,16 @@ export default function TabletResponsive({
     }),
   ).current;
 
+  // Shared gesture zone — placed at the top of the main editor area in both layouts.
+  // Captures downward swipes to open the command palette.
+  const swipeZoneView = (
+    <View
+      testID="swipe-zone"
+      style={styles.swipeZone}
+      {...swipePanResponder.panHandlers}
+    />
+  );
+
   // ── Tablet layout ──────────────────────────────────────────────────────────
   if (isTablet) {
     return (
@@ -115,11 +129,7 @@ export default function TabletResponsive({
         <View style={styles.row}>
           <View style={[styles.sidebar, { width: sidebarWidth }]}>{sidebar}</View>
           <View style={styles.mainArea}>
-            <View
-              testID="swipe-zone"
-              style={styles.swipeZone}
-              {...swipePanResponder.panHandlers}
-            />
+            {swipeZoneView}
             {main}
           </View>
         </View>
@@ -146,11 +156,7 @@ export default function TabletResponsive({
     <View style={styles.root}>
       {/* Editor fills the top area */}
       <View style={styles.phoneMainArea}>
-        <View
-          testID="swipe-zone"
-          style={styles.swipeZone}
-          {...swipePanResponder.panHandlers}
-        />
+        {swipeZoneView}
         {main}
       </View>
 
