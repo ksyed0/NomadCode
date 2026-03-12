@@ -249,9 +249,9 @@ describe('TabletResponsive — terminal resize handle', () => {
     let capturedCallbacks: Record<string, (...args: unknown[]) => unknown> = {};
     const spy = jest
       .spyOn(PanResponder, 'create')
-      .mockImplementation((cbs: Record<string, (...args: unknown[]) => unknown>) => {
-        capturedCallbacks = cbs;
-        return { panHandlers: {} };
+      .mockImplementation((cbs) => {
+        capturedCallbacks = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+        return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
       });
 
     const onHeightChange = jest.fn();

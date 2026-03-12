@@ -186,7 +186,6 @@ const styles = StyleSheet.create({
     borderTopColor: '#334155',
     alignItems: 'center',
     justifyContent: 'center',
-    cursor: 'row-resize',
   },
   terminalStrip: {
     borderTopWidth: StyleSheet.hairlineWidth,
