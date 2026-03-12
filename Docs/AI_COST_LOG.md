@@ -54,3 +54,4 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-12 | 389686bf-3bf1-4c15-b1dc-0cab3fa1e706 | feature/epic-0003-terminal | 0 | 0 | 0 | 0.0000 |
 | 2026-03-12 | 389686bf-3bf1-4c15-b1dc-0cab3fa1e706 | feature/epic-0003-terminal | 0 | 0 | 0 | 0.0000 |
 | 2026-03-12 | 389686bf-3bf1-4c15-b1dc-0cab3fa1e706 | feature/epic-0003-terminal | 0 | 0 | 0 | 0.0000 |
+| 2026-03-12 | 389686bf-3bf1-4c15-b1dc-0cab3fa1e706 | feature/epic-0003-terminal | 0 | 0 | 0 | 0.0000 |
