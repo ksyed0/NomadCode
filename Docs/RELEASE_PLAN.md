@@ -173,32 +173,35 @@ Dependencies: US-0007, US-0008, US-0009, US-0010
 US-0012 (EPIC-0003): As a developer, I want to open an integrated terminal, so that I can run commands without leaving the app.
 Priority: High (P0)
 Estimate: XL
-Status: Planned
+Status: Done
+Branch: feature/epic-0003-terminal
 Acceptance Criteria:
-  - [ ] AC-0036: Terminal component renders the TERMINAL header and a prompt character ($) on mount
-  - [ ] AC-0037: Terminal accepts a workingDirectory prop and displays it in the welcome output
-  - [ ] AC-0038: Terminal input clears after a command is submitted
-  - [ ] AC-0039: Virtual keyboard raises the terminal viewport on iOS via KeyboardAvoidingView
+  - [x] AC-0036: Terminal component renders the TERMINAL header and a prompt character ($) on mount
+  - [x] AC-0037: Terminal accepts a workingDirectory prop and displays it in the welcome output
+  - [x] AC-0038: Terminal input clears after a command is submitted
+  - [x] AC-0039: Virtual keyboard raises the terminal viewport on iOS via KeyboardAvoidingView
 Dependencies: EPIC-0001, EPIC-0002
 
 US-0013 (EPIC-0003): As a developer, I want to run build and test commands, so that I can verify my code works.
 Priority: High (P0)
 Estimate: M
-Status: Planned
+Status: Done
+Branch: feature/epic-0003-terminal
 Acceptance Criteria:
-  - [ ] AC-0040: Submitting a command echoes it in the output prefixed with $
-  - [ ] AC-0041: The onCommand callback is invoked with the exact command string on submit
-  - [ ] AC-0042: Submitting an empty string does not add a line or call onCommand
+  - [x] AC-0040: Submitting a command echoes it in the output prefixed with $
+  - [x] AC-0041: The onCommand callback is invoked with the exact command string on submit
+  - [x] AC-0042: Submitting an empty string does not add a line or call onCommand
 Dependencies: US-0012
 
 US-0014 (EPIC-0003): As a developer, I want to see colored terminal output, so that I can parse logs more easily.
 Priority: Medium (P1)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/epic-0003-terminal
 Acceptance Criteria:
-  - [ ] AC-0043: Command echo lines are rendered in a distinct color (green/success style)
-  - [ ] AC-0044: Error/unknown-command lines are rendered in the error color (Coral #EF4444)
-  - [ ] AC-0045: Regular output lines are rendered in the standard text color
+  - [x] AC-0043: Command echo lines are rendered in a distinct color (green/success style)
+  - [x] AC-0044: Error/unknown-command lines are rendered in the error color (Coral #EF4444)
+  - [x] AC-0045: Regular output lines are rendered in the standard text color
 Dependencies: US-0012
 ```
 

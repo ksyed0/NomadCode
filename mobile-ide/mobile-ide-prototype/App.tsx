@@ -47,6 +47,7 @@ export default function App() {
   // ── Panel visibility ──────────────────────────────────────────────────────
   const [showTerminal, setShowTerminal] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
+  const [terminalHeight, setTerminalHeight] = useState(220);
 
   // ── Git status (updated after Git operations) ─────────────────────────────
   const [gitBranch, setGitBranch] = useState('main');
@@ -271,11 +272,9 @@ export default function App() {
             onSave={saveFile}
           />
         }
-        terminal={
-          showTerminal ? (
-            <Terminal workingDirectory={ROOT_PATH} onCommand={console.log} />
-          ) : null
-        }
+        terminal={<Terminal workingDirectory={ROOT_PATH} onCommand={console.log} visible={showTerminal} />}
+        terminalHeight={terminalHeight}
+        onTerminalHeightChange={setTerminalHeight}
       />
 
       {/* ── Floating action buttons (bottom-right) ───────────────────────── */}

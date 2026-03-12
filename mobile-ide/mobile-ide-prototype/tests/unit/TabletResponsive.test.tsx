@@ -7,8 +7,8 @@
 
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Text } from 'react-native';
-import TabletResponsive, { useIsTablet } from '../../src/layout/TabletResponsive';
+import { PanResponder, Text } from 'react-native';
+import TabletResponsive, { clampTerminalHeight, useIsTablet } from '../../src/layout/TabletResponsive';
 import { renderHook } from '@testing-library/react-native';
 
 // ---------------------------------------------------------------------------
@@ -159,8 +159,7 @@ describe('TabletResponsive — phone layout', () => {
     );
     fireEvent.press(screen.getByText('☰'));
     expect(screen.getByTestId('sidebar')).toBeTruthy();
-    // The scrim is a TouchableOpacity sitting behind the drawer
-    fireEvent.press(screen.getByText('✕')); // close via toggle (scrim not easily queryable)
+    fireEvent.press(screen.getByTestId('sidebar-scrim'));
     expect(screen.queryByTestId('sidebar')).toBeNull();
   });
 
@@ -210,5 +209,90 @@ describe('TabletResponsive — custom dimensions', () => {
         />,
       ),
     ).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Resize handle
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — terminal resize handle', () => {
+  beforeEach(() => setWidth(1024));
+
+  it('renders terminal-resize-handle when terminal is provided', () => {
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        terminalHeight={220}
+        onTerminalHeightChange={jest.fn()}
+      />
+    );
+    expect(screen.getByTestId('terminal-resize-handle')).toBeTruthy();
+  });
+
+  it('does not render resize handle when terminal is null', () => {
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={null}
+      />
+    );
+    expect(screen.queryByTestId('terminal-resize-handle')).toBeNull();
+  });
+
+  it('calls onTerminalHeightChange when PanResponder move fires', () => {
+    // Capture the PanResponder callbacks so we can invoke them directly in tests
+    // (raw responder event firing crashes due to internal touchHistory math)
+    let capturedCallbacks: Record<string, (...args: unknown[]) => unknown> = {};
+    const spy = jest
+      .spyOn(PanResponder, 'create')
+      .mockImplementation((cbs) => {
+        capturedCallbacks = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+        return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
+      });
+
+    const onHeightChange = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        terminalHeight={220}
+        onTerminalHeightChange={onHeightChange}
+      />
+    );
+
+    // Cover onStartShouldSetPanResponder
+    expect(capturedCallbacks.onStartShouldSetPanResponder()).toBe(true);
+    // Cover onPanResponderMove — dragging down 30px → 220-30=190
+    capturedCallbacks.onPanResponderMove({}, { dy: 30 });
+    expect(onHeightChange).toHaveBeenCalledWith(190);
+
+    spy.mockRestore();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// clampTerminalHeight utility
+// ---------------------------------------------------------------------------
+
+describe('clampTerminalHeight', () => {
+  it('reduces height when dragging down (positive dy)', () => {
+    expect(clampTerminalHeight(220, 50)).toBe(170);
+  });
+
+  it('increases height when dragging up (negative dy)', () => {
+    expect(clampTerminalHeight(220, -50)).toBe(270);
+  });
+
+  it('clamps to MIN_TERMINAL_HEIGHT (120) when dragging too far down', () => {
+    expect(clampTerminalHeight(220, 200)).toBe(120);
+  });
+
+  it('clamps to MAX_TERMINAL_HEIGHT (400) when dragging too far up', () => {
+    expect(clampTerminalHeight(220, -300)).toBe(400);
   });
 });

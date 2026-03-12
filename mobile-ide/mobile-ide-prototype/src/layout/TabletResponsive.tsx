@@ -7,9 +7,10 @@
  * The sidebar width and terminal height are configurable via props.
  */
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Animated,
+  PanResponder,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -49,11 +50,21 @@ interface TabletResponsiveProps {
   sidebarWidth?: number;
   /** Override terminal height (default 220) */
   terminalHeight?: number;
+  /** Called when user drags the resize handle */
+  onTerminalHeightChange?: (height: number) => void;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
+
+const MIN_TERMINAL_HEIGHT = 120;
+const MAX_TERMINAL_HEIGHT = 400;
+
+/** Exported for unit-testing the resize-drag arithmetic. */
+export function clampTerminalHeight(current: number, dy: number): number {
+  return Math.max(MIN_TERMINAL_HEIGHT, Math.min(MAX_TERMINAL_HEIGHT, current - dy));
+}
 
 export default function TabletResponsive({
   sidebar,
@@ -61,11 +72,21 @@ export default function TabletResponsive({
   terminal,
   sidebarWidth = SIDEBAR_WIDTH,
   terminalHeight = TERMINAL_HEIGHT,
+  onTerminalHeightChange,
 }: TabletResponsiveProps) {
   const isTablet = useIsTablet();
   const [phoneSidebarOpen, setPhoneSidebarOpen] = useState(false);
 
   const showTerminal = terminal !== null;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, gs) => {
+        onTerminalHeightChange?.(clampTerminalHeight(terminalHeight, gs.dy));
+      },
+    }),
+  ).current;
 
   // ── Tablet layout ──────────────────────────────────────────────────────────
   if (isTablet) {
@@ -79,9 +100,16 @@ export default function TabletResponsive({
 
         {/* Terminal strip at bottom */}
         {showTerminal && (
-          <View style={[styles.terminalStrip, { height: terminalHeight }]}>
-            {terminal}
-          </View>
+          <>
+            <View
+              testID="terminal-resize-handle"
+              style={styles.resizeHandle}
+              {...panResponder.panHandlers}
+            />
+            <View style={[styles.terminalStrip, { height: terminalHeight }]}>
+              {terminal}
+            </View>
+          </>
         )}
       </View>
     );
@@ -114,6 +142,7 @@ export default function TabletResponsive({
         <>
           {/* Scrim — tap to close */}
           <TouchableOpacity
+            testID="sidebar-scrim"
             style={styles.scrim}
             activeOpacity={1}
             onPress={() => setPhoneSidebarOpen(false)}
@@ -149,6 +178,14 @@ const styles = StyleSheet.create({
   },
   mainArea: {
     flex: 1,
+  },
+  resizeHandle: {
+    height: 6,
+    backgroundColor: '#1E293B',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#334155',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   terminalStrip: {
     borderTopWidth: StyleSheet.hairlineWidth,

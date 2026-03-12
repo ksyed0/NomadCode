@@ -4,6 +4,42 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 3 — 2026-03-11
+
+### What Was Done
+- Installed PlanVisualizer tooling via `install.sh` (tools/, tests/, jest.config.js, GitHub Actions workflow)
+- Fixed `plan-visualizer.yml`: path filters `docs/` → `Docs/` (Linux case-sensitive); Pages artifact path `./docs` → `./Docs`
+- Confirmed `.claude/settings.json` Stop hook already present (`node tools/capture-cost.js`)
+- Merged PR #13: PlanVisualizer install + workflow fixes
+- Added 42 ACs (AC-0022–AC-0063) to `RELEASE_PLAN.md` for 14 stories missing acceptance criteria (US-0003–US-0007, US-0012–US-0020)
+- Appended 110 TC entries to `TEST_CASES.md` (28 bridge entries TC-0035–TC-0080 + 82 new TC-0081–TC-0162) — traceability matrix now covers all 21 stories
+- Updated `ID_REGISTRY.md`: next AC → AC-0064, next TC → TC-0163
+- Fixed `jest.config.js`: added `coverageDirectory: 'Docs/coverage'` — resolves N/A on Lines/Branch Cov stat cards
+- Fixed `render-html.js`: changed fixed-colour stat cards (Stories, Progress %, Projected, AI Actual) from coloured text to `text-white`
+- Diagnosed iOS Simulator `NSPOSIXErrorDomain code=60` (ETIMEDOUT) — root cause: Metro using network IP; fix: `npx expo start --localhost`
+- Fixed deprecated Expo packages via `npx expo install`
+- PR #14 open and all 13 CI checks passing: `chore/plan-visualizer-fixes` → `develop`
+
+### Current State
+- PR #14 ready to merge
+- EPIC-0001 (Code Editing): Done
+- EPIC-0002 (File Management): Done
+- EPIC-0003 (Terminal): Planned — next up
+- EPIC-0004 (Command Palette): Planned
+- EPIC-0005 (Customization): Planned
+- `Terminal.tsx` stub exists at `mobile-ide/mobile-ide-prototype/src/components/Terminal.tsx`
+
+### Test Status
+- Plan Visualizer: 9 suites, 138 tests passing
+- Mobile unit tests: passing (coverage ≥ 80%)
+
+### Next Session Pick-up
+1. Merge PR #14
+2. Implement EPIC-0003: Terminal (US-0012, US-0013, US-0014)
+3. Then EPIC-0004: Command Palette (US-0015–0017)
+
+---
+
 ## Session 1 — 2026-03-09
 
 ### What Was Done

@@ -6,8 +6,20 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Clipboard } from 'react-native';
 import { Terminal } from '../../src/components/Terminal';
+import { FileSystemBridge } from '../../src/utils/FileSystemBridge';
+
+jest.mock('../../src/utils/FileSystemBridge', () => ({
+  FileSystemBridge: {
+    listDirectory: jest.fn(),
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    deleteEntry: jest.fn(),
+    documentDirectory: '/mock-docs/',
+  },
+}));
 
 describe('Terminal', () => {
   // ---------------------------------------------------------------------------
@@ -117,5 +129,141 @@ describe('Terminal', () => {
     const input = screen.getByPlaceholderText(/Enter command/i);
     fireEvent(input, 'submitEditing');
     expect(onCommand).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// visible prop
+// ---------------------------------------------------------------------------
+
+describe('visible prop', () => {
+  it('hides terminal content when visible=false', () => {
+    render(<Terminal workingDirectory="/" visible={false} />);
+    // display:none removes element from accessible host tree; use UNSAFE query
+    const container = screen.UNSAFE_getByProps({ testID: 'terminal-container' });
+    const flatStyle = [container.props.style].flat();
+    expect(flatStyle).toContainEqual(expect.objectContaining({ display: 'none' }));
+  });
+
+  it('shows terminal content when visible=true', () => {
+    render(<Terminal workingDirectory="/" visible={true} />);
+    const container = screen.getByTestId('terminal-container');
+    const flatStyle = [container.props.style].flat();
+    const hasHidden = flatStyle.some((s: { display?: string } | null) => s?.display === 'none');
+    expect(hasHidden).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ls command
+// ---------------------------------------------------------------------------
+
+describe('ls command', () => {
+  beforeEach(() => {
+    (FileSystemBridge.listDirectory as jest.Mock).mockResolvedValue([
+      { name: 'App.tsx', path: '/project/App.tsx', isDirectory: false },
+      { name: 'src', path: '/project/src', isDirectory: true },
+    ]);
+  });
+
+  it('lists files from FileSystemBridge', async () => {
+    render(<Terminal workingDirectory="/project" />);
+    const input = screen.getByPlaceholderText('Enter command...');
+    fireEvent.changeText(input, 'ls');
+    fireEvent(input, 'submitEditing');
+    await waitFor(() => {
+      expect(screen.getByText('App.tsx')).toBeTruthy();
+      expect(screen.getByText('src/')).toBeTruthy();
+    });
+  });
+
+  it('shows error if listDirectory fails', async () => {
+    (FileSystemBridge.listDirectory as jest.Mock).mockRejectedValue(new Error('No access'));
+    render(<Terminal workingDirectory="/project" />);
+    const input = screen.getByPlaceholderText('Enter command...');
+    fireEvent.changeText(input, 'ls');
+    fireEvent(input, 'submitEditing');
+    await waitFor(() => {
+      expect(screen.getByText(/ls: cannot access/)).toBeTruthy();
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// cd command
+// ---------------------------------------------------------------------------
+
+describe('cd command', () => {
+  it('updates working directory on cd', async () => {
+    (FileSystemBridge.listDirectory as jest.Mock).mockResolvedValue([]);
+    render(<Terminal workingDirectory="/home" />);
+    const input = screen.getByPlaceholderText('Enter command...');
+
+    fireEvent.changeText(input, 'cd /project');
+    fireEvent(input, 'submitEditing');
+    await waitFor(() => expect(screen.getByText('$ cd /project')).toBeTruthy());
+
+    fireEvent.changeText(input, 'pwd');
+    fireEvent(input, 'submitEditing');
+    await waitFor(() => expect(screen.getByText('/project')).toBeTruthy());
+  });
+
+  it('shows error for cd with no argument', async () => {
+    render(<Terminal workingDirectory="/home" />);
+    const input = screen.getByPlaceholderText('Enter command...');
+    fireEvent.changeText(input, 'cd');
+    fireEvent(input, 'submitEditing');
+    await waitFor(() => expect(screen.getByText(/cd: missing argument/)).toBeTruthy());
+  });
+});
+
+// ---------------------------------------------------------------------------
+// command history
+// ---------------------------------------------------------------------------
+
+describe('command history', () => {
+  it('pressing history-up recalls previous command', async () => {
+    (FileSystemBridge.listDirectory as jest.Mock).mockResolvedValue([]);
+    render(<Terminal workingDirectory="/" />);
+    const input = screen.getByPlaceholderText('Enter command...');
+
+    fireEvent.changeText(input, 'pwd');
+    fireEvent(input, 'submitEditing');
+    await waitFor(() => expect(screen.getByText('$ pwd')).toBeTruthy());
+
+    fireEvent.press(screen.getByTestId('history-up'));
+    expect(input.props.value).toBe('pwd');
+  });
+
+  it('pressing history-down clears input when past end of history', async () => {
+    (FileSystemBridge.listDirectory as jest.Mock).mockResolvedValue([]);
+    render(<Terminal workingDirectory="/" />);
+    const input = screen.getByPlaceholderText('Enter command...');
+
+    fireEvent.changeText(input, 'pwd');
+    fireEvent(input, 'submitEditing');
+    await waitFor(() => expect(screen.getByText('$ pwd')).toBeTruthy());
+
+    fireEvent.press(screen.getByTestId('history-up'));
+    fireEvent.press(screen.getByTestId('history-down'));
+    expect(input.props.value).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// long-press copy
+// ---------------------------------------------------------------------------
+
+describe('long-press copy', () => {
+  it('long-pressing an output line copies its text to clipboard', async () => {
+    const spy = jest.spyOn(Clipboard, 'setString').mockImplementation(() => {});
+    render(<Terminal workingDirectory="/home" />);
+    const input = screen.getByPlaceholderText('Enter command...');
+    fireEvent.changeText(input, 'pwd');
+    fireEvent(input, 'submitEditing');
+    await waitFor(() => expect(screen.getByText('/home')).toBeTruthy());
+    fireEvent(screen.getByText('/home'), 'longPress');
+    expect(spy).toHaveBeenCalledWith('/home');
+    spy.mockRestore();
   });
 });
