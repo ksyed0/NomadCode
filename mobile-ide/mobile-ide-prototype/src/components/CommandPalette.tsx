@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,25 @@ export interface Command {
   action: () => void;
   shortcut?: string;
 }
+
+// ---------------------------------------------------------------------------
+// Design-system colour aliases (PROJECT.md §6)
+// ---------------------------------------------------------------------------
+
+/** Deep Slate `#0F172A` — base background */
+const BG_BASE = '#0F172A';
+/** Slate-800 `#1E293B` — elevated surface (panel, sidebar) */
+const BG_ELEVATED = '#1E293B';
+/** Cloud `#E2E8F0` — primary text on dark background */
+const TEXT_PRIMARY = '#E2E8F0';
+/** Nomad Blue `#2563EB` — selected/active state */
+const ACCENT_BLUE = '#2563EB';
+/** Slate-500 `#64748B` — secondary text / muted */
+const TEXT_MUTED = '#64748B';
+/** Slate-600 `#475569` — placeholder / icon */
+const TEXT_PLACEHOLDER = '#475569';
+/** Slate-700 `#334155` — border */
+const BORDER = '#334155';
 
 interface CommandPaletteProps {
   /** Whether the palette is visible */
@@ -48,6 +67,11 @@ export function CommandPalette({
         cmd.description?.toLowerCase().includes(q),
     );
   }, [query, commands]);
+
+  // Clamp selectedIndex when the filtered list shrinks (e.g., commands prop changes)
+  useEffect(() => {
+    setSelectedIndex((i) => Math.min(i, Math.max(filtered.length - 1, 0)));
+  }, [filtered.length]);
 
   const handleQueryChange = useCallback((text: string) => {
     setQuery(text);
@@ -85,12 +109,14 @@ export function CommandPalette({
     onClose();
   }, [onClose]);
 
-  const renderItem = ({ item, index }: { item: Command; index: number }) => {
+  const renderItem = useCallback(({ item, index }: { item: Command; index: number }) => {
     const isSelected = index === selectedIndex;
     return (
       <TouchableOpacity
         onPress={() => handleSelect(item)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.label}${item.shortcut ? ', shortcut ' + item.shortcut : ''}`}
       >
         <View
           testID={`item-${index}`}
@@ -118,7 +144,7 @@ export function CommandPalette({
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [selectedIndex, handleSelect]);
 
   return (
     <Modal
@@ -134,9 +160,16 @@ export function CommandPalette({
           style={StyleSheet.absoluteFill}
           activeOpacity={1}
           onPress={handleBackdropPress}
+          accessibilityLabel="Close command palette"
+          accessibilityRole="button"
         />
-        {/* Panel — rendered on top of backdrop; touches here do not bubble */}
-        <View style={styles.panel}>
+        {/* Panel — TouchableOpacity absorbs panel touches so they do not reach the backdrop */}
+        <TouchableOpacity
+          style={styles.panel}
+          activeOpacity={1}
+          onPress={() => {}}
+          accessible={false}
+        >
           <View style={styles.searchRow}>
             <Text style={styles.searchIcon}>⌘</Text>
             <TextInput
@@ -144,7 +177,7 @@ export function CommandPalette({
               value={query}
               onChangeText={handleQueryChange}
               placeholder={placeholder}
-              placeholderTextColor="#475569"
+              placeholderTextColor={TEXT_PLACEHOLDER}
               autoFocus
               autoCorrect={false}
               autoCapitalize="none"
@@ -163,7 +196,7 @@ export function CommandPalette({
               <Text style={styles.empty}>No commands found</Text>
             }
           />
-        </View>
+        </TouchableOpacity>
       </View>
     </Modal>
   );
@@ -179,11 +212,11 @@ const styles = StyleSheet.create({
   panel: {
     width: '90%',
     maxWidth: 600,
-    backgroundColor: '#1E293B',
+    backgroundColor: BG_ELEVATED,
     borderRadius: 8,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: BORDER,
     maxHeight: 400,
   },
   searchRow: {
@@ -192,16 +225,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: BORDER,
   },
   searchIcon: {
-    color: '#475569',
+    color: TEXT_PLACEHOLDER,
     fontSize: 16,
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    color: '#E2E8F0',
+    color: TEXT_PRIMARY,
     fontSize: 15,
   },
   list: {
@@ -213,19 +246,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: '#0F172A',
+    borderTopColor: BG_BASE,
   },
   itemFirst: {
     borderTopWidth: 0,
   },
   itemSelected: {
-    backgroundColor: '#2563EB',
+    backgroundColor: ACCENT_BLUE,
   },
   itemContent: {
     flex: 1,
   },
   itemLabel: {
-    color: '#E2E8F0',
+    color: TEXT_PRIMARY,
     fontSize: 14,
   },
   itemLabelSelected: {
@@ -233,24 +266,24 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   itemDescription: {
-    color: '#64748B',
+    color: TEXT_MUTED,
     fontSize: 12,
     marginTop: 2,
   },
   shortcutBadge: {
-    backgroundColor: '#0F172A',
+    backgroundColor: BG_BASE,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
     marginLeft: 8,
   },
   shortcutText: {
-    color: '#64748B',
+    color: TEXT_MUTED,
     fontSize: 11,
-    fontFamily: 'monospace',
+    fontFamily: 'JetBrains Mono', // design system: monospace font (PROJECT.md §6)
   },
   empty: {
-    color: '#475569',
+    color: TEXT_PLACEHOLDER,
     textAlign: 'center',
     padding: 20,
     fontSize: 14,
