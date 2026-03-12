@@ -1,8 +1,8 @@
 /**
- * Unit tests — CommandPalette component
+ * Unit tests — CommandPalette component (EPIC-0004)
  *
- * Tests search filtering, keyboard submission, shortcut badges,
- * and the empty state.
+ * Covers all 8 acceptance criteria (AC-0046 – AC-0053) explicitly,
+ * plus keyboard navigation, dismiss behaviour, and edge cases.
  */
 
 import React from 'react';
@@ -14,27 +14,45 @@ import { CommandPalette, Command } from '../../src/components/CommandPalette';
 // ---------------------------------------------------------------------------
 
 const makeCommands = (): Command[] => [
-  { id: 'file-save',       label: 'File: Save',          shortcut: '⌘S',  action: jest.fn() },
-  { id: 'file-close',      label: 'File: Close Tab',                       action: jest.fn() },
-  { id: 'view-terminal',   label: 'View: Toggle Terminal', shortcut: '⌘`', action: jest.fn(),
+  { id: 'file-save',     label: 'File: Save',           shortcut: '⌘S',  action: jest.fn() },
+  { id: 'file-close',    label: 'File: Close Tab',                        action: jest.fn() },
+  { id: 'view-terminal', label: 'View: Toggle Terminal', shortcut: '⌘`',  action: jest.fn(),
     description: 'Show or hide the terminal' },
-  { id: 'git-status',      label: 'Git: Show Status',                      action: jest.fn() },
+  { id: 'git-status',    label: 'Git: Show Status',                       action: jest.fn() },
 ];
 
-// ---------------------------------------------------------------------------
-// Render helpers
-// ---------------------------------------------------------------------------
-
-function renderPalette(onSelect = jest.fn(), commands = makeCommands()) {
-  return render(<CommandPalette commands={commands} onSelect={onSelect} />);
+function renderPalette(
+  overrides: Partial<{ onSelect: jest.Mock; onClose: jest.Mock; commands: Command[] }> = {},
+) {
+  const props = {
+    visible: true,
+    commands: makeCommands(),
+    onSelect: jest.fn(),
+    onClose: jest.fn(),
+    ...overrides,
+  };
+  render(<CommandPalette {...props} />);
+  return props;
 }
 
 // ---------------------------------------------------------------------------
-// Basic rendering
+// AC-0046: auto-focus
 // ---------------------------------------------------------------------------
 
-describe('CommandPalette — rendering', () => {
-  it('renders all commands when query is empty', () => {
+describe('CommandPalette — AC-0046 auto-focus', () => {
+  it('AC-0046: search TextInput has autoFocus set to true', () => {
+    renderPalette();
+    const input = screen.getByPlaceholderText(/Search commands/i);
+    expect(input.props.autoFocus).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC-0047: renders all commands when query is empty
+// ---------------------------------------------------------------------------
+
+describe('CommandPalette — AC-0047 initial render', () => {
+  it('AC-0047: renders all commands when query is empty', () => {
     renderPalette();
     expect(screen.getByText('File: Save')).toBeTruthy();
     expect(screen.getByText('File: Close Tab')).toBeTruthy();
@@ -42,103 +60,100 @@ describe('CommandPalette — rendering', () => {
     expect(screen.getByText('Git: Show Status')).toBeTruthy();
   });
 
-  it('renders shortcut badges', () => {
-    renderPalette();
-    expect(screen.getByText('⌘S')).toBeTruthy();
-    expect(screen.getByText('⌘`')).toBeTruthy();
-  });
-
   it('renders descriptions when provided', () => {
     renderPalette();
     expect(screen.getByText('Show or hide the terminal')).toBeTruthy();
   });
 
-  it('renders the search input', () => {
+  it('renders the search input with placeholder', () => {
     renderPalette();
     expect(screen.getByPlaceholderText(/Search commands/i)).toBeTruthy();
   });
 });
 
 // ---------------------------------------------------------------------------
-// Filtering
+// AC-0048: backdrop dismisses keyboard (calls onClose)
 // ---------------------------------------------------------------------------
 
-describe('CommandPalette — filtering', () => {
-  it('filters commands by label (case-insensitive)', () => {
-    renderPalette();
-    const input = screen.getByPlaceholderText(/Search commands/i);
-    fireEvent.changeText(input, 'git');
+describe('CommandPalette — AC-0048 backdrop dismiss', () => {
+  it('AC-0048: backdrop press calls onClose', () => {
+    const { onClose } = renderPalette();
+    fireEvent.press(screen.getByTestId('palette-backdrop'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 
+  it('backdrop press does not call onSelect', () => {
+    const { onSelect } = renderPalette();
+    fireEvent.press(screen.getByTestId('palette-backdrop'));
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('onRequestClose calls onClose, not onSelect (Android back button fix)', () => {
+    const { onClose, onSelect } = renderPalette();
+    const modal = screen.UNSAFE_getByType(require('react-native').Modal);
+    expect(modal.props.onRequestClose).toBe(onClose);
+    expect(modal.props.onRequestClose).not.toBe(onSelect);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC-0049, AC-0050: filtering
+// ---------------------------------------------------------------------------
+
+describe('CommandPalette — AC-0049/0050 filtering', () => {
+  it('AC-0049: filters commands by label (case-insensitive)', () => {
+    renderPalette();
+    fireEvent.changeText(screen.getByPlaceholderText(/Search commands/i), 'git');
     expect(screen.getByText('Git: Show Status')).toBeTruthy();
     expect(screen.queryByText('File: Save')).toBeNull();
     expect(screen.queryByText('View: Toggle Terminal')).toBeNull();
   });
 
-  it('filters commands by description', () => {
+  it('AC-0049: filters commands by description', () => {
     renderPalette();
-    const input = screen.getByPlaceholderText(/Search commands/i);
-    fireEvent.changeText(input, 'hide the terminal');
-
+    fireEvent.changeText(screen.getByPlaceholderText(/Search commands/i), 'hide the terminal');
     expect(screen.getByText('View: Toggle Terminal')).toBeTruthy();
     expect(screen.queryByText('File: Save')).toBeNull();
   });
 
-  it('shows "No commands found" when nothing matches', () => {
+  it('AC-0049: matches partial substrings', () => {
     renderPalette();
-    const input = screen.getByPlaceholderText(/Search commands/i);
-    fireEvent.changeText(input, 'xyzzy');
-
-    expect(screen.getByText(/No commands found/i)).toBeTruthy();
+    fireEvent.changeText(screen.getByPlaceholderText(/Search commands/i), 'sav');
+    expect(screen.getByText('File: Save')).toBeTruthy();
+    expect(screen.queryByText('Git: Show Status')).toBeNull();
   });
 
-  it('shows all commands when query is cleared', () => {
+  it('AC-0049: shows all commands when query is cleared', () => {
     renderPalette();
     const input = screen.getByPlaceholderText(/Search commands/i);
     fireEvent.changeText(input, 'git');
     fireEvent.changeText(input, '');
-
     expect(screen.getByText('File: Save')).toBeTruthy();
     expect(screen.getByText('Git: Show Status')).toBeTruthy();
   });
 
-  it('matches partial substrings', () => {
+  it('AC-0050: shows "No commands found" when nothing matches', () => {
     renderPalette();
-    const input = screen.getByPlaceholderText(/Search commands/i);
-    fireEvent.changeText(input, 'sav');
-
-    expect(screen.getByText('File: Save')).toBeTruthy();
-    expect(screen.queryByText('Git: Show Status')).toBeNull();
+    fireEvent.changeText(screen.getByPlaceholderText(/Search commands/i), 'xyzzy');
+    expect(screen.getByText(/No commands found/i)).toBeTruthy();
   });
 });
 
 // ---------------------------------------------------------------------------
-// Selection
+// AC-0051: Enter selects first filtered result
 // ---------------------------------------------------------------------------
 
-describe('CommandPalette — selection', () => {
-  it('calls onSelect with the tapped command', () => {
-    const onSelect = jest.fn();
-    renderPalette(onSelect);
-    fireEvent.press(screen.getByText('File: Save'));
-    expect(onSelect).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'file-save' }),
-    );
-  });
-
-  it('calls onSelect with the first filtered command on Enter', () => {
-    const onSelect = jest.fn();
-    renderPalette(onSelect);
+describe('CommandPalette — AC-0051 Enter to select', () => {
+  it('AC-0051: Enter selects the first result in the filtered list', () => {
+    const { onSelect } = renderPalette();
     const input = screen.getByPlaceholderText(/Search commands/i);
     fireEvent.changeText(input, 'git');
     fireEvent(input, 'submitEditing');
-    expect(onSelect).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'git-status' }),
-    );
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'git-status' }));
   });
 
-  it('does not call onSelect on Enter when no commands match', () => {
-    const onSelect = jest.fn();
-    renderPalette(onSelect);
+  it('AC-0051: does not call onSelect on Enter when no commands match', () => {
+    const { onSelect } = renderPalette();
     const input = screen.getByPlaceholderText(/Search commands/i);
     fireEvent.changeText(input, 'xyzzy');
     fireEvent(input, 'submitEditing');
@@ -147,12 +162,117 @@ describe('CommandPalette — selection', () => {
 });
 
 // ---------------------------------------------------------------------------
+// AC-0052: shortcut badge
+// ---------------------------------------------------------------------------
+
+describe('CommandPalette — AC-0052 shortcut badges', () => {
+  it('AC-0052: renders shortcut badge for commands that have a shortcut', () => {
+    renderPalette();
+    expect(screen.getByText('⌘S')).toBeTruthy();
+    expect(screen.getByText('⌘`')).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC-0053: no empty badge
+// ---------------------------------------------------------------------------
+
+describe('CommandPalette — AC-0053 no empty badge', () => {
+  it('AC-0053: commands without shortcut render no badge', () => {
+    renderPalette();
+    const allShortcutTexts = screen
+      .queryAllByText(/^[⌘⌃⌥⇧].+/)
+      .map((el) => el.props.children);
+    expect(allShortcutTexts).toEqual(expect.arrayContaining(['⌘S', '⌘`']));
+    expect(allShortcutTexts).toHaveLength(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Keyboard navigation (enhancement, power user persona)
+// ---------------------------------------------------------------------------
+
+describe('CommandPalette — keyboard navigation', () => {
+  it('ArrowDown advances selection: Enter submits second item', () => {
+    const { onSelect } = renderPalette();
+    const input = screen.getByPlaceholderText(/Search commands/i);
+    fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowDown' } });
+    fireEvent(input, 'submitEditing');
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'file-close' }));
+  });
+
+  it('ArrowUp after two ArrowDowns returns to first item', () => {
+    const { onSelect } = renderPalette();
+    const input = screen.getByPlaceholderText(/Search commands/i);
+    fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowDown' } });
+    fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowDown' } });
+    fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowUp' } });
+    fireEvent(input, 'submitEditing');
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'file-close' }));
+  });
+
+  it('ArrowUp on first item stays at index 0', () => {
+    const { onSelect } = renderPalette();
+    const input = screen.getByPlaceholderText(/Search commands/i);
+    fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowUp' } });
+    fireEvent(input, 'submitEditing');
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'file-save' }));
+  });
+
+  it('query change resets selectedIndex to 0', () => {
+    const { onSelect } = renderPalette();
+    const input = screen.getByPlaceholderText(/Search commands/i);
+    fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowDown' } });
+    fireEvent.changeText(input, 'git');
+    fireEvent(input, 'submitEditing');
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'git-status' }));
+  });
+
+  it('item at selectedIndex renders with Nomad Blue highlight style', () => {
+    renderPalette();
+    const input = screen.getByPlaceholderText(/Search commands/i);
+    fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowDown' } });
+    const selectedItem = screen.getByTestId('item-1');
+    expect(selectedItem.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ backgroundColor: '#2563EB' }),
+      ]),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// onSelect vs onClose separation
+// ---------------------------------------------------------------------------
+
+describe('CommandPalette — onSelect vs onClose', () => {
+  it('tapping a command calls onSelect but NOT onClose', () => {
+    const { onSelect, onClose } = renderPalette();
+    fireEvent.press(screen.getByText('File: Save'));
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'file-save' }));
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Edge cases
 // ---------------------------------------------------------------------------
 
 describe('CommandPalette — edge cases', () => {
-  it('renders with an empty command list without crashing', () => {
-    renderPalette(jest.fn(), []);
+  it('renders with empty command list without crashing', () => {
+    renderPalette({ commands: [] });
     expect(screen.getByText(/No commands found/i)).toBeTruthy();
+  });
+
+  it('does not render content when visible is false', () => {
+    render(
+      <CommandPalette
+        visible={false}
+        commands={makeCommands()}
+        onSelect={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+    expect(screen.queryByPlaceholderText(/Search commands/i)).toBeNull();
   });
 });
