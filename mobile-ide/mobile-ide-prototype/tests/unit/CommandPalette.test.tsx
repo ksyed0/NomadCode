@@ -6,7 +6,8 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { Modal } from 'react-native';
 import { CommandPalette, Command } from '../../src/components/CommandPalette';
 
 // ---------------------------------------------------------------------------
@@ -90,9 +91,10 @@ describe('CommandPalette — AC-0048 backdrop dismiss', () => {
 
   it('onRequestClose calls onClose, not onSelect (Android back button fix)', () => {
     const { onClose, onSelect } = renderPalette();
-    const modal = screen.UNSAFE_getByType(require('react-native').Modal);
-    expect(modal.props.onRequestClose).toBe(onClose);
-    expect(modal.props.onRequestClose).not.toBe(onSelect);
+    const modal = screen.UNSAFE_getByType(Modal);
+    act(() => { modal.props.onRequestClose(); });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
   });
 });
 
@@ -208,7 +210,7 @@ describe('CommandPalette — keyboard navigation', () => {
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'file-close' }));
   });
 
-  it('ArrowUp after two ArrowDowns returns to first item', () => {
+  it('ArrowUp after two ArrowDowns lands on the second item', () => {
     const { onSelect } = renderPalette();
     const input = screen.getByPlaceholderText(/Search commands/i);
     fireEvent(input, 'keyPress', { nativeEvent: { key: 'ArrowDown' } });
