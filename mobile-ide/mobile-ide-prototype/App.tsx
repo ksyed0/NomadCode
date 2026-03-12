@@ -11,7 +11,7 @@
  * Future cloud/sync integration points are marked with: // CLOUD_HOOK
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -187,7 +187,7 @@ export default function App() {
   // Command palette commands
   // ---------------------------------------------------------------------------
 
-  const paletteCommands: Command[] = [
+  const paletteCommands = useMemo<Command[]>(() => [
     {
       id: 'file-save',
       label: 'File: Save',
@@ -223,7 +223,7 @@ export default function App() {
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
-  ];
+  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath]);
 
   const handlePaletteSelect = useCallback((cmd: Command) => {
     setShowPalette(false);
