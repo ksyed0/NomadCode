@@ -244,21 +244,23 @@ Dependencies: US-0015, US-0016
 US-0018 (EPIC-0005): As a developer, I want to switch between light and dark themes, so that I can use the app comfortably in any environment.
 Priority: Medium (P1)
 Estimate: M
-Status: Planned
+Status: Done
+Branch: feature/epic-0005-customization
 Acceptance Criteria:
-  - [ ] AC-0054: App renders using Deep Slate (#0F172A) background in dark mode by default
-  - [ ] AC-0055: A theme toggle switches the editor and UI surfaces to Off-White (#F9FAFB) background
-  - [ ] AC-0056: All text/background pairs in both themes meet WCAG 4.5:1 contrast for normal text
+  - [x] AC-0054: App renders using Deep Slate (#0F172A) background in dark mode by default
+  - [x] AC-0055: A theme toggle switches the editor and UI surfaces to Off-White (#F9FAFB) background
+  - [x] AC-0056: All text/background pairs in both themes meet WCAG 4.5:1 contrast for normal text
 Dependencies: EPIC-0001
 
 US-0019 (EPIC-0005): As a developer, I want to change font size, so that I can read comfortably on my device.
 Priority: Medium (P1)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/epic-0005-customization
 Acceptance Criteria:
-  - [ ] AC-0057: Pressing A+ in the editor toolbar increments the Monaco font size by 1pt
-  - [ ] AC-0058: Pressing A- in the editor toolbar decrements the Monaco font size by 1pt
-  - [ ] AC-0059: The current font size value is displayed in the toolbar between the A- and A+ buttons
+  - [x] AC-0057: Pressing A+ in the editor toolbar increments the Monaco font size by 1pt
+  - [x] AC-0058: Pressing A- in the editor toolbar decrements the Monaco font size by 1pt
+  - [x] AC-0059: The current font size value is displayed in the toolbar between the A- and A+ buttons
 Dependencies: US-0018
 
 US-0020 (EPIC-0005): As a power user, I want to install extensions, so that I can enhance the IDE with tools I need.

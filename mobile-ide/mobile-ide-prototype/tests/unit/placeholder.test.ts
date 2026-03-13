@@ -4,6 +4,23 @@
 
 jest.mock('react-native-webview', () => ({ WebView: 'WebView' }));
 
+jest.mock('../../src/theme/tokens', () => ({
+  useTheme: () => ({
+    bg: '#0F172A', bgElevated: '#1E293B', bgHighlight: '#1D3461',
+    text: '#E2E8F0', textMuted: '#64748B', border: '#334155',
+    accent: '#2563EB', keyword: '#7C3AED', string: '#0D9488',
+    error: '#EF4444', success: '#22C55E',
+  }),
+  getMonacoTheme: () => 'vs-dark',
+}));
+
+jest.mock('../../src/stores/useSettingsStore', () => ({
+  __esModule: true,
+  default: jest.fn((sel: (s: object) => unknown) =>
+    sel({ fontSize: 14, theme: 'nomad-dark', setFontSize: jest.fn() })
+  ),
+}));
+
 import { getLanguageForFile } from '../../src/components/Editor';
 
 describe('getLanguageForFile', () => {

@@ -27,8 +27,12 @@ import Editor, { EditorTab, getLanguageForFile } from './src/components/Editor';
 import FileExplorer from './src/components/FileExplorer';
 import { Terminal } from './src/components/Terminal';
 import { Command, CommandPalette } from './src/components/CommandPalette';
+import SetupWizard from './src/components/SetupWizard';
+import SettingsScreen from './src/components/SettingsScreen';
 import TabletResponsive from './src/layout/TabletResponsive';
 import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
+import useSettingsStore from './src/stores/useSettingsStore';
+import { useTheme } from './src/theme/tokens';
 
 // ---------------------------------------------------------------------------
 // Root document directory — all local project files live here
@@ -40,6 +44,12 @@ const ROOT_PATH = FileSystemBridge.documentDirectory;
 // ---------------------------------------------------------------------------
 
 export default function App() {
+  // ── Theme tokens ──────────────────────────────────────────────────────────
+  const t = useTheme();
+
+  // ── Settings store ────────────────────────────────────────────────────────
+  const hasCompletedSetup = useSettingsStore((s) => s.hasCompletedSetup);
+
   // ── Editor state ──────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<EditorTab[]>([]);
   const [activeTabPath, setActiveTabPath] = useState<string | null>(null);
@@ -47,6 +57,7 @@ export default function App() {
   // ── Panel visibility ──────────────────────────────────────────────────────
   const [showTerminal, setShowTerminal] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [terminalHeight, setTerminalHeight] = useState(220);
 
   // ── Git status (updated after Git operations) ─────────────────────────────
@@ -235,8 +246,8 @@ export default function App() {
   // ---------------------------------------------------------------------------
 
   return (
-    <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
+    <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]}>
+      <StatusBar barStyle="light-content" backgroundColor={t.bg} />
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
       <View style={styles.statusBar}>
@@ -276,6 +287,7 @@ export default function App() {
         terminalHeight={terminalHeight}
         onTerminalHeightChange={setTerminalHeight}
         onOpenPalette={() => setShowPalette(true)}
+        onOpenSettings={() => setShowSettings(true)}
       />
 
       {/* ── Floating action buttons (bottom-right) ───────────────────────── */}
@@ -308,6 +320,12 @@ export default function App() {
         onClose={() => setShowPalette(false)}
         onSelect={handlePaletteSelect}
       />
+
+      {/* ── First-run setup wizard ────────────────────────────────────────── */}
+      <SetupWizard visible={!hasCompletedSetup} />
+
+      {/* ── Settings screen ───────────────────────────────────────────────── */}
+      <SettingsScreen visible={showSettings} onClose={() => setShowSettings(false)} />
     </SafeAreaView>
   );
 }
@@ -319,7 +337,6 @@ export default function App() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   statusBar: {
     height: 28,

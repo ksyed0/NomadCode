@@ -534,23 +534,23 @@
       "title": "As a developer, I want to switch between light and dark themes, so that I can use the app comfortably in any environment.",
       "priority": "P1",
       "estimate": "M",
-      "status": "Planned",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/epic-0005-customization",
       "acs": [
         {
           "id": "AC-0054",
           "text": "App renders using Deep Slate (#0F172A) background in dark mode by default",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0055",
           "text": "A theme toggle switches the editor and UI surfaces to Off-White (#F9FAFB) background",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0056",
           "text": "All text/background pairs in both themes meet WCAG 4.5:1 contrast for normal text",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -563,23 +563,23 @@
       "title": "As a developer, I want to change font size, so that I can read comfortably on my device.",
       "priority": "P1",
       "estimate": "S",
-      "status": "Planned",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/epic-0005-customization",
       "acs": [
         {
           "id": "AC-0057",
           "text": "Pressing A+ in the editor toolbar increments the Monaco font size by 1pt",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0058",
           "text": "Pressing A- in the editor toolbar decrements the Monaco font size by 1pt",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0059",
           "text": "The current font size value is displayed in the toolbar between the A- and A+ buttons",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -2405,12 +2405,12 @@
     }
   },
   "coverage": {
-    "lines": 96.84,
-    "statements": 95.46,
-    "functions": 97.72,
-    "branches": 85,
-    "overall": 85,
-    "meetsTarget": true,
+    "lines": 8.56,
+    "statements": 8.74,
+    "functions": 10.76,
+    "branches": 4.66,
+    "overall": 4.66,
+    "meetsTarget": false,
     "available": true
   },
   "recentActivity": [
@@ -2431,8 +2431,8 @@
       "summary": "Continued from previous context window (PR #5 / US-0021 Plan Visualizer CI fixes); **Security audit fix**: Replaced `npm audit --omit=dev --audit-level=high` with `npx audit-ci@^7 --omit=dev`; created `mobile-ide/mobile-ide-prototype/audit-ci.json` allowlisting 5 tar CVEs (unfixable while on expo@52); **Workspace tar fix**: Bumped `mobile-ide/package.json` tar dep `6.2.1` → `7.5.11`; added CJS interop shim `mobile-ide/scripts/patch-tar-interop.js`; added `postinstall` script"
     }
   ],
-  "generatedAt": "2026-03-12T18:49:24.519Z",
-  "commitSha": "1ef83de",
+  "generatedAt": "2026-03-13T16:57:50.154Z",
+  "commitSha": "bf2ba65",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
@@ -2604,6 +2604,66 @@
     },
     {
       "date": "2026-03-11",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-12",
       "cumCost": 10.91
     },
     {

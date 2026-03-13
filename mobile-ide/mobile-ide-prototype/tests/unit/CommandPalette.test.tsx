@@ -10,6 +10,23 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Modal } from 'react-native';
 import { CommandPalette, Command } from '../../src/components/CommandPalette';
 
+// Mock useTheme so CommandPalette can render without a real Zustand store
+jest.mock('../../src/theme/tokens', () => ({
+  useTheme: () => ({
+    bg: '#0F172A',
+    bgElevated: '#1E293B',
+    bgHighlight: '#1D3461',
+    text: '#E2E8F0',
+    textMuted: '#64748B',
+    border: '#334155',
+    accent: '#2563EB',
+    keyword: '#7C3AED',
+    string: '#0D9488',
+    error: '#EF4444',
+    success: '#22C55E',
+  }),
+}));
+
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------

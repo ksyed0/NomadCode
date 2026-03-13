@@ -11,6 +11,23 @@ import { PanResponder, Text } from 'react-native';
 import TabletResponsive, { clampTerminalHeight, isDownwardSwipe, useIsTablet } from '../../src/layout/TabletResponsive';
 import { renderHook } from '@testing-library/react-native';
 
+// Mock useTheme so TabletResponsive can render without a real Zustand store
+jest.mock('../../src/theme/tokens', () => ({
+  useTheme: () => ({
+    bg: '#0F172A',
+    bgElevated: '#1E293B',
+    bgHighlight: '#1D3461',
+    text: '#E2E8F0',
+    textMuted: '#64748B',
+    border: '#334155',
+    accent: '#2563EB',
+    keyword: '#7C3AED',
+    string: '#0D9488',
+    error: '#EF4444',
+    success: '#22C55E',
+  }),
+}));
+
 // ---------------------------------------------------------------------------
 // Mock useWindowDimensions
 // ---------------------------------------------------------------------------
@@ -421,5 +438,41 @@ describe('TabletResponsive — swipe gesture zone', () => {
     expect(() =>
       capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.4 }),
     ).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Settings gear icon
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — settings gear icon', () => {
+  beforeEach(() => setWidth(1024));
+
+  it('renders the gear icon', () => {
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(screen.getByTestId('settings-gear')).toBeTruthy();
+  });
+
+  it('pressing gear icon calls onOpenSettings', () => {
+    const onOpenSettings = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={null}
+        onOpenSettings={onOpenSettings}
+      />,
+    );
+    fireEvent.press(screen.getByTestId('settings-gear'));
+    expect(onOpenSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not crash when onOpenSettings is not provided', () => {
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(() => fireEvent.press(screen.getByTestId('settings-gear'))).not.toThrow();
   });
 });

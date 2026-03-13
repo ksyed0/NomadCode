@@ -18,6 +18,8 @@ import {
   View,
 } from 'react-native';
 
+import { useTheme } from '../theme/tokens';
+
 // ---------------------------------------------------------------------------
 // Breakpoints and defaults
 // ---------------------------------------------------------------------------
@@ -54,6 +56,8 @@ interface TabletResponsiveProps {
   onTerminalHeightChange?: (height: number) => void;
   /** Called when user swipes down on the main editor area to open command palette */
   onOpenPalette?: () => void;
+  /** Called when user presses the gear icon to open settings */
+  onOpenSettings?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -81,7 +85,9 @@ export default function TabletResponsive({
   terminalHeight = TERMINAL_HEIGHT,
   onTerminalHeightChange,
   onOpenPalette,
+  onOpenSettings,
 }: TabletResponsiveProps) {
+  const t = useTheme();
   const isTablet = useIsTablet();
   const [phoneSidebarOpen, setPhoneSidebarOpen] = useState(false);
 
@@ -121,13 +127,29 @@ export default function TabletResponsive({
     />
   );
 
+  // Gear icon button — opens settings
+  const gearButton = (
+    <TouchableOpacity
+      testID="settings-gear"
+      onPress={() => onOpenSettings?.()}
+      style={styles.gearBtn}
+      accessibilityLabel="Open settings"
+      accessibilityRole="button"
+    >
+      <Text style={[styles.gearIcon, { color: t.textMuted }]}>⚙</Text>
+    </TouchableOpacity>
+  );
+
   // ── Tablet layout ──────────────────────────────────────────────────────────
   if (isTablet) {
     return (
-      <View style={styles.root}>
+      <View style={[styles.root, { backgroundColor: t.bg }]}>
         {/* Main row: sidebar + editor */}
         <View style={styles.row}>
-          <View style={[styles.sidebar, { width: sidebarWidth }]}>{sidebar}</View>
+          <View style={[styles.sidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
+            {gearButton}
+            {sidebar}
+          </View>
           <View style={styles.mainArea}>
             {swipeZoneView}
             {main}
@@ -139,10 +161,10 @@ export default function TabletResponsive({
           <>
             <View
               testID="terminal-resize-handle"
-              style={styles.resizeHandle}
+              style={[styles.resizeHandle, { backgroundColor: t.bgElevated, borderTopColor: t.border }]}
               {...panResponder.panHandlers}
             />
-            <View style={[styles.terminalStrip, { height: terminalHeight }]}>
+            <View style={[styles.terminalStrip, { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg }]}>
               {terminal}
             </View>
           </>
@@ -153,7 +175,7 @@ export default function TabletResponsive({
 
   // ── Phone layout ───────────────────────────────────────────────────────────
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: t.bg }]}>
       {/* Editor fills the top area */}
       <View style={styles.phoneMainArea}>
         {swipeZoneView}
@@ -162,14 +184,14 @@ export default function TabletResponsive({
 
       {/* Terminal slides up from the bottom */}
       {showTerminal && (
-        <View style={[styles.phoneTerminal, { height: terminalHeight }]}>
+        <View style={[styles.phoneTerminal, { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg }]}>
           {terminal}
         </View>
       )}
 
       {/* Floating sidebar toggle button (bottom-left) */}
       <TouchableOpacity
-        style={styles.phoneSidebarToggle}
+        style={[styles.phoneSidebarToggle, { backgroundColor: t.accent }]}
         onPress={() => setPhoneSidebarOpen((v) => !v)}
         activeOpacity={0.8}
       >
@@ -187,7 +209,8 @@ export default function TabletResponsive({
             onPress={() => setPhoneSidebarOpen(false)}
           />
           {/* Drawer panel */}
-          <Animated.View style={[styles.phoneSidebar, { width: sidebarWidth }]}>
+          <Animated.View style={[styles.phoneSidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
+            {gearButton}
             {sidebar}
           </Animated.View>
         </>
@@ -197,13 +220,12 @@ export default function TabletResponsive({
 }
 
 // ---------------------------------------------------------------------------
-// Styles
+// Styles (non-color values only — colors come from theme tokens via inline styles)
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   // Tablet
   row: {
@@ -211,9 +233,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   sidebar: {
-    backgroundColor: '#1E293B',
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#334155',
   },
   mainArea: {
     flex: 1,
@@ -225,16 +245,12 @@ const styles = StyleSheet.create({
   },
   resizeHandle: {
     height: 6,
-    backgroundColor: '#1E293B',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#334155',
     alignItems: 'center',
     justifyContent: 'center',
   },
   terminalStrip: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#334155',
-    backgroundColor: '#0D1117',
   },
   // Phone
   phoneMainArea: {
@@ -242,8 +258,6 @@ const styles = StyleSheet.create({
   },
   phoneTerminal: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#334155',
-    backgroundColor: '#0D1117',
   },
   phoneSidebarToggle: {
     position: 'absolute',
@@ -252,7 +266,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
@@ -275,9 +288,9 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     bottom: 0,
-    backgroundColor: '#1E293B',
     zIndex: 11,
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#334155',
   },
+  gearBtn: { padding: 10, alignItems: 'center', justifyContent: 'center' },
+  gearIcon: { fontSize: 18 },
 });

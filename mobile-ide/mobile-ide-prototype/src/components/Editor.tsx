@@ -17,7 +17,7 @@
  *   CLOUD_HOOK: sync content after save via CloudSync.enqueueUpload(path, content)
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -30,6 +30,8 @@ import {
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { buildMonacoHtml, MonacoAssetManager } from '../utils/MonacoAssetManager';
+import { useTheme, getMonacoTheme } from '../theme/tokens';
+import useSettingsStore from '../stores/useSettingsStore';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -230,14 +232,19 @@ export default function Editor({
   const webViewRef    = useRef<WebView>(null);
   const loadedPathRef = useRef<string | null>(null);
 
+  const t = useTheme();
+  const fontSize    = useSettingsStore((s) => s.fontSize);
+  const setFontSize = useSettingsStore((s) => s.setFontSize);
+  const themeId     = useSettingsStore((s) => s.theme);
+  const monacoTheme = getMonacoTheme(themeId);
+
   const [editorReady, setEditorReady] = useState(false);
   const [monacoHtml,  setMonacoHtml]  = useState<string | null>(null);
   const [isOffline,   setIsOffline]   = useState(false);
   const [multiCursor, setMultiCursor] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [fontSize,    setFontSize]    = useState(14);
 
-  const activeTab      = tabs.find((t) => t.path === activeTabPath) ?? null;
+  const activeTab      = tabs.find((tab) => tab.path === activeTabPath) ?? null;
   const previewEnabled = activeTab ? canPreview(activeTab.language) : false;
 
   // ── Resolve Monaco source (CDN or local cache) on mount ─────────────────
@@ -265,6 +272,14 @@ export default function Editor({
     );
   }, [editorReady, activeTab]);
 
+  // ── Apply Monaco theme when editor is ready or theme changes ─────────────
+  useEffect(() => {
+    if (!editorReady) return;
+    webViewRef.current?.injectJavaScript(
+      `if(typeof monaco!=='undefined'){monaco.editor.setTheme(${JSON.stringify(monacoTheme)});}true;`,
+    );
+  }, [editorReady, monacoTheme]);
+
   // ── Messages from Monaco ─────────────────────────────────────────────────
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
@@ -286,7 +301,7 @@ export default function Editor({
         }
       } catch { /* ignore */ }
     },
-    [activeTabPath, onContentChange, onSave],
+    [activeTabPath, onContentChange, onSave, setFontSize],
   );
 
   // ── Send a command to Monaco ─────────────────────────────────────────────
@@ -320,7 +335,7 @@ export default function Editor({
       setFontSize(next);
       sendToEditor('setFontSize', { fontSize: next });
     },
-    [fontSize, sendToEditor],
+    [fontSize, setFontSize, sendToEditor],
   );
 
   const exitMultiCursor = useCallback(() => {
@@ -328,6 +343,9 @@ export default function Editor({
     sendToEditor('setAddCursorMode', { active: false });
     sendToEditor('clearCursors');
   }, [sendToEditor]);
+
+  // ── Dynamic styles using theme tokens ────────────────────────────────────
+  const styles = useMemo(() => makeStyles(t), [t]);
 
   // ── Empty state ───────────────────────────────────────────────────────────
   if (tabs.length === 0) {
@@ -404,7 +422,7 @@ export default function Editor({
         <View style={[styles.monacoPane, previewHtml ? styles.split : styles.full]}>
           {(!editorReady || !monacoHtml) && (
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator color="#2563EB" size="small" />
+              <ActivityIndicator color={t.accent} size="small" />
               <Text style={styles.loadingText}>
                 {isOffline ? 'Loading editor (offline)…' : 'Loading editor…'}
               </Text>
@@ -521,92 +539,96 @@ export default function Editor({
 }
 
 // ---------------------------------------------------------------------------
-// Styles
+// Styles — generated from theme tokens
 // ---------------------------------------------------------------------------
 
 const TAB_HEIGHT     = 36;
 const TOOLBAR_HEIGHT = 40;
 
-const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: '#1E1E1E' },
-  // Tab bar
-  tabBar: {
-    height: TAB_HEIGHT, backgroundColor: '#252526', flexGrow: 0,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#1E1E1E',
-  },
-  tabBarContent:  { alignItems: 'stretch' },
-  tab: {
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12,
-    height: TAB_HEIGHT, borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#1E1E1E', maxWidth: 180, minWidth: 80,
-  },
-  tabActive: {
-    backgroundColor: '#1E1E1E', borderBottomWidth: 2, borderBottomColor: '#2563EB',
-  },
-  tabLabel:       { color: '#9DA5B4', fontSize: 12, flex: 1 },
-  tabLabelActive: { color: '#CDD6F4' },
-  tabCloseHit:    { marginLeft: 6, alignItems: 'center', justifyContent: 'center' },
-  tabCloseIcon:   { color: '#6B7280', fontSize: 16, lineHeight: 16 },
-  // Editor + preview
-  editorArea:     { flex: 1, flexDirection: 'row' },
-  monacoPane:     { backgroundColor: '#1E1E1E' },
-  full:           { flex: 1 },
-  split:          { flex: 1 },
-  previewPane: {
-    flex: 1, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: '#334155',
-  },
-  previewHeader: {
-    height: 28, backgroundColor: '#1E293B',
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#334155',
-    justifyContent: 'center', paddingHorizontal: 10,
-  },
-  previewHeaderText: { color: '#64748B', fontSize: 10, fontWeight: '600', letterSpacing: 1 },
-  webView:        { flex: 1, backgroundColor: '#1E1E1E' },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject, backgroundColor: '#1E1E1E',
-    alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 1,
-  },
-  loadingText:    { color: '#6B7280', fontSize: 13 },
-  // Mobile toolbar
-  toolbar: {
-    height: TOOLBAR_HEIGHT, backgroundColor: '#1E293B', flexDirection: 'row',
-    alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#334155',
-  },
-  toolbarContent: { alignItems: 'center', paddingHorizontal: 8, gap: 2 },
-  toolbarBtn: {
-    height: 32, minWidth: 32, paddingHorizontal: 8,
-    alignItems: 'center', justifyContent: 'center', borderRadius: 4,
-  },
-  toolbarBtnActive:   { backgroundColor: '#2563EB33' },
-  toolbarBtnDisabled: { opacity: 0.3 },
-  toolbarIcon:        { color: '#94A3B8', fontSize: 14, fontWeight: '500' },
-  toolbarIconActive:  { color: '#60A5FA' },
-  toolbarIconDisabled:{ color: '#4B5563' },
-  toolbarFontSize:    { color: '#64748B', fontSize: 11, minWidth: 20, textAlign: 'center' },
-  toolbarDivider: {
-    width: StyleSheet.hairlineWidth, height: 20,
-    backgroundColor: '#334155', marginHorizontal: 4,
-  },
-  mcBadge: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#2563EB',
-    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4,
-    marginRight: 8, gap: 6,
-  },
-  mcBadgeText:  { color: '#FFF', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
-  mcBadgeClose: { color: '#FFF', fontSize: 12 },
-  // Path breadcrumb
-  pathBar: {
-    height: 22,
-    backgroundColor: '#1E1E1E',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#2D2D2D',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-  },
-  pathText: { color: '#6B7280', fontSize: 11 },
-  // Empty state
-  empty:      { flex: 1, backgroundColor: '#1E1E1E', alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { color: '#4B5563', fontSize: 16 },
-  emptyHint:  { color: '#374151', fontSize: 13, marginTop: 8 },
-});
+import type { ThemeTokens } from '../theme/tokens';
+
+function makeStyles(t: ThemeTokens) {
+  return StyleSheet.create({
+    container:      { flex: 1, backgroundColor: t.bg },
+    // Tab bar
+    tabBar: {
+      height: TAB_HEIGHT, backgroundColor: t.bgElevated, flexGrow: 0,
+      borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.bg,
+    },
+    tabBarContent:  { alignItems: 'stretch' },
+    tab: {
+      flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12,
+      height: TAB_HEIGHT, borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: t.bg, maxWidth: 180, minWidth: 80,
+    },
+    tabActive: {
+      backgroundColor: t.bg, borderBottomWidth: 2, borderBottomColor: t.accent,
+    },
+    tabLabel:       { color: t.textMuted, fontSize: 12, flex: 1 },
+    tabLabelActive: { color: t.text },
+    tabCloseHit:    { marginLeft: 6, alignItems: 'center', justifyContent: 'center' },
+    tabCloseIcon:   { color: t.textMuted, fontSize: 16, lineHeight: 16 },
+    // Editor + preview
+    editorArea:     { flex: 1, flexDirection: 'row' },
+    monacoPane:     { backgroundColor: t.bg },
+    full:           { flex: 1 },
+    split:          { flex: 1 },
+    previewPane: {
+      flex: 1, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: t.border,
+    },
+    previewHeader: {
+      height: 28, backgroundColor: t.bgElevated,
+      borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border,
+      justifyContent: 'center', paddingHorizontal: 10,
+    },
+    previewHeaderText: { color: t.textMuted, fontSize: 10, fontWeight: '600', letterSpacing: 1 },
+    webView:        { flex: 1, backgroundColor: t.bg },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject, backgroundColor: t.bg,
+      alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 1,
+    },
+    loadingText:    { color: t.textMuted, fontSize: 13 },
+    // Mobile toolbar
+    toolbar: {
+      height: TOOLBAR_HEIGHT, backgroundColor: t.bgElevated, flexDirection: 'row',
+      alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: t.border,
+    },
+    toolbarContent: { alignItems: 'center', paddingHorizontal: 8, gap: 2 },
+    toolbarBtn: {
+      height: 32, minWidth: 32, paddingHorizontal: 8,
+      alignItems: 'center', justifyContent: 'center', borderRadius: 4,
+    },
+    toolbarBtnActive:   { backgroundColor: t.accent + '33' },
+    toolbarBtnDisabled: { opacity: 0.3 },
+    toolbarIcon:        { color: t.textMuted, fontSize: 14, fontWeight: '500' },
+    toolbarIconActive:  { color: t.accent },
+    toolbarIconDisabled:{ color: t.border },
+    toolbarFontSize:    { color: t.textMuted, fontSize: 11, minWidth: 20, textAlign: 'center' },
+    toolbarDivider: {
+      width: StyleSheet.hairlineWidth, height: 20,
+      backgroundColor: t.border, marginHorizontal: 4,
+    },
+    mcBadge: {
+      flexDirection: 'row', alignItems: 'center', backgroundColor: t.accent,
+      paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4,
+      marginRight: 8, gap: 6,
+    },
+    mcBadgeText:  { color: '#FFF', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
+    mcBadgeClose: { color: '#FFF', fontSize: 12 },
+    // Path breadcrumb
+    pathBar: {
+      height: 22,
+      backgroundColor: t.bg,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: t.border,
+      justifyContent: 'center',
+      paddingHorizontal: 12,
+    },
+    pathText: { color: t.textMuted, fontSize: 11 },
+    // Empty state
+    empty:      { flex: 1, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center' },
+    emptyTitle: { color: t.textMuted, fontSize: 16 },
+    emptyHint:  { color: t.border, fontSize: 13, marginTop: 8 },
+  });
+}
