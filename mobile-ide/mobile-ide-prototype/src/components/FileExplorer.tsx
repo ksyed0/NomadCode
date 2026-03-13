@@ -534,16 +534,13 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E293B',
   },
   header: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
   },
   headerText: {
-    color: '#64748B',
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1,
@@ -554,30 +551,21 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingRight: 12,
   },
-  selectedRow: {
-    backgroundColor: '#2563EB22',
-  },
+  selectedRow: {},
   icon: {
-    color: '#64748B',
     width: 16,
     fontSize: 12,
     textAlign: 'center',
   },
   name: {
-    color: '#CBD5E1',
     fontSize: 13,
     marginLeft: 4,
     flex: 1,
-  },
-  directoryName: {
-    color: '#E2E8F0',
-    fontWeight: '500',
   },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1E293B',
   },
 
   // Context menu
@@ -587,33 +575,24 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   contextMenuPanel: {
-    backgroundColor: '#1E293B',
     borderTopWidth: 1,
-    borderTopColor: '#334155',
     paddingBottom: 32,
   },
   contextMenuTitle: {
-    color: '#64748B',
     fontSize: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
   },
   contextMenuItem: {
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   contextMenuItemText: {
-    color: '#E2E8F0',
     fontSize: 14,
-  },
-  destructive: {
-    color: '#EF4444',
   },
   separator: {
     height: 1,
-    backgroundColor: '#334155',
     marginVertical: 4,
   },
 
@@ -626,24 +605,18 @@ const styles = StyleSheet.create({
   },
   nameModalPanel: {
     width: '85%',
-    backgroundColor: '#1E293B',
     borderRadius: 8,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#334155',
   },
   nameModalTitle: {
-    color: '#E2E8F0',
     fontSize: 15,
     fontWeight: '600',
     marginBottom: 12,
   },
   nameInput: {
-    color: '#E2E8F0',
-    backgroundColor: '#0F172A',
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#334155',
     paddingHorizontal: 10,
     paddingVertical: 8,
     fontSize: 14,
@@ -659,9 +632,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 6,
   },
-  btnPrimary: {
-    backgroundColor: '#2563EB',
-  },
+  btnPrimary: {},
   btnPrimaryText: {
     color: '#FFF',
     fontSize: 14,
@@ -669,10 +640,8 @@ const styles = StyleSheet.create({
   },
   btnSecondary: {
     borderWidth: 1,
-    borderColor: '#334155',
   },
   btnSecondaryText: {
-    color: '#94A3B8',
     fontSize: 14,
   },
   btnDisabled: {
@@ -686,9 +655,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   movePickerPanel: {
-    backgroundColor: '#1E293B',
     borderTopWidth: 1,
-    borderTopColor: '#334155',
     maxHeight: SCREEN_HEIGHT * 0.6,
     paddingBottom: 32,
   },
@@ -701,9 +668,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingRight: 12,
   },
-  pickerRowSelected: {
-    backgroundColor: '#2563EB22',
-  },
+  pickerRowSelected: {},
   pickerRowDisabled: {
     opacity: 0.4,
   },

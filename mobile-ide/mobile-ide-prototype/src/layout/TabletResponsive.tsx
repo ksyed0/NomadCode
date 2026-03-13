@@ -131,7 +131,7 @@ export default function TabletResponsive({
   const gearButton = (
     <TouchableOpacity
       testID="settings-gear"
-      onPress={onOpenSettings}
+      onPress={() => onOpenSettings?.()}
       style={styles.gearBtn}
       accessibilityLabel="Open settings"
       accessibilityRole="button"
@@ -164,7 +164,7 @@ export default function TabletResponsive({
               style={[styles.resizeHandle, { backgroundColor: t.bgElevated, borderTopColor: t.border }]}
               {...panResponder.panHandlers}
             />
-            <View style={[styles.terminalStrip, { height: terminalHeight, borderTopColor: t.border }]}>
+            <View style={[styles.terminalStrip, { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg }]}>
               {terminal}
             </View>
           </>
@@ -184,7 +184,7 @@ export default function TabletResponsive({
 
       {/* Terminal slides up from the bottom */}
       {showTerminal && (
-        <View style={[styles.phoneTerminal, { height: terminalHeight, borderTopColor: t.border }]}>
+        <View style={[styles.phoneTerminal, { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg }]}>
           {terminal}
         </View>
       )}
@@ -220,7 +220,7 @@ export default function TabletResponsive({
 }
 
 // ---------------------------------------------------------------------------
-// Styles (non-color values only — colors come from theme tokens above)
+// Styles (non-color values only — colors come from theme tokens via inline styles)
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
@@ -251,7 +251,6 @@ const styles = StyleSheet.create({
   },
   terminalStrip: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    backgroundColor: '#0D1117',
   },
   // Phone
   phoneMainArea: {
@@ -259,7 +258,6 @@ const styles = StyleSheet.create({
   },
   phoneTerminal: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    backgroundColor: '#0D1117',
   },
   phoneSidebarToggle: {
     position: 'absolute',
