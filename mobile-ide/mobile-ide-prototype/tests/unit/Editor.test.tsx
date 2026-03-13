@@ -12,6 +12,37 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 import Editor, { EditorTab, buildPreviewHtml, canPreview, getLanguageForFile } from '../../src/components/Editor';
 
 // ---------------------------------------------------------------------------
+// Mock theme tokens
+// ---------------------------------------------------------------------------
+
+jest.mock('../../src/theme/tokens', () => {
+  const actual = jest.requireActual('../../src/theme/tokens');
+  return {
+    ...actual,
+    useTheme: () => actual.THEMES['nomad-dark'],
+    getMonacoTheme: () => 'vs-dark',
+  };
+});
+
+// ---------------------------------------------------------------------------
+// Mock useSettingsStore
+// ---------------------------------------------------------------------------
+
+const mockSetFontSize = jest.fn();
+let mockFontSize = 14;
+
+jest.mock('../../src/stores/useSettingsStore', () => ({
+  __esModule: true,
+  default: jest.fn((sel: (s: object) => unknown) =>
+    sel({
+      fontSize: mockFontSize,
+      theme: 'nomad-dark',
+      setFontSize: mockSetFontSize,
+    })
+  ),
+}));
+
+// ---------------------------------------------------------------------------
 // Mock MonacoAssetManager so monacoHtml is set synchronously after mount
 // ---------------------------------------------------------------------------
 
@@ -272,18 +303,46 @@ describe('buildPreviewHtml', () => {
 // ---------------------------------------------------------------------------
 
 describe('Editor — toolbar interactions', () => {
+  beforeEach(() => {
+    mockSetFontSize.mockClear();
+    mockFontSize = 14;
+  });
+
+  it('displays font size from the settings store', async () => {
+    mockFontSize = 14;
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    expect(screen.getByText('14')).toBeTruthy();
+  });
+
+  it('calls store setFontSize when A- is pressed', async () => {
+    mockFontSize = 14;
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByText('A-'));
+    expect(mockSetFontSize).toHaveBeenCalledWith(13);
+  });
+
+  it('calls store setFontSize when A+ is pressed', async () => {
+    mockFontSize = 14;
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent.press(screen.getByText('A+'));
+    expect(mockSetFontSize).toHaveBeenCalledWith(15);
+  });
+
   it('decrements font size when A- is pressed', async () => {
     renderEditor([TAB_A], TAB_A.path);
     await waitFor(() => screen.getByTestId('webview'));
     fireEvent.press(screen.getByText('A-'));
-    expect(screen.getByText('13')).toBeTruthy();
+    expect(mockSetFontSize).toHaveBeenCalledWith(13);
   });
 
   it('increments font size when A+ is pressed', async () => {
     renderEditor([TAB_A], TAB_A.path);
     await waitFor(() => screen.getByTestId('webview'));
     fireEvent.press(screen.getByText('A+'));
-    expect(screen.getByText('15')).toBeTruthy();
+    expect(mockSetFontSize).toHaveBeenCalledWith(15);
   });
 
   it('sends a command when a toolbar action button is pressed', async () => {

@@ -45,6 +45,7 @@ jest.mock('../../src/theme/tokens', () => ({
     error: '#EF4444',
     success: '#22C55E',
   }),
+  getMonacoTheme: () => 'vs-dark',
 }));
 
 // Mock expo-file-system (not available in Jest environment)
