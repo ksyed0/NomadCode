@@ -17,7 +17,7 @@
  *   CLOUD_HOOK: sync content after save via CloudSync.enqueueUpload(path, content)
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -345,7 +345,7 @@ export default function Editor({
   }, [sendToEditor]);
 
   // ── Dynamic styles using theme tokens ────────────────────────────────────
-  const styles = makeStyles(t);
+  const styles = useMemo(() => makeStyles(t), [t]);
 
   // ── Empty state ───────────────────────────────────────────────────────────
   if (tabs.length === 0) {
