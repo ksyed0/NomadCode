@@ -148,7 +148,7 @@ describe('App — smoke tests', () => {
 describe('App — SetupWizard integration', () => {
   it('shows setup wizard when setup not completed', () => {
     // Override the mock for this test to return hasCompletedSetup: false
-    (useSettingsStore as jest.Mock).mockImplementation((sel: (s: object) => unknown) =>
+    (useSettingsStore as unknown as jest.Mock).mockImplementation((sel: (s: object) => unknown) =>
       sel({
         theme: 'nomad-dark',
         fontSize: 14,

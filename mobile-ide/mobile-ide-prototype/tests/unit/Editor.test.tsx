@@ -397,7 +397,7 @@ describe('Editor — toolbar interactions', () => {
     renderEditor([TAB_A], TAB_A.path);
     await waitFor(() => screen.getByTestId('webview'));
     mockSetFontSize.mockClear();
-    capturedOnMessage?.({
+    (capturedOnMessage as unknown as (e: object) => void)({
       nativeEvent: { data: JSON.stringify({ type: 'fontSizeChanged', fontSize: 16 }) },
     });
     expect(mockSetFontSize).toHaveBeenCalledWith(16);
