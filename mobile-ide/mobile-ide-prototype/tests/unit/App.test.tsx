@@ -30,9 +30,12 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
   ),
 }));
 
-// Mock useTheme so all components that use it work without a real store
-jest.mock('../../src/theme/tokens', () => ({
-  useTheme: () => ({
+// Mock useTheme and THEMES so all components that use tokens work without a real store
+jest.mock('../../src/theme/tokens', () => {
+  const nomadDark = {
+    id: 'nomad-dark',
+    mode: 'dark',
+    name: 'Nomad Dark',
     bg: '#0F172A',
     bgElevated: '#1E293B',
     bgHighlight: '#1D3461',
@@ -44,8 +47,38 @@ jest.mock('../../src/theme/tokens', () => ({
     string: '#0D9488',
     error: '#EF4444',
     success: '#22C55E',
-  }),
-  getMonacoTheme: () => 'vs-dark',
+  };
+  const nomadLight = {
+    id: 'nomad-light',
+    mode: 'light',
+    name: 'Nomad Light',
+    bg: '#F9FAFB',
+    bgElevated: '#F1F5F9',
+    bgHighlight: '#DBEAFE',
+    text: '#111827',
+    textMuted: '#6B7280',
+    border: '#E5E7EB',
+    accent: '#2563EB',
+    keyword: '#7C3AED',
+    string: '#0D9488',
+    error: '#EF4444',
+    success: '#22C55E',
+  };
+  return {
+    useTheme: () => nomadDark,
+    getMonacoTheme: () => 'vs-dark',
+    DARK_THEME_IDS: ['nomad-dark'],
+    LIGHT_THEME_IDS: ['nomad-light'],
+    THEMES: {
+      'nomad-dark': nomadDark,
+      'nomad-light': nomadLight,
+    },
+  };
+});
+
+// Mock expo-document-picker (not available in Jest environment)
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: jest.fn().mockResolvedValue({ canceled: true }),
 }));
 
 // Mock expo-file-system (not available in Jest environment)
@@ -104,6 +137,31 @@ describe('App — smoke tests', () => {
   it('renders the NomadCode status bar title', () => {
     render(<App />);
     expect(screen.getByText('NomadCode')).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SetupWizard integration (EPIC-0005)
+// ---------------------------------------------------------------------------
+
+describe('App — SetupWizard integration', () => {
+  it('shows setup wizard when setup not completed', () => {
+    // Override the mock for this test to return hasCompletedSetup: false
+    const useSettingsStoreMock = require('../../src/stores/useSettingsStore').default as jest.Mock;
+    useSettingsStoreMock.mockImplementation((sel: (s: object) => unknown) =>
+      sel({
+        theme: 'nomad-dark',
+        fontSize: 14,
+        workspacePath: '',
+        hasCompletedSetup: false,
+        setTheme: jest.fn(),
+        setFontSize: jest.fn(),
+        setWorkspacePath: jest.fn(),
+        completeSetup: jest.fn(),
+      })
+    );
+    render(<App />);
+    expect(screen.getByTestId('setup-wizard')).toBeTruthy();
   });
 });
 
