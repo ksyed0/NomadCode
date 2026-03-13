@@ -8,6 +8,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import App from '../../App';
+import useSettingsStore from '../../src/stores/useSettingsStore';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -147,8 +148,7 @@ describe('App — smoke tests', () => {
 describe('App — SetupWizard integration', () => {
   it('shows setup wizard when setup not completed', () => {
     // Override the mock for this test to return hasCompletedSetup: false
-    const useSettingsStoreMock = require('../../src/stores/useSettingsStore').default as jest.Mock;
-    useSettingsStoreMock.mockImplementation((sel: (s: object) => unknown) =>
+    (useSettingsStore as jest.Mock).mockImplementation((sel: (s: object) => unknown) =>
       sel({
         theme: 'nomad-dark',
         fontSize: 14,

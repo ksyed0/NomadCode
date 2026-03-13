@@ -42,6 +42,7 @@ jest.mock('expo-file-system', () => ({
 }));
 
 import SetupWizard from '../../src/components/SetupWizard';
+import * as DocumentPicker from 'expo-document-picker';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -210,7 +211,6 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
   });
 
   it('Browse button calls DocumentPicker.getDocumentAsync', async () => {
-    const DocumentPicker = require('expo-document-picker');
     goToStep3();
     await fireEvent.press(screen.getByTestId('btn-browse'));
     expect(DocumentPicker.getDocumentAsync).toHaveBeenCalledWith({
@@ -220,8 +220,7 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
   });
 
   it('Browse button calls setWorkspacePath with picked URI', async () => {
-    const DocumentPickerMock = require('expo-document-picker');
-    (DocumentPickerMock.getDocumentAsync as jest.Mock).mockResolvedValueOnce({
+    (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValueOnce({
       canceled: false,
       assets: [{ uri: 'file:///picked-folder/' }],
     });
