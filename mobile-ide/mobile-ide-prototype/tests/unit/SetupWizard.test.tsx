@@ -15,6 +15,7 @@ const mockCompleteSetup = jest.fn();
 let mockHasCompletedSetup = false;
 let mockFontSize = 14;
 let mockTheme = 'nomad-dark';
+let mockWorkspacePath = '';
 
 jest.mock('../../src/stores/useSettingsStore', () => ({
   __esModule: true,
@@ -22,6 +23,7 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
     sel({
       theme: mockTheme,
       fontSize: mockFontSize,
+      workspacePath: mockWorkspacePath,
       hasCompletedSetup: mockHasCompletedSetup,
       setTheme: mockSetTheme,
       setFontSize: mockSetFontSize,
@@ -46,6 +48,7 @@ beforeEach(() => {
   mockHasCompletedSetup = false;
   mockFontSize = 14;
   mockTheme = 'nomad-dark';
+  mockWorkspacePath = '';
 });
 
 describe('SetupWizard — visibility', () => {
@@ -141,6 +144,20 @@ describe('SetupWizard — Step 2 (Font Size)', () => {
     fireEvent.press(screen.getByTestId('btn-next'));
     expect(screen.getByText('3 / 3')).toBeTruthy();
   });
+
+  it('does not go below fontSize 8 — A- calls setFontSize(7) (store clamps to 8)', () => {
+    mockFontSize = 8;
+    goToStep2();
+    fireEvent.press(screen.getByTestId('btn-font-dec'));
+    expect(mockSetFontSize).toHaveBeenCalledWith(7);
+  });
+
+  it('does not go above fontSize 32 — A+ calls setFontSize(33) (store clamps to 32)', () => {
+    mockFontSize = 32;
+    goToStep2();
+    fireEvent.press(screen.getByTestId('btn-font-inc'));
+    expect(mockSetFontSize).toHaveBeenCalledWith(33);
+  });
 });
 
 describe('SetupWizard — Step 3 (Workspace)', () => {
@@ -171,5 +188,34 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
     goToStep3();
     fireEvent.press(screen.getByTestId('btn-back'));
     expect(screen.getByText('2 / 3')).toBeTruthy();
+  });
+
+  it('shows workspace TextInput pre-filled with documentDirectory when workspacePath is empty', () => {
+    mockWorkspacePath = '';
+    goToStep3();
+    const input = screen.getByTestId('workspace-input');
+    expect(input.props.value).toBe('file:///mock-docs/');
+  });
+
+  it('shows workspace TextInput pre-filled with stored workspacePath when set', () => {
+    mockWorkspacePath = 'file:///custom-path/';
+    goToStep3();
+    const input = screen.getByTestId('workspace-input');
+    expect(input.props.value).toBe('file:///custom-path/');
+  });
+
+  it('Browse button renders in step 3', () => {
+    goToStep3();
+    expect(screen.getByTestId('btn-browse')).toBeTruthy();
+  });
+
+  it('Browse button calls DocumentPicker.getDocumentAsync', async () => {
+    const DocumentPicker = require('expo-document-picker');
+    goToStep3();
+    await fireEvent.press(screen.getByTestId('btn-browse'));
+    expect(DocumentPicker.getDocumentAsync).toHaveBeenCalledWith({
+      type: 'public.folder',
+      copyToCacheDirectory: false,
+    });
   });
 });

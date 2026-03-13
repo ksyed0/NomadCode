@@ -10,9 +10,10 @@
 
 import React, { useState } from 'react';
 import {
-  Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView,
+  Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import * as DocumentPicker from 'expo-document-picker';
 import useSettingsStore from '../stores/useSettingsStore';
 import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, ThemeId } from '../theme/tokens';
 
@@ -28,12 +29,27 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
 
   const theme = useSettingsStore((s) => s.theme);
   const fontSize = useSettingsStore((s) => s.fontSize);
+  const workspacePath = useSettingsStore((s) => s.workspacePath);
   const setTheme = useSettingsStore((s) => s.setTheme);
   const setFontSize = useSettingsStore((s) => s.setFontSize);
   const setWorkspacePath = useSettingsStore((s) => s.setWorkspacePath);
   const completeSetup = useSettingsStore((s) => s.completeSetup);
 
   if (!visible) return null;
+
+  const handleBrowse = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'public.folder',
+        copyToCacheDirectory: false,
+      });
+      if (!result.canceled && result.assets?.[0]?.uri) {
+        setWorkspacePath(result.assets[0].uri);
+      }
+    } catch (_) {
+      // ignore picker errors
+    }
+  };
 
   const swatchIds = selectedMode === 'dark' ? DARK_THEME_IDS : LIGHT_THEME_IDS;
 
@@ -44,7 +60,7 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
   }
 
   function handleGetStarted() {
-    setWorkspacePath(FileSystem.documentDirectory ?? '');
+    setWorkspacePath(workspacePath || FileSystem.documentDirectory || '');
     completeSetup();
   }
 
@@ -135,6 +151,23 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
           <View>
             <Text style={styles.title}>Set workspace folder</Text>
             <Text style={styles.hint}>You can change this later in Settings.</Text>
+            <TextInput
+              testID="workspace-input"
+              style={styles.workspaceInput}
+              value={workspacePath || FileSystem.documentDirectory || ''}
+              onChangeText={setWorkspacePath}
+              placeholder="Workspace path"
+              placeholderTextColor="#64748B"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity
+              testID="btn-browse"
+              style={styles.btn}
+              onPress={handleBrowse}
+            >
+              <Text style={styles.btnText}>Browse</Text>
+            </TouchableOpacity>
             <View style={styles.navRow}>
               <TouchableOpacity testID="btn-back" onPress={() => setStep(2)}>
                 <Text style={styles.backBtn}>Back</Text>
@@ -177,4 +210,15 @@ const styles = StyleSheet.create({
   backBtn:      { color: '#64748B', fontSize: 16 },
   skipBtn:      { color: '#64748B', fontSize: 16 },
   hint:         { color: '#64748B', marginBottom: 16 },
+  workspaceInput: {
+    backgroundColor: '#1E293B',
+    color: '#E2E8F0',
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    marginBottom: 10,
+  },
 });
