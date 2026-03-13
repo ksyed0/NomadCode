@@ -8,7 +8,7 @@
  * Shown when hasCompletedSetup === false. Calls completeSetup() on finish.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput,
 } from 'react-native';
@@ -35,9 +35,18 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
   const setWorkspacePath = useSettingsStore((s) => s.setWorkspacePath);
   const completeSetup = useSettingsStore((s) => s.completeSetup);
 
-  if (!visible) return null;
+  const swatchIds = useMemo(
+    () => (selectedMode === 'dark' ? DARK_THEME_IDS : LIGHT_THEME_IDS),
+    [selectedMode],
+  );
 
-  const handleBrowse = async () => {
+  const handleModePress = useCallback((mode: Mode) => {
+    setSelectedMode(mode);
+    const defaultId: ThemeId = mode === 'dark' ? 'nomad-dark' : 'nomad-light';
+    setTheme(defaultId);
+  }, [setTheme]);
+
+  const handleBrowse = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'public.folder',
@@ -46,23 +55,17 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
       if (!result.canceled && result.assets?.[0]?.uri) {
         setWorkspacePath(result.assets[0].uri);
       }
-    } catch (_) {
-      // ignore picker errors
+    } catch (e) {
+      __DEV__ && console.warn('[SetupWizard] browse error:', e);
     }
-  };
+  }, [setWorkspacePath]);
 
-  const swatchIds = selectedMode === 'dark' ? DARK_THEME_IDS : LIGHT_THEME_IDS;
-
-  function handleModePress(mode: Mode) {
-    setSelectedMode(mode);
-    const defaultId: ThemeId = mode === 'dark' ? 'nomad-dark' : 'nomad-light';
-    setTheme(defaultId);
-  }
-
-  function handleGetStarted() {
+  const handleGetStarted = useCallback(() => {
     setWorkspacePath(workspacePath || FileSystem.documentDirectory || '');
     completeSetup();
-  }
+  }, [workspacePath, setWorkspacePath, completeSetup]);
+
+  if (!visible) return null;
 
   return (
     <Modal visible={visible} animationType="slide">
@@ -105,8 +108,8 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
                 >
                   <Text style={[styles.swatchName, { color: t.text }]}>{t.name}</Text>
                   <View style={styles.chipRow}>
-                    {([t.bg, t.text, t.accent, t.keyword] as string[]).map((c, i) => (
-                      <View key={i} style={[styles.chip, { backgroundColor: c }]} />
+                    {[t.bg, t.text, t.accent, t.keyword].map((c) => (
+                      <View key={c} style={[styles.chip, { backgroundColor: c }]} />
                     ))}
                   </View>
                 </TouchableOpacity>

@@ -218,4 +218,15 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
       copyToCacheDirectory: false,
     });
   });
+
+  it('Browse button calls setWorkspacePath with picked URI', async () => {
+    const DocumentPickerMock = require('expo-document-picker');
+    (DocumentPickerMock.getDocumentAsync as jest.Mock).mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file:///picked-folder/' }],
+    });
+    goToStep3();
+    await fireEvent.press(screen.getByTestId('btn-browse'));
+    expect(mockSetWorkspacePath).toHaveBeenCalledWith('file:///picked-folder/');
+  });
 });
