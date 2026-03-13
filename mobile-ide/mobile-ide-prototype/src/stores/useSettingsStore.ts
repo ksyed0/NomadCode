@@ -30,6 +30,7 @@ const useSettingsStore = create<SettingsState>()(
       setFontSize: (n) => set({ fontSize: Math.min(32, Math.max(8, n)) }),
       setWorkspacePath: (p) => set({ workspacePath: p }),
       completeSetup: () => set({ hasCompletedSetup: true }),
+      // Note: updating an existing extension moves it to the end of the list.
       addExtension: (manifest) =>
         set((s) => ({
           installedExtensions: [

@@ -47,6 +47,11 @@ describe('useSettingsStore — default state', () => {
     const { result } = renderHook(() => useSettingsStore());
     expect(result.current.hasCompletedSetup).toBe(false);
   });
+
+  it('defaults installedExtensions to empty array', () => {
+    const { result } = renderHook(() => useSettingsStore());
+    expect(result.current.installedExtensions).toEqual([]);
+  });
 });
 
 describe('useSettingsStore — actions', () => {
@@ -86,11 +91,6 @@ describe('useSettingsStore — actions', () => {
     expect(result.current.hasCompletedSetup).toBe(true);
   });
 
-  it('defaults installedExtensions to empty array', () => {
-    const { result } = renderHook(() => useSettingsStore());
-    expect(result.current.installedExtensions).toEqual([]);
-  });
-
   it('addExtension appends a manifest', () => {
     const { result } = renderHook(() => useSettingsStore());
     const manifest = { id: 'test.ext', name: 'Test', version: '1.0.0', source: 'void 0;' };
@@ -122,5 +122,6 @@ describe('useSettingsStore — actions', () => {
     expect(() => {
       act(() => { result.current.removeExtension('unknown.id'); });
     }).not.toThrow();
+    expect(result.current.installedExtensions).toHaveLength(0);
   });
 });
