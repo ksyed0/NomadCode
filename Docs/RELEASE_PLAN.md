@@ -43,6 +43,60 @@ Description: Self-updating HTML dashboard for project plan status, cost tracking
 Release Target: MVP (v0.1)
 Status: Done
 Dependencies: None
+
+EPIC-0007: Authentication
+Description: GitHub OAuth sign-in via browser redirect, secure token storage in platform keychain, and sign-out with token revocation.
+Release Target: Release 1.0 (GA)
+Status: Planned
+Dependencies: EPIC-0005
+
+EPIC-0008: Git Integration
+Description: Full git workflow via isomorphic-git — clone, stage, commit, push, pull, diff, and branch management.
+Release Target: Release 1.0 (GA)
+Status: Planned
+Dependencies: EPIC-0007
+
+EPIC-0009: In-App Purchases & Monetization
+Description: Three-tier subscription model (Free / Pro / Pro+AI) via native IAP with receipt validation and feature gating.
+Release Target: Release 1.0 (GA)
+Status: Planned
+Dependencies: EPIC-0007
+
+EPIC-0010: AI Suggestions
+Description: Inline code completions and AI chat panel powered by Claude API, gated behind the Pro+AI subscription tier.
+Release Target: Release 1.0 (GA)
+Status: Planned
+Dependencies: EPIC-0009, EPIC-0008
+
+EPIC-0011: App Store & EAS Build Delivery
+Description: EAS Build pipeline producing iOS .ipa and Android .aab artefacts, submitted to App Store Connect and Google Play Console.
+Release Target: Release 1.0 (GA)
+Status: Planned
+Dependencies: EPIC-0005, EPIC-0007, EPIC-0008, EPIC-0009, EPIC-0010
+
+EPIC-0012: Cloud Sync
+Description: S3-compatible cloud storage for project sync — upload on save, pull on launch, conflict resolution UI.
+Release Target: Release 1.1 (Post-Launch)
+Status: Deferred
+Dependencies: EPIC-0007
+
+EPIC-0013: Multi-Language Editor Support
+Description: Syntax highlighting, indentation rules, and auto-close brackets for Python, Rust, Go, Swift, and other popular languages.
+Release Target: Release 1.1 (Post-Launch)
+Status: Deferred
+Dependencies: EPIC-0001
+
+EPIC-0014: Global Search — Find in Files
+Description: Cross-project full-text search panel with result grouping by file, line preview, and navigate-to-line.
+Release Target: Release 1.1 (Post-Launch)
+Status: Deferred
+Dependencies: EPIC-0001, EPIC-0002
+
+EPIC-0015: Crash Reporting & Observability
+Description: Automated crash reporting via Sentry/Bugsnag and performance metric tracking (cold start, latency, memory) with alerting.
+Release Target: Release 1.1 (Post-Launch)
+Status: Deferred
+Dependencies: EPIC-0011
 ```
 
 ---
@@ -295,6 +349,275 @@ Acceptance Criteria:
 Dependencies: None
 ```
 
+### EPIC-0007: Authentication
+
+```
+US-0022 (EPIC-0007): As a developer, I want to sign in with my GitHub account, so that I can access private repositories and push code.
+Priority: High (P0)
+Estimate: L
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0064: Tapping "Sign in with GitHub" launches the system browser with the correct OAuth authorize URL
+  - [ ] AC-0065: After successful OAuth callback, an access token is returned and stored in the keychain
+  - [ ] AC-0066: The user's GitHub username and avatar are displayed in the settings screen after sign-in
+Dependencies: EPIC-0005
+
+US-0023 (EPIC-0007): As a developer, I want my auth token stored securely, so that my credentials are never exposed.
+Priority: High (P0)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0067: OAuth access token is stored in the platform keychain (iOS Keychain / Android Keystore), not in app storage or logs
+  - [ ] AC-0068: Token survives app restart and is retrieved without re-authentication
+Dependencies: US-0022
+
+US-0024 (EPIC-0007): As a developer, I want to sign out, so that I can switch accounts or revoke access.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0069: Tapping "Sign out" deletes the token from the keychain and clears the user session
+  - [ ] AC-0070: After sign-out, git operations requiring auth prompt re-authentication
+Dependencies: US-0022, US-0023
+```
+
+### EPIC-0008: Git Integration
+
+```
+US-0025 (EPIC-0008): As a developer, I want to clone a GitHub repository, so that I can work on an existing project.
+Priority: High (P0)
+Estimate: L
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0071: User can enter a GitHub repository URL and initiate a clone to local storage
+  - [ ] AC-0072: Clone progress is shown via a progress indicator; errors surface a readable message
+  - [ ] AC-0073: Cloned repo appears in the file explorer immediately on completion
+Dependencies: EPIC-0007
+
+US-0026 (EPIC-0008): As a developer, I want to stage and commit changes, so that I can record my work in git history.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0074: Modified files are listed in the git status panel with staged/unstaged indicators
+  - [ ] AC-0075: Tapping a file checkbox toggles it between staged and unstaged
+  - [ ] AC-0076: Entering a commit message and confirming creates a local commit
+Dependencies: US-0025
+
+US-0027 (EPIC-0008): As a developer, I want to push and pull from remote, so that I can collaborate with my team.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0077: Tapping Push sends local commits to the remote using the stored OAuth token
+  - [ ] AC-0078: Tapping Pull fetches and merges remote changes into the working directory
+Dependencies: US-0026
+
+US-0028 (EPIC-0008): As a developer, I want to view file diffs, so that I can review changes before committing.
+Priority: Medium (P1)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0079: Tapping a modified file in the git status panel shows an inline diff view
+  - [ ] AC-0080: Added lines are highlighted green; removed lines are highlighted red
+Dependencies: US-0026
+
+US-0029 (EPIC-0008): As a developer, I want to create and switch branches, so that I can work on features in isolation.
+Priority: Medium (P1)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0081: Current branch name is visible in the status bar
+  - [ ] AC-0082: User can create a new branch from the current HEAD via the branch panel
+  - [ ] AC-0083: User can switch to an existing local branch without losing uncommitted changes
+Dependencies: US-0025
+```
+
+### EPIC-0009: In-App Purchases & Monetization
+
+```
+US-0030 (EPIC-0009): As a free-tier user, I want clear limits displayed, so that I understand what the free plan includes.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0084: Free tier users can open up to 3 files simultaneously; attempting a 4th shows an upgrade prompt
+  - [ ] AC-0085: Free tier label is displayed in the settings screen alongside an upgrade CTA
+Dependencies: EPIC-0007
+
+US-0031 (EPIC-0009): As a developer, I want to subscribe to Pro, so that I can unlock unlimited files and advanced features.
+Priority: High (P0)
+Estimate: L
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0086: Pro subscription is purchasable via the native IAP sheet on iOS and Google Play Billing on Android
+  - [ ] AC-0087: Successful purchase removes file-count limits and unlocks Pro-gated features immediately
+  - [ ] AC-0088: Subscription status persists across app restarts via server-side receipt validation
+Dependencies: US-0030
+
+US-0032 (EPIC-0009): As a power user, I want to subscribe to Pro+AI, so that I can use AI-powered code suggestions.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0089: Pro+AI subscription unlocks AI Suggestions features in addition to all Pro features
+  - [ ] AC-0090: Purchasing Pro+AI when already on Pro upgrades the subscription without double-charging
+Dependencies: US-0031
+```
+
+### EPIC-0010: AI Suggestions
+
+```
+US-0033 (EPIC-0010): As a Pro+AI user, I want inline code completions, so that I can write code faster.
+Priority: High (P0)
+Estimate: XL
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0091: While typing, ghost-text completions appear after a 300 ms debounce
+  - [ ] AC-0092: Pressing Tab accepts the current completion; pressing Escape dismisses it
+  - [ ] AC-0093: Completions are only triggered for Pro+AI subscribers; other users see no ghost text
+Dependencies: EPIC-0009, EPIC-0008
+
+US-0034 (EPIC-0010): As a Pro+AI user, I want an AI chat panel, so that I can ask questions about my code.
+Priority: High (P0)
+Estimate: L
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0094: A chat panel can be opened alongside the editor via a toolbar button
+  - [ ] AC-0095: User can type a prompt referencing the current file and receive a streamed response
+  - [ ] AC-0096: Chat history persists for the session and is cleared on app restart
+Dependencies: US-0033
+
+US-0035 (EPIC-0010): As a non-subscriber, I want AI features gated with a clear upgrade prompt, so that I understand what I'm missing.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0097: Non-Pro+AI users see a paywall prompt when attempting to open the AI chat panel
+  - [ ] AC-0098: AI completion ghost text is hidden entirely for Free and Pro tier users
+Dependencies: US-0033, US-0034
+```
+
+### EPIC-0011: App Store & EAS Build Delivery
+
+```
+US-0036 (EPIC-0011): As a release engineer, I want an EAS Build pipeline, so that I can produce store-ready binaries from CI.
+Priority: High (P0)
+Estimate: L
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0099: `eas build --platform all` produces a valid iOS .ipa and Android .aab without errors
+  - [ ] AC-0100: Build configuration is defined in `eas.json` with a production profile
+Dependencies: EPIC-0005, EPIC-0007, EPIC-0008, EPIC-0009, EPIC-0010
+
+US-0037 (EPIC-0011): As a release engineer, I want to submit to the iOS App Store, so that users can install on iPhone and iPad.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0101: `eas submit --platform ios` successfully uploads the build to App Store Connect
+  - [ ] AC-0102: App metadata (name, description, screenshots, privacy policy URL) is complete in App Store Connect
+Dependencies: US-0036
+
+US-0038 (EPIC-0011): As a release engineer, I want to submit to Google Play, so that users can install on Android devices.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0103: `eas submit --platform android` successfully uploads the build to the Google Play Console
+  - [ ] AC-0104: App metadata (title, description, screenshots) is complete in the Play Console internal track
+Dependencies: US-0036
+```
+
+### EPIC-0012: Cloud Sync
+
+```
+US-0039 (EPIC-0012): As a developer, I want to upload my project to cloud storage, so that I can access it from multiple devices.
+Priority: Medium (P1)
+Estimate: L
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0105: User can connect an S3-compatible bucket by entering endpoint URL and access credentials in settings
+  - [ ] AC-0106: Modified local files are uploaded to the configured bucket automatically on save
+Dependencies: EPIC-0007
+
+US-0040 (EPIC-0012): As a developer, I want to download remote changes on launch, so that my files are always up to date.
+Priority: Medium (P1)
+Estimate: L
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0107: On app launch with network access, remote changes are pulled and merged into local storage
+  - [ ] AC-0108: Sync conflicts are surfaced to the user with a merge prompt before overwriting local files
+Dependencies: US-0039
+```
+
+### EPIC-0013: Multi-Language Editor Support
+
+```
+US-0041 (EPIC-0013): As a developer, I want syntax highlighting for Python, Rust, Go, and Swift, so that I can work in my preferred language.
+Priority: Medium (P1)
+Estimate: M
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0109: Python, Rust, Go, and Swift files receive correct syntax highlighting
+  - [ ] AC-0110: Language is auto-detected from file extension; unknown extensions fall back to plain text
+Dependencies: EPIC-0001
+
+US-0042 (EPIC-0013): As a developer, I want language-correct indentation and auto-close, so that the editor follows language conventions.
+Priority: Low (P2)
+Estimate: S
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0111: Python files default to 4-space indentation; Go files default to tabs
+  - [ ] AC-0112: Bracket and quote auto-close is active for all supported languages
+Dependencies: US-0041
+```
+
+### EPIC-0014: Global Search — Find in Files
+
+```
+US-0043 (EPIC-0014): As a developer, I want to search across all project files, so that I can find any symbol or string quickly.
+Priority: Medium (P1)
+Estimate: L
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0113: A global search panel can be opened via the command palette or a dedicated toolbar button
+  - [ ] AC-0114: Entering a query returns all matching lines across the project file tree
+  - [ ] AC-0115: Results are grouped by file with file path, line number, and line preview shown
+Dependencies: EPIC-0001, EPIC-0002
+
+US-0044 (EPIC-0014): As a developer, I want to navigate to a search result, so that I can jump directly to the relevant code.
+Priority: Medium (P1)
+Estimate: S
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0116: Tapping a search result opens the file and scrolls to the matching line
+  - [ ] AC-0117: The matching text is highlighted in the editor after navigation
+Dependencies: US-0043
+```
+
+### EPIC-0015: Crash Reporting & Observability
+
+```
+US-0045 (EPIC-0015): As a developer, I want crashes reported automatically, so that I can fix production issues quickly.
+Priority: High (P0)
+Estimate: M
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0118: Unhandled exceptions and crashes are automatically reported to the configured crash reporting service
+  - [ ] AC-0119: No PII, user file content, or credentials are included in crash payloads
+Dependencies: EPIC-0011
+
+US-0046 (EPIC-0015): As a developer, I want performance metrics tracked, so that I can detect regressions before users do.
+Priority: Medium (P1)
+Estimate: M
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0120: Cold start time, editor input latency, and memory usage are tracked as named metrics
+  - [ ] AC-0121: Performance degradation beyond baseline thresholds (§ 8 of PROJECT.md) triggers an alert
+Dependencies: US-0045
+```
+
 ---
 
 ## Tasks (Phase 1 — Immediate)
@@ -335,4 +658,5 @@ Notes: Enable branch protection on main and develop via GitHub settings
 |---|---|---|---|
 | v0.1 Internal Alpha | Core editor + file system on tablet | EPIC-0001, EPIC-0002 | TBD |
 | v0.5 Public Beta | Full feature set for TestFlight/Play Beta | EPIC-0003, EPIC-0004 | TBD |
-| v1.0 GA | Extensions, polish, App Store launch | EPIC-0005 | TBD |
+| v1.0 GA | Extensions, auth, git, IAP, AI, App Store launch | EPIC-0005, EPIC-0007, EPIC-0008, EPIC-0009, EPIC-0010, EPIC-0011 | TBD |
+| v1.1 Post-Launch | Cloud sync, multi-language, global search, observability | EPIC-0012, EPIC-0013, EPIC-0014, EPIC-0015 | TBD |
