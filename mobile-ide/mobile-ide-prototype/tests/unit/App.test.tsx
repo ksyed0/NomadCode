@@ -13,6 +13,40 @@ import App from '../../App';
 // Mocks
 // ---------------------------------------------------------------------------
 
+// Mock useSettingsStore so AsyncStorage native module is never loaded
+jest.mock('../../src/stores/useSettingsStore', () => ({
+  __esModule: true,
+  default: jest.fn((sel: (s: object) => unknown) =>
+    sel({
+      theme: 'nomad-dark',
+      fontSize: 14,
+      workspacePath: '',
+      hasCompletedSetup: true,
+      setTheme: jest.fn(),
+      setFontSize: jest.fn(),
+      setWorkspacePath: jest.fn(),
+      completeSetup: jest.fn(),
+    })
+  ),
+}));
+
+// Mock useTheme so all components that use it work without a real store
+jest.mock('../../src/theme/tokens', () => ({
+  useTheme: () => ({
+    bg: '#0F172A',
+    bgElevated: '#1E293B',
+    bgHighlight: '#1D3461',
+    text: '#E2E8F0',
+    textMuted: '#64748B',
+    border: '#334155',
+    accent: '#2563EB',
+    keyword: '#7C3AED',
+    string: '#0D9488',
+    error: '#EF4444',
+    success: '#22C55E',
+  }),
+}));
+
 // Mock expo-file-system (not available in Jest environment)
 jest.mock('expo-file-system', () => ({
   documentDirectory: 'file:///mock-docs/',

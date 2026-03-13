@@ -12,6 +12,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { FileSystemBridge, FileEntry } from '../utils/FileSystemBridge';
+import { useTheme } from '../theme/tokens';
 
 interface FileExplorerProps {
   rootPath: string;
@@ -75,6 +76,7 @@ export default function FileExplorer({
   onFileRename,
   onFileMove,
 }: FileExplorerProps) {
+  const t = useTheme();
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -316,16 +318,16 @@ export default function FileExplorer({
       style={[
         styles.row,
         { paddingLeft: 12 + item.depth * 16 },
-        item.path === selectedPath && styles.selectedRow,
+        item.path === selectedPath && [styles.selectedRow, { backgroundColor: t.accent + '22' }],
       ]}
       onPress={() => handlePress(item)}
       onLongPress={() => setContextTarget(item)}
       activeOpacity={0.7}
     >
-      <Text style={styles.icon}>
+      <Text style={[styles.icon, { color: t.textMuted }]}>
         {item.isDirectory ? (item.expanded ? '▾' : '▸') : '·'}
       </Text>
-      <Text style={[styles.name, item.isDirectory && styles.directoryName]} numberOfLines={1}>
+      <Text style={[styles.name, { color: t.text }, item.isDirectory && { color: t.text, fontWeight: '500' }]} numberOfLines={1}>
         {item.name}
       </Text>
     </TouchableOpacity>
@@ -340,7 +342,7 @@ export default function FileExplorer({
         style={[
           styles.pickerRow,
           { paddingLeft: 12 + item.depth * 16 },
-          isSelected && styles.pickerRowSelected,
+          isSelected && [styles.pickerRowSelected, { backgroundColor: t.accent + '22' }],
           isSource && styles.pickerRowDisabled,
         ]}
         onPress={() => {
@@ -350,8 +352,8 @@ export default function FileExplorer({
         accessibilityState={{ disabled: isSource }}
         activeOpacity={0.7}
       >
-        <Text style={styles.icon}>▸</Text>
-        <Text style={[styles.name, styles.directoryName]} numberOfLines={1}>
+        <Text style={[styles.icon, { color: t.textMuted }]}>▸</Text>
+        <Text style={[styles.name, { color: t.text, fontWeight: '500' }]} numberOfLines={1}>
           {item.name}
         </Text>
       </TouchableOpacity>
@@ -364,8 +366,8 @@ export default function FileExplorer({
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator testID="activity-indicator" color="#2563EB" />
+      <View style={[styles.center, { backgroundColor: t.bgElevated }]}>
+        <ActivityIndicator testID="activity-indicator" color={t.accent} />
       </View>
     );
   }
@@ -374,9 +376,9 @@ export default function FileExplorer({
   const moveConfirmDisabled = pickerSelectedPath === null;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>EXPLORER</Text>
+    <View style={[styles.container, { backgroundColor: t.bgElevated }]}>
+      <View style={[styles.header, { borderBottomColor: t.border }]}>
+        <Text style={[styles.headerText, { color: t.textMuted }]}>EXPLORER</Text>
       </View>
       <FlatList
         data={nodes}
@@ -401,33 +403,33 @@ export default function FileExplorer({
           activeOpacity={1}
           onPress={() => setContextTarget(null)}
         >
-          <View testID="context-menu" style={styles.contextMenuPanel}>
-            <Text testID="context-menu-title" style={styles.contextMenuTitle}>
+          <View testID="context-menu" style={[styles.contextMenuPanel, { backgroundColor: t.bgElevated, borderTopColor: t.border }]}>
+            <Text testID="context-menu-title" style={[styles.contextMenuTitle, { color: t.textMuted, borderBottomColor: t.border }]}>
               {contextTarget?.name ?? ''}
             </Text>
 
             <TouchableOpacity testID="ctx-new-file" style={styles.contextMenuItem} onPress={handleContextNewFile}>
-              <Text style={styles.contextMenuItemText}>New File</Text>
+              <Text style={[styles.contextMenuItemText, { color: t.text }]}>New File</Text>
             </TouchableOpacity>
 
             <TouchableOpacity testID="ctx-new-folder" style={styles.contextMenuItem} onPress={handleContextNewFolder}>
-              <Text style={styles.contextMenuItemText}>New Folder</Text>
+              <Text style={[styles.contextMenuItemText, { color: t.text }]}>New Folder</Text>
             </TouchableOpacity>
 
-            <View style={styles.separator} />
+            <View style={[styles.separator, { backgroundColor: t.border }]} />
 
             <TouchableOpacity testID="ctx-rename" style={styles.contextMenuItem} onPress={handleContextRename}>
-              <Text style={styles.contextMenuItemText}>Rename</Text>
+              <Text style={[styles.contextMenuItemText, { color: t.text }]}>Rename</Text>
             </TouchableOpacity>
 
             <TouchableOpacity testID="ctx-move" style={styles.contextMenuItem} onPress={handleContextMove}>
-              <Text style={styles.contextMenuItemText}>Move to...</Text>
+              <Text style={[styles.contextMenuItemText, { color: t.text }]}>Move to...</Text>
             </TouchableOpacity>
 
-            <View style={styles.separator} />
+            <View style={[styles.separator, { backgroundColor: t.border }]} />
 
             <TouchableOpacity testID="ctx-delete" style={styles.contextMenuItem} onPress={handleContextDelete}>
-              <Text style={[styles.contextMenuItemText, styles.destructive]}>Delete</Text>
+              <Text style={[styles.contextMenuItemText, { color: t.error }]}>Delete</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -443,8 +445,8 @@ export default function FileExplorer({
         onRequestClose={handleNameCancel}
       >
         <View testID="name-input-modal" style={styles.nameModalBackdrop}>
-          <View style={styles.nameModalPanel}>
-            <Text style={styles.nameModalTitle}>
+          <View style={[styles.nameModalPanel, { backgroundColor: t.bgElevated, borderColor: t.border }]}>
+            <Text style={[styles.nameModalTitle, { color: t.text }]}>
               {nameModal?.mode === 'create-file'
                 ? 'New File'
                 : nameModal?.mode === 'create-dir'
@@ -453,26 +455,26 @@ export default function FileExplorer({
             </Text>
             <TextInput
               testID="name-input"
-              style={styles.nameInput}
+              style={[styles.nameInput, { color: t.text, backgroundColor: t.bg, borderColor: t.border }]}
               value={nameInputValue}
               onChangeText={setNameInputValue}
               autoFocus
               autoCapitalize="none"
               autoCorrect={false}
               placeholder="Enter name…"
-              placeholderTextColor="#475569"
+              placeholderTextColor={t.textMuted}
             />
             <View style={styles.nameModalButtons}>
               <TouchableOpacity
                 testID="name-cancel-btn"
-                style={[styles.btn, styles.btnSecondary]}
+                style={[styles.btn, styles.btnSecondary, { borderColor: t.border }]}
                 onPress={handleNameCancel}
               >
-                <Text style={styles.btnSecondaryText}>Cancel</Text>
+                <Text style={[styles.btnSecondaryText, { color: t.textMuted }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 testID="name-confirm-btn"
-                style={[styles.btn, styles.btnPrimary, nameConfirmDisabled && styles.btnDisabled]}
+                style={[styles.btn, styles.btnPrimary, { backgroundColor: t.accent }, nameConfirmDisabled && styles.btnDisabled]}
                 onPress={handleNameConfirm}
                 disabled={nameConfirmDisabled}
                 accessibilityState={{ disabled: nameConfirmDisabled }}
@@ -494,8 +496,8 @@ export default function FileExplorer({
         onRequestClose={handleMoveCancel}
       >
         <View testID="move-picker-modal" style={styles.movePickerBackdrop}>
-          <View style={styles.movePickerPanel}>
-            <Text style={styles.nameModalTitle}>Move to…</Text>
+          <View style={[styles.movePickerPanel, { backgroundColor: t.bgElevated, borderTopColor: t.border }]}>
+            <Text style={[styles.nameModalTitle, { color: t.text }]}>Move to…</Text>
             <FlatList
               data={pickerNodes}
               keyExtractor={(item) => item.path}
@@ -505,14 +507,14 @@ export default function FileExplorer({
             <View style={styles.nameModalButtons}>
               <TouchableOpacity
                 testID="move-picker-cancel-btn"
-                style={[styles.btn, styles.btnSecondary]}
+                style={[styles.btn, styles.btnSecondary, { borderColor: t.border }]}
                 onPress={handleMoveCancel}
               >
-                <Text style={styles.btnSecondaryText}>Cancel</Text>
+                <Text style={[styles.btnSecondaryText, { color: t.textMuted }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 testID="move-here-btn"
-                style={[styles.btn, styles.btnPrimary, moveConfirmDisabled && styles.btnDisabled]}
+                style={[styles.btn, styles.btnPrimary, { backgroundColor: t.accent }, moveConfirmDisabled && styles.btnDisabled]}
                 onPress={handleMoveConfirm}
                 disabled={moveConfirmDisabled}
                 accessibilityState={{ disabled: moveConfirmDisabled }}

@@ -10,6 +10,8 @@ import {
   Keyboard,
 } from 'react-native';
 
+import { useTheme } from '../theme/tokens';
+
 export interface Command {
   id: string;
   label: string;
@@ -17,25 +19,6 @@ export interface Command {
   action: () => void;
   shortcut?: string;
 }
-
-// ---------------------------------------------------------------------------
-// Design-system colour aliases (PROJECT.md §6)
-// ---------------------------------------------------------------------------
-
-/** Deep Slate `#0F172A` — base background */
-const BG_BASE = '#0F172A';
-/** Slate-800 `#1E293B` — elevated surface (panel, sidebar) */
-const BG_ELEVATED = '#1E293B';
-/** Cloud `#E2E8F0` — primary text on dark background */
-const TEXT_PRIMARY = '#E2E8F0';
-/** Nomad Blue `#2563EB` — selected/active state */
-const ACCENT_BLUE = '#2563EB';
-/** Slate-500 `#64748B` — secondary text / muted */
-const TEXT_MUTED = '#64748B';
-/** Slate-600 `#475569` — placeholder / icon */
-const TEXT_PLACEHOLDER = '#475569';
-/** Slate-700 `#334155` — border */
-const BORDER = '#334155';
 
 interface CommandPaletteProps {
   /** Whether the palette is visible */
@@ -55,6 +38,7 @@ export function CommandPalette({
   onSelect,
   placeholder = 'Search commands…',
 }: CommandPaletteProps) {
+  const t = useTheme();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -109,6 +93,67 @@ export function CommandPalette({
     onClose();
   }, [onClose]);
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      alignItems: 'center',
+      paddingTop: 80,
+    },
+    panel: {
+      width: '90%',
+      maxWidth: 600,
+      backgroundColor: t.bgElevated,
+      borderRadius: 8,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: t.border,
+      maxHeight: 400,
+    },
+    searchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: t.border,
+    },
+    searchIcon: {
+      color: t.textMuted,
+      fontSize: 16,
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      color: t.text,
+      fontSize: 15,
+    },
+    list: { flexGrow: 0 },
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderTopWidth: 1,
+      borderTopColor: t.bg,
+    },
+    itemFirst: { borderTopWidth: 0 },
+    itemSelected: { backgroundColor: t.accent },
+    itemContent: { flex: 1 },
+    itemLabel: { color: t.text, fontSize: 14 },
+    itemLabelSelected: { color: '#FFFFFF', fontWeight: '600' },
+    itemDescription: { color: t.textMuted, fontSize: 12, marginTop: 2 },
+    shortcutBadge: {
+      backgroundColor: t.bg,
+      borderRadius: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      marginLeft: 8,
+    },
+    shortcutText: { color: t.textMuted, fontSize: 11, fontFamily: 'JetBrains Mono' },
+    empty: { color: t.textMuted, textAlign: 'center', padding: 20, fontSize: 14 },
+  });
+
   const renderItem = useCallback(({ item, index }: { item: Command; index: number }) => {
     const isSelected = index === selectedIndex;
     return (
@@ -144,7 +189,7 @@ export function CommandPalette({
         </View>
       </TouchableOpacity>
     );
-  }, [selectedIndex, handleSelect]);
+  }, [selectedIndex, handleSelect, styles]);
 
   return (
     <Modal
@@ -177,7 +222,7 @@ export function CommandPalette({
               value={query}
               onChangeText={handleQueryChange}
               placeholder={placeholder}
-              placeholderTextColor={TEXT_PLACEHOLDER}
+              placeholderTextColor={t.textMuted}
               autoFocus
               autoCorrect={false}
               autoCapitalize="none"
@@ -201,91 +246,3 @@ export function CommandPalette({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#00000088',
-    alignItems: 'center',
-    paddingTop: 80,
-  },
-  panel: {
-    width: '90%',
-    maxWidth: 600,
-    backgroundColor: BG_ELEVATED,
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: BORDER,
-    maxHeight: 400,
-  },
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: BORDER,
-  },
-  searchIcon: {
-    color: TEXT_PLACEHOLDER,
-    fontSize: 16,
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    color: TEXT_PRIMARY,
-    fontSize: 15,
-  },
-  list: {
-    flexGrow: 0,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: BG_BASE,
-  },
-  itemFirst: {
-    borderTopWidth: 0,
-  },
-  itemSelected: {
-    backgroundColor: ACCENT_BLUE,
-  },
-  itemContent: {
-    flex: 1,
-  },
-  itemLabel: {
-    color: TEXT_PRIMARY,
-    fontSize: 14,
-  },
-  itemLabelSelected: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  itemDescription: {
-    color: TEXT_MUTED,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  shortcutBadge: {
-    backgroundColor: BG_BASE,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginLeft: 8,
-  },
-  shortcutText: {
-    color: TEXT_MUTED,
-    fontSize: 11,
-    fontFamily: 'JetBrains Mono', // design system: monospace font (PROJECT.md §6)
-  },
-  empty: {
-    color: TEXT_PLACEHOLDER,
-    textAlign: 'center',
-    padding: 20,
-    fontSize: 14,
-  },
-});
