@@ -65,3 +65,7 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-12 | f08d2347-039a-4136-b51a-d543781c06e5 | develop | 0 | 0 | 0 | 0.0000 |
 | 2026-03-12 | f08d2347-039a-4136-b51a-d543781c06e5 | develop | 0 | 0 | 0 | 0.0000 |
 | 2026-03-12 | f08d2347-039a-4136-b51a-d543781c06e5 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-13 | f08d2347-039a-4136-b51a-d543781c06e5 | feature/epic-0005-customization | 0 | 0 | 0 | 0.0000 |
+| 2026-03-13 | f2e05d29-7f67-4e6f-a065-25f143a1a310 | feature/epic-0005-customization | 0 | 0 | 0 | 0.0000 |
+| 2026-03-13 | f2e05d29-7f67-4e6f-a065-25f143a1a310 | feature/epic-0005-customization | 0 | 0 | 0 | 0.0000 |
+| 2026-03-13 | f2e05d29-7f67-4e6f-a065-25f143a1a310 | feature/epic-0005-customization | 0 | 0 | 0 | 0.0000 |
