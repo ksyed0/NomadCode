@@ -16,7 +16,12 @@ let mockFontSize = 14;
 
 jest.mock('../../src/stores/useSettingsStore', () => ({
   __esModule: true,
-  default: jest.fn((sel: (s: object) => unknown) =>
+  default: jest.fn((sel: (s: {
+    theme: string;
+    fontSize: number;
+    setTheme: typeof mockSetTheme;
+    setFontSize: typeof mockSetFontSize;
+  }) => unknown) =>
     sel({
       theme: mockTheme,
       fontSize: mockFontSize,

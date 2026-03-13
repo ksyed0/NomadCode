@@ -30,13 +30,14 @@ export interface SettingsScreenProps {
 type Mode = 'dark' | 'light';
 
 export default function SettingsScreen({ visible, onClose }: SettingsScreenProps) {
-  const [selectedMode, setSelectedMode] = useState<Mode>('dark');
-
   // Individual Zustand selectors — no full-store selector
   const theme = useSettingsStore((s) => s.theme);
   const fontSize = useSettingsStore((s) => s.fontSize);
   const setTheme = useSettingsStore((s) => s.setTheme);
   const setFontSize = useSettingsStore((s) => s.setFontSize);
+
+  // Initialize selectedMode from the active theme (fix I-1: desync with active theme)
+  const [selectedMode, setSelectedMode] = useState<Mode>(() => THEMES[theme].mode);
 
   // Active theme tokens for theming the UI
   const tokens = useTheme();
@@ -47,11 +48,7 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
     [selectedMode],
   );
 
-  // Handlers — all in useCallback per quality standards
-  const handleClose = useCallback(() => {
-    onClose();
-  }, [onClose]);
-
+  // Handlers
   const handleModeDark = useCallback(() => {
     setSelectedMode('dark');
   }, []);
@@ -106,19 +103,26 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
     [tokens.accent],
   );
 
-  const darkModeActive = selectedMode === 'dark';
-  const lightModeActive = selectedMode === 'light';
+  // Memoize derived booleans (fix M-3)
+  const darkModeActive = useMemo(() => selectedMode === 'dark', [selectedMode]);
+  const lightModeActive = useMemo(() => selectedMode === 'light', [selectedMode]);
 
   if (!visible) return null;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={false}>
+    <Modal visible={true} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View testID="settings-screen" style={[styles.container, dynamicContainer]}>
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <View style={[styles.header, dynamicHeader]}>
           <Text style={[styles.headerTitle, dynamicTitle]}>Settings</Text>
-          <TouchableOpacity testID="btn-close" onPress={handleClose} style={styles.closeBtn}>
+          <TouchableOpacity
+            testID="btn-close"
+            onPress={onClose}
+            style={styles.closeBtn}
+            accessibilityLabel="Close settings"
+            accessibilityRole="button"
+          >
             <Text style={[styles.closeBtnText, { color: tokens.textMuted }]}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -190,11 +194,23 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
           <View style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}>
             <Text style={[styles.editorRowLabel, { color: tokens.text }]}>Font Size</Text>
             <View style={styles.fontControls}>
-              <TouchableOpacity testID="settings-font-dec" onPress={handleFontDec} style={styles.fontButton}>
+              <TouchableOpacity
+                testID="settings-font-dec"
+                onPress={handleFontDec}
+                style={styles.fontButton}
+                accessibilityLabel="Decrease font size"
+                accessibilityRole="button"
+              >
                 <Text style={[styles.fontBtnText, dynamicFontBtn]}>A-</Text>
               </TouchableOpacity>
               <Text style={[styles.fontValue, dynamicFontValue]}>{fontSize}</Text>
-              <TouchableOpacity testID="settings-font-inc" onPress={handleFontInc} style={styles.fontButton}>
+              <TouchableOpacity
+                testID="settings-font-inc"
+                onPress={handleFontInc}
+                style={styles.fontButton}
+                accessibilityLabel="Increase font size"
+                accessibilityRole="button"
+              >
                 <Text style={[styles.fontBtnText, dynamicFontBtn]}>A+</Text>
               </TouchableOpacity>
             </View>
