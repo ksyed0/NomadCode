@@ -27,8 +27,21 @@ async function fetchGitHubUser(token: string): Promise<{ login: string; avatar_u
   const res = await fetch(GITHUB_API_USER, {
     headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' },
   });
-  if (!res.ok) throw new Error(`GitHub API returned ${res.status}`);
-  return res.json() as Promise<{ login: string; avatar_url: string }>;
+  if (!res.ok) {
+    const err = new Error(`GitHub API returned ${res.status}`);
+    (err as Error & { status?: number }).status = res.status;
+    throw err;
+  }
+  const data: unknown = await res.json();
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    typeof (data as Record<string, unknown>).login !== 'string' ||
+    typeof (data as Record<string, unknown>).avatar_url !== 'string'
+  ) {
+    throw new Error('Unexpected response shape from GitHub API.');
+  }
+  return data as { login: string; avatar_url: string };
 }
 
 const useAuthStore = create<AuthState>()((set) => ({
@@ -45,33 +58,41 @@ const useAuthStore = create<AuthState>()((set) => ({
       await SecureStore.setItemAsync(TOKEN_KEY, token);
       set({ token, username: user.login, avatarUrl: user.avatar_url, isLoading: false });
     } catch (err) {
-      const isNetworkError = err instanceof Error && (
-        err.message.toLowerCase().includes('network') ||
-        err.message.toLowerCase().includes('fetch') ||
-        err.message.toLowerCase().includes('offline') ||
-        err.message.toLowerCase().includes('reach')
-      );
-      const message = isNetworkError
-        ? 'Could not reach GitHub. Check your connection.'
-        : 'Token is invalid or lacks required permissions.';
+      const status = err instanceof Error && 'status' in err
+        ? (err as Error & { status?: number }).status
+        : undefined;
+      const isAuthError = status === 401 || status === 403;
+      const message = isAuthError
+        ? 'Token is invalid or lacks required permissions.'
+        : 'Could not reach GitHub. Check your connection.';
       set({ isLoading: false, error: message });
     }
   },
 
   signOut: async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
-    set({ token: null, username: null, avatarUrl: null, error: null });
+    set({ token: null, username: null, avatarUrl: null, error: null, isLoading: false });
   },
 
   hydrate: async () => {
     const token = await SecureStore.getItemAsync(TOKEN_KEY);
     if (!token) return;
+    set({ isLoading: true });
     try {
       const user = await fetchGitHubUser(token);
-      set({ token, username: user.login, avatarUrl: user.avatar_url });
-    } catch {
-      // Offline or API error — keep token but leave username/avatar null
-      set({ token });
+      set({ token, username: user.login, avatarUrl: user.avatar_url, isLoading: false });
+    } catch (err) {
+      // Keep token for offline case; clear it if revoked (401/403)
+      const status = err instanceof Error && 'status' in err
+        ? (err as Error & { status?: number }).status
+        : undefined;
+      if (status === 401 || status === 403) {
+        await SecureStore.deleteItemAsync(TOKEN_KEY);
+        set({ token: null, username: null, avatarUrl: null, isLoading: false });
+      } else {
+        // Offline or transient error — keep token but leave username/avatar null
+        set({ token, isLoading: false });
+      }
     }
   },
 }));

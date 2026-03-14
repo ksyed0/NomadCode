@@ -27,7 +27,7 @@ import useAuthStore from '../../src/stores/useAuthStore';
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-function mockGitHubUser(token: string) {
+function mockGitHubUser() {
   mockFetch.mockResolvedValueOnce({
     ok: true,
     json: async () => ({ login: 'testuser', avatar_url: 'https://example.com/avatar.png' }),
@@ -69,7 +69,7 @@ describe('useAuthStore — initial state', () => {
 
 describe('useAuthStore — signInWithToken (PAT)', () => {
   it('stores token and populates username on valid token', async () => {
-    mockGitHubUser('ghp_valid');
+    mockGitHubUser();
     const { result } = renderHook(() => useAuthStore());
     await act(async () => { await result.current.signInWithToken('ghp_valid'); });
     expect(result.current.token).toBe('ghp_valid');
@@ -79,7 +79,7 @@ describe('useAuthStore — signInWithToken (PAT)', () => {
   });
 
   it('persists token to SecureStore', async () => {
-    mockGitHubUser('ghp_valid');
+    mockGitHubUser();
     const { result } = renderHook(() => useAuthStore());
     await act(async () => { await result.current.signInWithToken('ghp_valid'); });
     const SecureStore = require('expo-secure-store');
@@ -103,11 +103,18 @@ describe('useAuthStore — signInWithToken (PAT)', () => {
     expect(result.current.token).toBeNull();
     expect(result.current.error).toContain('Could not reach GitHub');
   });
+
+  it('shows auth error message on 401', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });
+    const { result } = renderHook(() => useAuthStore());
+    await act(async () => { await result.current.signInWithToken('ghp_bad'); });
+    expect(result.current.error).toBe('Token is invalid or lacks required permissions.');
+  });
 });
 
 describe('useAuthStore — signOut', () => {
   it('clears token, username, and avatarUrl', async () => {
-    mockGitHubUser('ghp_valid');
+    mockGitHubUser();
     const { result } = renderHook(() => useAuthStore());
     await act(async () => { await result.current.signInWithToken('ghp_valid'); });
     await act(async () => { await result.current.signOut(); });
@@ -117,7 +124,7 @@ describe('useAuthStore — signOut', () => {
   });
 
   it('deletes token from SecureStore on sign out', async () => {
-    mockGitHubUser('ghp_valid');
+    mockGitHubUser();
     const { result } = renderHook(() => useAuthStore());
     await act(async () => { await result.current.signInWithToken('ghp_valid'); });
     await act(async () => { await result.current.signOut(); });
@@ -129,7 +136,7 @@ describe('useAuthStore — signOut', () => {
 describe('useAuthStore — hydrate', () => {
   it('restores session from SecureStore on hydrate', async () => {
     mockSecureStore['github_token'] = 'ghp_stored';
-    mockGitHubUser('ghp_stored');
+    mockGitHubUser();
     const { result } = renderHook(() => useAuthStore());
     await act(async () => { await result.current.hydrate(); });
     expect(result.current.token).toBe('ghp_stored');
@@ -151,5 +158,15 @@ describe('useAuthStore — hydrate', () => {
     // Token is kept (don't force sign-out for offline hydrate)
     expect(result.current.token).toBe('ghp_stored');
     expect(result.current.username).toBeNull();
+  });
+
+  it('clears token from state and SecureStore when stored token returns 401 during hydrate', async () => {
+    mockSecureStore['github_token'] = 'ghp_revoked';
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });
+    const { result } = renderHook(() => useAuthStore());
+    await act(async () => { await result.current.hydrate(); });
+    expect(result.current.token).toBeNull();
+    const SecureStore = require('expo-secure-store');
+    expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('github_token');
   });
 });
