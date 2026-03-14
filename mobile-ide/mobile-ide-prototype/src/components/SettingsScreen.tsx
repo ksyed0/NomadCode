@@ -22,6 +22,7 @@ import {
 import { activateExtension, deactivateExtension } from '../extensions/sandbox';
 import type { ExtensionManifest } from '../extensions/sandbox';
 import useSettingsStore from '../stores/useSettingsStore';
+import useAuthStore from '../stores/useAuthStore';
 import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, useTheme } from '../theme/tokens';
 import type { ThemeId } from '../theme/tokens';
 
@@ -42,11 +43,21 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const addExtension = useSettingsStore((s) => s.addExtension);
   const removeExtension = useSettingsStore((s) => s.removeExtension);
 
+  // Auth store selectors
+  const authToken = useAuthStore((s) => s.token);
+  const authUsername = useAuthStore((s) => s.username);
+  const authError = useAuthStore((s) => s.error);
+  const authLoading = useAuthStore((s) => s.isLoading);
+  const signInWithToken = useAuthStore((s) => s.signInWithToken);
+  const signOut = useAuthStore((s) => s.signOut);
+
   // Initialize selectedMode from the active theme (fix I-1: desync with active theme)
   const [selectedMode, setSelectedMode] = useState<Mode>(() => THEMES[theme].mode);
 
   const [extName, setExtName] = useState('');
   const [extSource, setExtSource] = useState('');
+  const [showPat, setShowPat] = useState(false);
+  const [patValue, setPatValue] = useState('');
 
   // Active theme tokens for theming the UI
   const tokens = useTheme();
@@ -99,6 +110,10 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
     deactivateExtension(id);
     removeExtension(id);
   }, [removeExtension]);
+
+  const handlePatConnect = useCallback(() => {
+    if (patValue.trim()) signInWithToken(patValue.trim());
+  }, [patValue, signInWithToken]);
 
   const installEnabled = extName.trim().length > 0 && extSource.trim().length > 0;
 
@@ -163,6 +178,86 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
+
+          {/* ── Section: GitHub Account ──────────────────────────────────── */}
+          <Text style={[styles.sectionLabel, dynamicSectionLabel]}>GITHUB ACCOUNT</Text>
+
+          {authToken ? (
+            /* Signed-in view */
+            <View style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.editorRowLabel, { color: tokens.text }]}>@{authUsername ?? 'GitHub User'}</Text>
+                <Text style={{ color: tokens.textMuted, fontSize: 12 }}>Connected</Text>
+              </View>
+              <TouchableOpacity
+                testID="btn-sign-out"
+                onPress={() => signOut()}
+                style={styles.fontButton}
+                accessibilityLabel="Sign out of GitHub"
+                accessibilityRole="button"
+              >
+                <Text style={{ color: tokens.error, fontSize: 14, fontWeight: '600' }}>Sign out</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            /* Signed-out view */
+            <View>
+              <TouchableOpacity
+                testID="btn-oauth-signin"
+                style={[styles.extInstallBtn, { backgroundColor: tokens.accent, borderColor: tokens.accent }]}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in with GitHub"
+                onPress={() => {
+                  // OAuth wired in Task 5
+                }}
+                disabled={authLoading}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 15 }}>
+                  {authLoading ? 'Connecting…' : 'Sign in with GitHub'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                testID="btn-pat-toggle"
+                onPress={() => setShowPat((v) => !v)}
+                accessibilityRole="button"
+                style={{ marginBottom: 8, alignItems: 'center' }}
+              >
+                <Text style={{ color: tokens.textMuted, fontSize: 13 }}>
+                  {showPat ? 'Hide token input' : 'Use a Personal Access Token instead'}
+                </Text>
+              </TouchableOpacity>
+
+              {showPat && (
+                <View>
+                  <TextInput
+                    testID="pat-input"
+                    placeholder="ghp_xxxxxxxxxxxx"
+                    placeholderTextColor={tokens.textMuted}
+                    value={patValue}
+                    onChangeText={setPatValue}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+                  />
+                  <TouchableOpacity
+                    testID="btn-pat-connect"
+                    onPress={handlePatConnect}
+                    disabled={!patValue.trim() || authLoading}
+                    accessibilityRole="button"
+                    style={[styles.extInstallBtn, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}
+                  >
+                    <Text style={{ color: tokens.text, fontWeight: '600', fontSize: 15 }}>Connect</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {authError ? (
+                <Text style={{ color: tokens.error, fontSize: 13, marginBottom: 8 }}>{authError}</Text>
+              ) : null}
+            </View>
+          )}
 
           {/* ── Section: Appearance ─────────────────────────────────────── */}
           <Text style={[styles.sectionLabel, dynamicSectionLabel]}>APPEARANCE</Text>

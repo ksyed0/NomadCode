@@ -51,6 +51,28 @@ jest.mock('../../src/theme/tokens', () => {
   };
 });
 
+const mockSignInWithToken = jest.fn();
+const mockSignOut = jest.fn();
+let mockAuthToken: string | null = null;
+let mockAuthUsername: string | null = null;
+let mockAuthError: string | null = null;
+let mockAuthLoading = false;
+
+jest.mock('../../src/stores/useAuthStore', () => ({
+  __esModule: true,
+  default: jest.fn((sel: (s: unknown) => unknown) =>
+    sel({
+      token: mockAuthToken,
+      username: mockAuthUsername,
+      avatarUrl: null,
+      isLoading: mockAuthLoading,
+      error: mockAuthError,
+      signInWithToken: mockSignInWithToken,
+      signOut: mockSignOut,
+    })
+  ),
+}));
+
 import SettingsScreen from '../../src/components/SettingsScreen';
 
 beforeEach(() => {
@@ -60,6 +82,12 @@ beforeEach(() => {
   mockTheme = 'nomad-dark';
   mockFontSize = 14;
   mockInstalledExtensions = [];
+  mockAuthToken = null;
+  mockAuthUsername = null;
+  mockAuthError = null;
+  mockAuthLoading = false;
+  mockSignInWithToken.mockReset();
+  mockSignOut.mockReset();
 });
 
 describe('SettingsScreen', () => {
@@ -171,5 +199,71 @@ describe('SettingsScreen — Extensions section', () => {
     fireEvent.press(screen.getByTestId('ext-deactivate-test.a'));
     expect(mockRemoveExtension).toHaveBeenCalledWith('test.a');
     expect(mockDeactivateExtension).toHaveBeenCalledWith('test.a');
+  });
+});
+
+describe('SettingsScreen — GitHub Account section (signed out)', () => {
+  it('renders GITHUB ACCOUNT section label', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByText('GITHUB ACCOUNT')).toBeTruthy();
+  });
+
+  it('shows Sign in with GitHub button when signed out', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByTestId('btn-oauth-signin')).toBeTruthy();
+  });
+
+  it('shows PAT toggle link when signed out', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByTestId('btn-pat-toggle')).toBeTruthy();
+  });
+
+  it('reveals PAT input after tapping toggle', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent.press(screen.getByTestId('btn-pat-toggle'));
+    expect(screen.getByTestId('pat-input')).toBeTruthy();
+    expect(screen.getByTestId('btn-pat-connect')).toBeTruthy();
+  });
+
+  it('calls signInWithToken with entered PAT on Connect', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent.press(screen.getByTestId('btn-pat-toggle'));
+    fireEvent.changeText(screen.getByTestId('pat-input'), 'ghp_mytoken');
+    fireEvent.press(screen.getByTestId('btn-pat-connect'));
+    expect(mockSignInWithToken).toHaveBeenCalledWith('ghp_mytoken');
+  });
+
+  it('shows error message when auth error is set', () => {
+    mockAuthError = 'Token is invalid or lacks required permissions.';
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByText('Token is invalid or lacks required permissions.')).toBeTruthy();
+  });
+});
+
+describe('SettingsScreen — GitHub Account section (signed in)', () => {
+  beforeEach(() => {
+    mockAuthToken = 'ghp_valid';
+    mockAuthUsername = 'octocat';
+  });
+
+  it('shows username when signed in', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByText('@octocat')).toBeTruthy();
+  });
+
+  it('shows Sign out button when signed in', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByTestId('btn-sign-out')).toBeTruthy();
+  });
+
+  it('calls signOut when Sign out button is pressed', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent.press(screen.getByTestId('btn-sign-out'));
+    expect(mockSignOut).toHaveBeenCalled();
+  });
+
+  it('does not show OAuth button when signed in', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.queryByTestId('btn-oauth-signin')).toBeNull();
   });
 });
