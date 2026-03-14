@@ -16,6 +16,14 @@ import {
   type ExtensionMessage,
 } from '../extensions/sandbox';
 
+function isTextPayload(p: unknown): p is { text: string } {
+  return typeof p === 'object' && p !== null && typeof (p as Record<string, unknown>).text === 'string';
+}
+
+function isErrorPayload(p: unknown): p is { message: string } {
+  return typeof p === 'object' && p !== null && typeof (p as Record<string, unknown>).message === 'string';
+}
+
 export interface ExtensionHostProps {
   manifests: ExtensionManifest[];
   onGetEditorContent: () => string;
@@ -46,31 +54,36 @@ export default function ExtensionHost({
 
       switch (msg.type) {
         case 'showMessage': {
-          onShowMessage((msg.payload as { text: string }).text);
+          if (isTextPayload(msg.payload)) onShowMessage(msg.payload.text);
           break;
         }
         case 'showError': {
-          onShowError((msg.payload as { text: string }).text);
+          if (isTextPayload(msg.payload)) onShowError(msg.payload.text);
           break;
         }
         case 'getEditorContent': {
           const content = onGetEditorContent();
           const ref = refs.current[extensionId];
           if (ref && msg.requestId) {
+            const responseData = JSON.stringify({ requestId: msg.requestId, payload: content });
             ref.injectJavaScript(
-              `window.dispatchEvent(new MessageEvent('message',{data:JSON.stringify({requestId:${JSON.stringify(msg.requestId)},payload:${JSON.stringify(content)}})}));true;`
+              `window.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(responseData)}}));true;`
             );
           }
           break;
         }
         case 'replaceEditorContent': {
-          onReplaceEditorContent((msg.payload as { text: string }).text);
+          if (isTextPayload(msg.payload)) onReplaceEditorContent(msg.payload.text);
           break;
         }
         case 'error': {
-          onShowError(`Extension error: ${(msg.payload as { message: string }).message}`);
+          if (isErrorPayload(msg.payload)) onShowError(`Extension error: ${msg.payload.message}`);
           break;
         }
+        default:
+          // registerCommand, executeCommand, log — dispatched to ExtensionRegistry above;
+          // no additional host-side action needed.
+          break;
       }
     },
     [onGetEditorContent, onReplaceEditorContent, onShowMessage, onShowError],
