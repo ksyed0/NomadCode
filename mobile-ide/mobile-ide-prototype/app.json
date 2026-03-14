@@ -10,7 +10,11 @@
       "resizeMode": "contain",
       "backgroundColor": "#1e1e1e"
     },
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "web": {
       "bundler": "metro",
       "output": "single"
@@ -25,6 +29,9 @@
         "foregroundImage": "./assets/placeholder.png",
         "backgroundColor": "#1e1e1e"
       }
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
