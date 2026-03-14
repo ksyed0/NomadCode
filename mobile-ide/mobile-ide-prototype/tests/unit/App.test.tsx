@@ -27,8 +27,17 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
       setFontSize: jest.fn(),
       setWorkspacePath: jest.fn(),
       completeSetup: jest.fn(),
+      installedExtensions: [],
+      addExtension: jest.fn(),
+      removeExtension: jest.fn(),
     })
   ),
+}));
+
+// Mock ExtensionHost — renders null, no WebView needed in unit tests
+jest.mock('../../src/components/ExtensionHost', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 // Mock useTheme and THEMES so all components that use tokens work without a real store
@@ -158,6 +167,9 @@ describe('App — SetupWizard integration', () => {
         setFontSize: jest.fn(),
         setWorkspacePath: jest.fn(),
         completeSetup: jest.fn(),
+        installedExtensions: [],
+        addExtension: jest.fn(),
+        removeExtension: jest.fn(),
       })
     );
     render(<App />);
@@ -188,5 +200,18 @@ describe('App — command palette integration', () => {
     expect(screen.getByText('File: Save')).toBeTruthy();
     expect(screen.getByText('View: Toggle Terminal')).toBeTruthy();
     expect(screen.getByText('Git: Show Status')).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ExtensionHost integration (US-0020)
+// ---------------------------------------------------------------------------
+
+describe('App — ExtensionHost integration', () => {
+  it('mounts without crashing when installedExtensions is empty', () => {
+    // ExtensionHost renders null for empty list — verifies App renders cleanly
+    render(<App />);
+    // App renders the status bar title
+    expect(screen.getByText('NomadCode')).toBeTruthy();
   });
 });
