@@ -36,6 +36,13 @@ jest.mock('expo-file-system', () => ({
   documentDirectory: 'file:///mock-docs/',
 }));
 
+const mockActivateExtension = jest.fn();
+const mockDeactivateExtension = jest.fn();
+jest.mock('../../src/extensions/sandbox', () => ({
+  activateExtension: (...args: unknown[]) => mockActivateExtension(...args),
+  deactivateExtension: (...args: unknown[]) => mockDeactivateExtension(...args),
+}));
+
 jest.mock('../../src/theme/tokens', () => {
   const actual = jest.requireActual('../../src/theme/tokens');
   return {
@@ -48,6 +55,8 @@ import SettingsScreen from '../../src/components/SettingsScreen';
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockActivateExtension.mockClear();
+  mockDeactivateExtension.mockClear();
   mockTheme = 'nomad-dark';
   mockFontSize = 14;
   mockInstalledExtensions = [];
@@ -138,6 +147,11 @@ describe('SettingsScreen — Extensions section', () => {
     expect(mockAddExtension).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'My Ext', source: 'void 0;' })
     );
+    expect(mockActivateExtension).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'My Ext', source: 'void 0;' })
+    );
+    expect(screen.getByTestId('ext-name-input').props.value).toBe('');
+    expect(screen.getByTestId('ext-source-input').props.value).toBe('');
   });
 
   it('renders installed extension cards', () => {
@@ -156,5 +170,6 @@ describe('SettingsScreen — Extensions section', () => {
     render(<SettingsScreen visible={true} onClose={jest.fn()} />);
     fireEvent.press(screen.getByTestId('ext-deactivate-test.a'));
     expect(mockRemoveExtension).toHaveBeenCalledWith('test.a');
+    expect(mockDeactivateExtension).toHaveBeenCalledWith('test.a');
   });
 });

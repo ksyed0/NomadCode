@@ -133,6 +133,11 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
     [tokens.accent],
   );
 
+  const dynamicExtVersion = useMemo(
+    () => ({ color: tokens.textMuted }),
+    [tokens.textMuted],
+  );
+
   // Memoize derived booleans (fix M-3)
   const darkModeActive = useMemo(() => selectedMode === 'dark', [selectedMode]);
   const lightModeActive = useMemo(() => selectedMode === 'light', [selectedMode]);
@@ -256,7 +261,7 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
             >
               <View style={{ flex: 1 }}>
                 <Text style={[styles.editorRowLabel, { color: tokens.text }]}>{ext.name}</Text>
-                <Text style={{ color: tokens.textMuted, fontSize: 12 }}>v{ext.version}</Text>
+                <Text style={[styles.extVersion, dynamicExtVersion]}>v{ext.version}</Text>
               </View>
               <TouchableOpacity
                 testID={`ext-deactivate-${ext.id}`}
@@ -265,7 +270,7 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
                 accessibilityLabel={`Deactivate ${ext.name}`}
                 accessibilityRole="button"
               >
-                <Text style={{ color: '#EF4444', fontSize: 14, fontWeight: '600' }}>
+                <Text style={[styles.removeText, { color: tokens.error }]}>
                   Remove
                 </Text>
               </TouchableOpacity>
@@ -441,5 +446,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     marginBottom: 8,
+  },
+  extVersion: {
+    fontSize: 12,
+  },
+  removeText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
