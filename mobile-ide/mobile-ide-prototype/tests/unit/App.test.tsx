@@ -6,13 +6,27 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import App from '../../App';
 import useSettingsStore from '../../src/stores/useSettingsStore';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
+
+const mockHydrate = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../src/stores/useAuthStore', () => ({
+  __esModule: true,
+  default: jest.fn((sel: (s: unknown) => unknown) =>
+    sel({
+      token: null, username: null, avatarUrl: null,
+      isLoading: false, error: null,
+      signInWithToken: jest.fn(),
+      signOut: jest.fn(),
+      hydrate: mockHydrate,
+    })
+  ),
+}));
 
 // Mock useSettingsStore so AsyncStorage native module is never loaded
 jest.mock('../../src/stores/useSettingsStore', () => ({
@@ -136,6 +150,14 @@ jest.mock('../../src/utils/MonacoAssetManager', () => ({
 }));
 
 // ---------------------------------------------------------------------------
+// Test lifecycle
+// ---------------------------------------------------------------------------
+
+beforeEach(() => {
+  mockHydrate.mockClear();
+});
+
+// ---------------------------------------------------------------------------
 // Smoke tests
 // ---------------------------------------------------------------------------
 
@@ -213,5 +235,18 @@ describe('App — ExtensionHost integration', () => {
     render(<App />);
     // App renders the status bar title
     expect(screen.getByText('NomadCode')).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Auth hydration (EPIC-0007)
+// ---------------------------------------------------------------------------
+
+describe('App — auth hydration', () => {
+  it('calls useAuthStore hydrate on mount', async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(mockHydrate).toHaveBeenCalledTimes(1);
+    });
   });
 });
