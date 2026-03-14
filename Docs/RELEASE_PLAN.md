@@ -320,12 +320,12 @@ Dependencies: US-0018
 US-0020 (EPIC-0005): As a power user, I want to install extensions, so that I can enhance the IDE with tools I need.
 Priority: Medium (P1)
 Estimate: XL
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0060: An extension manifest can be registered in ExtensionRegistry and retrieved by id
-  - [ ] AC-0061: activateExtension registers the manifest and returns valid sandbox HTML containing the extension source
-  - [ ] AC-0062: deactivateExtension removes the extension from ExtensionRegistry
-  - [ ] AC-0063: Extensions run in an isolated WebView sandbox — the sandbox HTML wraps source in try/catch
+  - [x] AC-0060: An extension manifest can be registered in ExtensionRegistry and retrieved by id
+  - [x] AC-0061: activateExtension registers the manifest and returns valid sandbox HTML containing the extension source
+  - [x] AC-0062: deactivateExtension removes the extension from ExtensionRegistry
+  - [x] AC-0063: Extensions run in an isolated WebView sandbox — the sandbox HTML wraps source in try/catch
 Dependencies: EPIC-0001, EPIC-0002, EPIC-0003, EPIC-0004
 ```
 
