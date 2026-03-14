@@ -191,7 +191,7 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
               </View>
               <TouchableOpacity
                 testID="btn-sign-out"
-                onPress={() => signOut()}
+                onPress={signOut}
                 style={styles.fontButton}
                 accessibilityLabel="Sign out of GitHub"
                 accessibilityRole="button"
@@ -211,6 +211,7 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
                   // OAuth wired in Task 5
                 }}
                 disabled={authLoading}
+                accessibilityState={{ disabled: authLoading }}
               >
                 <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 15 }}>
                   {authLoading ? 'Connecting…' : 'Sign in with GitHub'}
@@ -221,6 +222,7 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
                 testID="btn-pat-toggle"
                 onPress={() => setShowPat((v) => !v)}
                 accessibilityRole="button"
+                accessibilityLabel="Toggle Personal Access Token input"
                 style={{ marginBottom: 8, alignItems: 'center' }}
               >
                 <Text style={{ color: tokens.textMuted, fontSize: 13 }}>
@@ -246,6 +248,7 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
                     onPress={handlePatConnect}
                     disabled={!patValue.trim() || authLoading}
                     accessibilityRole="button"
+                    accessibilityState={{ disabled: !patValue.trim() || authLoading }}
                     style={[styles.extInstallBtn, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}
                   >
                     <Text style={{ color: tokens.text, fontWeight: '600', fontSize: 15 }}>Connect</Text>
@@ -541,6 +544,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     marginBottom: 8,
+    minHeight: 44,
   },
   extVersion: {
     fontSize: 12,

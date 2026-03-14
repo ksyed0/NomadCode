@@ -238,6 +238,14 @@ describe('SettingsScreen — GitHub Account section (signed out)', () => {
     render(<SettingsScreen visible={true} onClose={jest.fn()} />);
     expect(screen.getByText('Token is invalid or lacks required permissions.')).toBeTruthy();
   });
+
+  it('does not call signInWithToken when Connect is pressed with empty PAT', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent.press(screen.getByTestId('btn-pat-toggle'));
+    // PAT input is visible but empty
+    fireEvent.press(screen.getByTestId('btn-pat-connect'));
+    expect(mockSignInWithToken).not.toHaveBeenCalled();
+  });
 });
 
 describe('SettingsScreen — GitHub Account section (signed in)', () => {
@@ -265,5 +273,11 @@ describe('SettingsScreen — GitHub Account section (signed in)', () => {
   it('does not show OAuth button when signed in', () => {
     render(<SettingsScreen visible={true} onClose={jest.fn()} />);
     expect(screen.queryByTestId('btn-oauth-signin')).toBeNull();
+  });
+
+  it('does not show PAT input when signed in', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.queryByTestId('pat-input')).toBeNull();
+    expect(screen.queryByTestId('btn-pat-connect')).toBeNull();
   });
 });
