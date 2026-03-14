@@ -22,6 +22,7 @@ beforeEach(() => {
     fontSize: 14,
     workspacePath: '',
     hasCompletedSetup: false,
+    installedExtensions: [],
   });
   jest.clearAllMocks();
 });
@@ -45,6 +46,11 @@ describe('useSettingsStore — default state', () => {
   it('defaults hasCompletedSetup to false', () => {
     const { result } = renderHook(() => useSettingsStore());
     expect(result.current.hasCompletedSetup).toBe(false);
+  });
+
+  it('defaults installedExtensions to empty array', () => {
+    const { result } = renderHook(() => useSettingsStore());
+    expect(result.current.installedExtensions).toEqual([]);
   });
 });
 
@@ -83,5 +89,39 @@ describe('useSettingsStore — actions', () => {
     const { result } = renderHook(() => useSettingsStore());
     act(() => { result.current.completeSetup(); });
     expect(result.current.hasCompletedSetup).toBe(true);
+  });
+
+  it('addExtension appends a manifest', () => {
+    const { result } = renderHook(() => useSettingsStore());
+    const manifest = { id: 'test.ext', name: 'Test', version: '1.0.0', source: 'void 0;' };
+    act(() => { result.current.addExtension(manifest); });
+    expect(result.current.installedExtensions).toHaveLength(1);
+    expect(result.current.installedExtensions[0].id).toBe('test.ext');
+  });
+
+  it('addExtension replaces manifest with same id', () => {
+    const { result } = renderHook(() => useSettingsStore());
+    const m1 = { id: 'test.ext', name: 'Test', version: '1.0.0', source: 'void 0;' };
+    const m2 = { id: 'test.ext', name: 'Test v2', version: '2.0.0', source: 'void 0;' };
+    act(() => { result.current.addExtension(m1); });
+    act(() => { result.current.addExtension(m2); });
+    expect(result.current.installedExtensions).toHaveLength(1);
+    expect(result.current.installedExtensions[0].name).toBe('Test v2');
+  });
+
+  it('removeExtension removes by id', () => {
+    const { result } = renderHook(() => useSettingsStore());
+    const manifest = { id: 'test.ext', name: 'Test', version: '1.0.0', source: 'void 0;' };
+    act(() => { result.current.addExtension(manifest); });
+    act(() => { result.current.removeExtension('test.ext'); });
+    expect(result.current.installedExtensions).toHaveLength(0);
+  });
+
+  it('removeExtension is a no-op for unknown id', () => {
+    const { result } = renderHook(() => useSettingsStore());
+    expect(() => {
+      act(() => { result.current.removeExtension('unknown.id'); });
+    }).not.toThrow();
+    expect(result.current.installedExtensions).toHaveLength(0);
   });
 });

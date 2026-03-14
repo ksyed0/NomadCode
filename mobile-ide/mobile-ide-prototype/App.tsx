@@ -29,6 +29,7 @@ import { Terminal } from './src/components/Terminal';
 import { Command, CommandPalette } from './src/components/CommandPalette';
 import SetupWizard from './src/components/SetupWizard';
 import SettingsScreen from './src/components/SettingsScreen';
+import ExtensionHost from './src/components/ExtensionHost';
 import TabletResponsive from './src/layout/TabletResponsive';
 import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
 import useSettingsStore from './src/stores/useSettingsStore';
@@ -49,6 +50,7 @@ export default function App() {
 
   // ── Settings store ────────────────────────────────────────────────────────
   const hasCompletedSetup = useSettingsStore((s) => s.hasCompletedSetup);
+  const installedExtensions = useSettingsStore((s) => s.installedExtensions);
 
   // ── Editor state ──────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<EditorTab[]>([]);
@@ -131,6 +133,15 @@ export default function App() {
     const tab = tabs.find((t) => t.path === activeTabPath);
     if (tab) saveFile(tab.path, tab.content);
   }, [tabs, activeTabPath, saveFile]);
+
+  const getEditorContent = useCallback((): string => {
+    return tabs.find((t) => t.path === activeTabPath)?.content ?? '';
+  }, [tabs, activeTabPath]);
+
+  const replaceEditorContent = useCallback((text: string) => {
+    if (!activeTabPath) return;
+    updateContent(activeTabPath, text);
+  }, [activeTabPath, updateContent]);
 
   const deleteFile = useCallback(async (path: string) => {
     Alert.alert('Delete file', `Delete "${path.split('/').pop()}"?`, [
@@ -326,6 +337,15 @@ export default function App() {
 
       {/* ── Settings screen ───────────────────────────────────────────────── */}
       <SettingsScreen visible={showSettings} onClose={() => setShowSettings(false)} />
+
+      {/* ── Extension host (hidden, always mounted) ──────────────────────── */}
+      <ExtensionHost
+        manifests={installedExtensions}
+        onGetEditorContent={getEditorContent}
+        onReplaceEditorContent={replaceEditorContent}
+        onShowMessage={(text) => Alert.alert('Extension', text)}
+        onShowError={(text) => Alert.alert('Extension Error', text, [{ text: 'OK', style: 'destructive' }])}
+      />
     </SafeAreaView>
   );
 }
