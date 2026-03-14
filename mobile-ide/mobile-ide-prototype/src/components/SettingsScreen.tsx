@@ -14,10 +14,13 @@ import {
   Modal,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
 } from 'react-native';
+import { activateExtension, deactivateExtension } from '../extensions/sandbox';
+import type { ExtensionManifest } from '../extensions/sandbox';
 import useSettingsStore from '../stores/useSettingsStore';
 import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, useTheme } from '../theme/tokens';
 import type { ThemeId } from '../theme/tokens';
@@ -35,9 +38,15 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const fontSize = useSettingsStore((s) => s.fontSize);
   const setTheme = useSettingsStore((s) => s.setTheme);
   const setFontSize = useSettingsStore((s) => s.setFontSize);
+  const installedExtensions = useSettingsStore((s) => s.installedExtensions);
+  const addExtension = useSettingsStore((s) => s.addExtension);
+  const removeExtension = useSettingsStore((s) => s.removeExtension);
 
   // Initialize selectedMode from the active theme (fix I-1: desync with active theme)
   const [selectedMode, setSelectedMode] = useState<Mode>(() => THEMES[theme].mode);
+
+  const [extName, setExtName] = useState('');
+  const [extSource, setExtSource] = useState('');
 
   // Active theme tokens for theming the UI
   const tokens = useTheme();
@@ -71,6 +80,27 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const handleFontDec = useCallback(() => {
     setFontSize(fontSize - 1);
   }, [setFontSize, fontSize]);
+
+  const handleInstall = useCallback(() => {
+    if (!extName.trim() || !extSource.trim()) return;
+    const manifest: ExtensionManifest = {
+      id: `user.${extName.toLowerCase().replace(/\s+/g, '-')}.${Date.now()}`,
+      name: extName.trim(),
+      version: '1.0.0',
+      source: extSource.trim(),
+    };
+    activateExtension(manifest);
+    addExtension(manifest);
+    setExtName('');
+    setExtSource('');
+  }, [extName, extSource, addExtension]);
+
+  const handleDeactivate = useCallback((id: string) => {
+    deactivateExtension(id);
+    removeExtension(id);
+  }, [removeExtension]);
+
+  const installEnabled = extName.trim().length > 0 && extSource.trim().length > 0;
 
   // Dynamic styles derived from theme tokens
   const dynamicContainer = useMemo(
@@ -216,6 +246,66 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
             </View>
           </View>
 
+          {/* ── Section: Extensions ─────────────────────────────────────── */}
+          <Text style={[styles.sectionLabel, dynamicSectionLabel]}>EXTENSIONS</Text>
+
+          {installedExtensions.map((ext) => (
+            <View
+              key={ext.id}
+              style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.editorRowLabel, { color: tokens.text }]}>{ext.name}</Text>
+                <Text style={{ color: tokens.textMuted, fontSize: 12 }}>v{ext.version}</Text>
+              </View>
+              <TouchableOpacity
+                testID={`ext-deactivate-${ext.id}`}
+                onPress={() => handleDeactivate(ext.id)}
+                style={styles.fontButton}
+                accessibilityLabel={`Deactivate ${ext.name}`}
+                accessibilityRole="button"
+              >
+                <Text style={{ color: '#EF4444', fontSize: 14, fontWeight: '600' }}>
+                  Remove
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          <TextInput
+            testID="ext-name-input"
+            placeholder="Extension name"
+            placeholderTextColor={tokens.textMuted}
+            value={extName}
+            onChangeText={setExtName}
+            style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+          />
+          <TextInput
+            testID="ext-source-input"
+            placeholder="Paste extension source (JavaScript)"
+            placeholderTextColor={tokens.textMuted}
+            value={extSource}
+            onChangeText={setExtSource}
+            multiline
+            numberOfLines={4}
+            style={[styles.extInput, styles.extSourceInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+          />
+          <TouchableOpacity
+            testID="ext-install-btn"
+            onPress={handleInstall}
+            disabled={!installEnabled}
+            accessibilityState={{ disabled: !installEnabled }}
+            accessibilityRole="button"
+            style={[
+              styles.extInstallBtn,
+              { backgroundColor: installEnabled ? tokens.accent : tokens.bgElevated, borderColor: tokens.border },
+            ]}
+          >
+            <Text style={{ color: installEnabled ? '#FFFFFF' : tokens.textMuted, fontWeight: '600', fontSize: 15 }}>
+              Install
+            </Text>
+          </TouchableOpacity>
+
         </ScrollView>
       </View>
     </Modal>
@@ -331,5 +421,25 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     minWidth: 30,
     textAlign: 'center',
+  },
+  extInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  extSourceInput: {
+    height: 100,
+    textAlignVertical: 'top',
+    fontFamily: 'monospace',
+  },
+  extInstallBtn: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 8,
   },
 });
