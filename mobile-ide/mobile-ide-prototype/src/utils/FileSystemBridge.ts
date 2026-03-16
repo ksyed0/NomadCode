@@ -7,7 +7,7 @@
  *  - GitHub integration: add `cloneRepo`, `fetchRemote` via GitBridge (see below)
  */
 
-import * as ExpoFS from 'expo-file-system';
+import * as ExpoFS from 'expo-file-system/legacy';
 
 export interface FileEntry {
   name: string;
