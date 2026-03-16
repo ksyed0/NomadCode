@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -52,10 +52,8 @@ export function CommandPalette({
     );
   }, [query, commands]);
 
-  // Clamp selectedIndex when the filtered list shrinks (e.g., commands prop changes)
-  useEffect(() => {
-    setSelectedIndex((i) => Math.min(i, Math.max(filtered.length - 1, 0)));
-  }, [filtered.length]);
+  // Clamp selectedIndex at render time to avoid out-of-bounds access when the list shrinks
+  const clampedIndex = Math.min(selectedIndex, Math.max(filtered.length - 1, 0));
 
   const handleQueryChange = useCallback((text: string) => {
     setQuery(text);
@@ -71,10 +69,10 @@ export function CommandPalette({
   );
 
   const handleSubmit = useCallback(() => {
-    if (filtered[selectedIndex]) {
-      handleSelect(filtered[selectedIndex]);
+    if (filtered[clampedIndex]) {
+      handleSelect(filtered[clampedIndex]);
     }
-  }, [filtered, selectedIndex, handleSelect]);
+  }, [filtered, clampedIndex, handleSelect]);
 
   const handleKeyPress = useCallback(
     (e: { nativeEvent: { key: string } }) => {
@@ -155,7 +153,7 @@ export function CommandPalette({
   });
 
   const renderItem = useCallback(({ item, index }: { item: Command; index: number }) => {
-    const isSelected = index === selectedIndex;
+    const isSelected = index === clampedIndex;
     return (
       <TouchableOpacity
         onPress={() => handleSelect(item)}
@@ -189,7 +187,7 @@ export function CommandPalette({
         </View>
       </TouchableOpacity>
     );
-  }, [selectedIndex, handleSelect, styles]);
+  }, [clampedIndex, handleSelect, styles]);
 
   return (
     <Modal
