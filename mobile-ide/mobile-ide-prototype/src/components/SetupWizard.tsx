@@ -56,7 +56,7 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
         setWorkspacePath(result.assets[0].uri);
       }
     } catch (e) {
-      __DEV__ && console.warn('[SetupWizard] browse error:', e);
+      if (__DEV__) console.warn('[SetupWizard] browse error:', e);
     }
   }, [setWorkspacePath]);
 

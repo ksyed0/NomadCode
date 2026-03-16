@@ -79,3 +79,10 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-13 | 8fc574e5-4ef2-4fd4-a420-379a324b38bd | develop | 0 | 0 | 0 | 0.0000 |
 | 2026-03-13 | 8fc574e5-4ef2-4fd4-a420-379a324b38bd | develop | 0 | 0 | 0 | 0.0000 |
 | 2026-03-13 | 8fc574e5-4ef2-4fd4-a420-379a324b38bd | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-14 | 8fc574e5-4ef2-4fd4-a420-379a324b38bd | feature/epic-0007-auth | 0 | 0 | 0 | 0.0000 |
+| 2026-03-16 | 618e45c0-a9e7-43d3-b13a-e314cd13566c | feature/epic-0007-auth | 0 | 0 | 0 | 0.0000 |
+| 2026-03-16 | 618e45c0-a9e7-43d3-b13a-e314cd13566c | feature/epic-0007-auth | 0 | 0 | 0 | 0.0000 |
+| 2026-03-16 | 618e45c0-a9e7-43d3-b13a-e314cd13566c | feature/epic-0007-auth | 0 | 0 | 0 | 0.0000 |
+| 2026-03-16 | 618e45c0-a9e7-43d3-b13a-e314cd13566c | feature/epic-0007-auth | 0 | 0 | 0 | 0.0000 |
+| 2026-03-16 | 618e45c0-a9e7-43d3-b13a-e314cd13566c | feature/epic-0007-auth | 0 | 0 | 0 | 0.0000 |
+| 2026-03-16 | 618e45c0-a9e7-43d3-b13a-e314cd13566c | feature/epic-0007-auth | 0 | 0 | 0 | 0.0000 |

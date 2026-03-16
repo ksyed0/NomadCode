@@ -61,9 +61,9 @@ jest.mock('../../src/utils/MonacoAssetManager', () => ({
 let capturedOnMessage: ((e: object) => void) | undefined;
 
 jest.mock('react-native-webview', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require('react-native');
   const WebView = React.forwardRef((props: { onMessage?: (e: object) => void }, ref: unknown) => {
     // Expose injectJavaScript via ref so webViewRef.current is non-null
