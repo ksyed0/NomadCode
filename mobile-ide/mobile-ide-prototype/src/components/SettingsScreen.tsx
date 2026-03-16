@@ -22,9 +22,10 @@ import {
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { activateExtension, deactivateExtension } from '../extensions/sandbox';
-
-WebBrowser.maybeCompleteAuthSession();
 import type { ExtensionManifest } from '../extensions/sandbox';
+
+// Required once per file by expo-auth-session to complete any pending auth sessions.
+WebBrowser.maybeCompleteAuthSession();
 import useSettingsStore from '../stores/useSettingsStore';
 import useAuthStore from '../stores/useAuthStore';
 import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, useTheme } from '../theme/tokens';
@@ -54,9 +55,16 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const authLoading = useAuthStore((s) => s.isLoading);
   const signInWithToken = useAuthStore((s) => s.signInWithToken);
   const signOut = useAuthStore((s) => s.signOut);
+  const setError = useAuthStore((s) => s.setError);
 
   // OAuth hooks (expo-auth-session)
-  const discovery = AuthSession.useAutoDiscovery('https://github.com');
+  // GitHub OAuth 2.0 is not OIDC-compliant and has no discovery document at
+  // /.well-known/openid-configuration. useAutoDiscovery would always return null,
+  // making useAuthRequest unable to build a request. Use manual endpoints instead.
+  const discovery: AuthSession.DiscoveryDocument = {
+    authorizationEndpoint: 'https://github.com/login/oauth/authorize',
+    tokenEndpoint: 'https://github.com/login/oauth/access_token',
+  };
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID ?? '',
@@ -71,6 +79,9 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
     if (response?.type === 'success' && response.params.code) {
       const exchangeCode = async () => {
         try {
+          // NOTE: client_secret is read from EXPO_PUBLIC_GITHUB_CLIENT_SECRET, which is
+          // bundled into the app binary at build time. Acceptable for development only.
+          // Replace with a server-side proxy endpoint before any production release.
           const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
             method: 'POST',
             headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
@@ -88,14 +99,16 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
             typeof (data as { access_token: unknown }).access_token === 'string'
           ) {
             await signInWithToken((data as { access_token: string }).access_token);
+          } else {
+            setError('GitHub did not return an access token. Check your OAuth app configuration.');
           }
         } catch {
-          // Network errors are surfaced by signInWithToken on next invocation
+          setError('Could not reach GitHub. Check your connection.');
         }
       };
       exchangeCode();
     }
-  }, [response, signInWithToken]);
+  }, [response, signInWithToken, setError]);
 
   // Initialize selectedMode from the active theme (fix I-1: desync with active theme)
   const [selectedMode, setSelectedMode] = useState<Mode>(() => THEMES[theme].mode);

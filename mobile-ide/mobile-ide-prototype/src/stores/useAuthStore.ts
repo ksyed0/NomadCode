@@ -21,6 +21,7 @@ interface AuthState {
   signInWithToken: (token: string) => Promise<void>;
   signOut: () => Promise<void>;
   hydrate: () => Promise<void>;
+  setError: (error: string) => void;
 }
 
 async function fetchGitHubUser(token: string): Promise<{ login: string; avatar_url: string }> {
@@ -73,6 +74,8 @@ const useAuthStore = create<AuthState>()((set) => ({
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     set({ token: null, username: null, avatarUrl: null, error: null, isLoading: false });
   },
+
+  setError: (error: string) => set({ error }),
 
   hydrate: async () => {
     const token = await SecureStore.getItemAsync(TOKEN_KEY);

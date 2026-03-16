@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 // Mock settings store
 const mockSetTheme = jest.fn();
@@ -53,6 +53,7 @@ jest.mock('../../src/theme/tokens', () => {
 
 const mockSignInWithToken = jest.fn();
 const mockSignOut = jest.fn();
+const mockSetError = jest.fn();
 let mockAuthToken: string | null = null;
 let mockAuthUsername: string | null = null;
 let mockAuthError: string | null = null;
@@ -69,6 +70,7 @@ jest.mock('../../src/stores/useAuthStore', () => ({
       error: mockAuthError,
       signInWithToken: mockSignInWithToken,
       signOut: mockSignOut,
+      setError: mockSetError,
     })
   ),
 }));
@@ -98,6 +100,7 @@ beforeEach(() => {
   mockAuthLoading = false;
   mockSignInWithToken.mockReset();
   mockSignOut.mockReset();
+  mockSetError.mockReset();
 });
 
 describe('SettingsScreen', () => {
@@ -272,6 +275,40 @@ describe('SettingsScreen — GitHub Account section (signed out)', () => {
     render(<SettingsScreen visible={true} onClose={jest.fn()} />);
     fireEvent.press(screen.getByTestId('btn-oauth-signin'));
     expect(mockPrompt).not.toHaveBeenCalled();
+  });
+
+  it('calls setError when OAuth code exchange fetch throws a network error', async () => {
+    const AuthSession = require('expo-auth-session');
+    AuthSession.useAuthRequest.mockReturnValueOnce([
+      { url: 'https://github.com' },
+      { type: 'success', params: { code: 'abc123' } },
+      jest.fn(),
+    ]);
+    jest.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network error'));
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    await waitFor(() => {
+      expect(mockSetError).toHaveBeenCalledWith('Could not reach GitHub. Check your connection.');
+    });
+    (global.fetch as jest.Mock).mockRestore?.();
+  });
+
+  it('calls setError when OAuth token exchange returns no access_token', async () => {
+    const AuthSession = require('expo-auth-session');
+    AuthSession.useAuthRequest.mockReturnValueOnce([
+      { url: 'https://github.com' },
+      { type: 'success', params: { code: 'abc123' } },
+      jest.fn(),
+    ]);
+    jest.spyOn(global, 'fetch').mockResolvedValueOnce({
+      json: async () => ({ error: 'bad_verification_code' }),
+    } as Response);
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    await waitFor(() => {
+      expect(mockSetError).toHaveBeenCalledWith(
+        'GitHub did not return an access token. Check your OAuth app configuration.'
+      );
+    });
+    (global.fetch as jest.Mock).mockRestore?.();
   });
 });
 
