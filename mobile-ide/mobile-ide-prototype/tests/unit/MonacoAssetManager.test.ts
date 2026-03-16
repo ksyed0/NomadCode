@@ -21,7 +21,7 @@ const mockMakeDirectoryAsync = jest.fn();
 const mockDownloadAsync = jest.fn();
 const mockDeleteAsync = jest.fn();
 
-jest.mock('expo-file-system/legacy', () => ({
+jest.mock('expo-file-system', () => ({
   getInfoAsync: (...args: unknown[]) => mockGetInfoAsync(...args),
   makeDirectoryAsync: (...args: unknown[]) => mockMakeDirectoryAsync(...args),
   downloadAsync: (...args: unknown[]) => mockDownloadAsync(...args),

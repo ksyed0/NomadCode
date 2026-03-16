@@ -12,7 +12,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import {
   Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput,
 } from 'react-native';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import useSettingsStore from '../stores/useSettingsStore';
 import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, ThemeId } from '../theme/tokens';

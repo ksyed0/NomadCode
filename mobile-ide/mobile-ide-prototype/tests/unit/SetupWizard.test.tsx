@@ -37,7 +37,7 @@ jest.mock('expo-document-picker', () => ({
   getDocumentAsync: jest.fn(() => Promise.resolve({ canceled: true })),
 }));
 
-jest.mock('expo-file-system/legacy', () => ({
+jest.mock('expo-file-system', () => ({
   documentDirectory: 'file:///mock-docs/',
 }));
 
