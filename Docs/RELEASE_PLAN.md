@@ -355,29 +355,29 @@ Dependencies: None
 US-0022 (EPIC-0007): As a developer, I want to sign in with my GitHub account, so that I can access private repositories and push code.
 Priority: High (P0)
 Estimate: L
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0064: Tapping "Sign in with GitHub" launches the system browser with the correct OAuth authorize URL
-  - [ ] AC-0065: After successful OAuth callback, an access token is returned and stored in the keychain
-  - [ ] AC-0066: The user's GitHub username and avatar are displayed in the settings screen after sign-in
+  - [x] AC-0064: Tapping "Sign in with GitHub" launches the system browser with the correct OAuth authorize URL
+  - [x] AC-0065: After successful OAuth callback, an access token is returned and stored in the keychain
+  - [x] AC-0066: The user's GitHub username and avatar are displayed in the settings screen after sign-in
 Dependencies: EPIC-0005
 
 US-0023 (EPIC-0007): As a developer, I want my auth token stored securely, so that my credentials are never exposed.
 Priority: High (P0)
 Estimate: S
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0067: OAuth access token is stored in the platform keychain (iOS Keychain / Android Keystore), not in app storage or logs
-  - [ ] AC-0068: Token survives app restart and is retrieved without re-authentication
+  - [x] AC-0067: OAuth access token is stored in the platform keychain (iOS Keychain / Android Keystore), not in app storage or logs
+  - [x] AC-0068: Token survives app restart and is retrieved without re-authentication
 Dependencies: US-0022
 
 US-0024 (EPIC-0007): As a developer, I want to sign out, so that I can switch accounts or revoke access.
 Priority: Medium (P1)
 Estimate: S
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0069: Tapping "Sign out" deletes the token from the keychain and clears the user session
-  - [ ] AC-0070: After sign-out, git operations requiring auth prompt re-authentication
+  - [x] AC-0069: Tapping "Sign out" deletes the token from the keychain and clears the user session
+  - [x] AC-0070: After sign-out, git operations requiring auth prompt re-authentication
 Dependencies: US-0022, US-0023
 ```
 

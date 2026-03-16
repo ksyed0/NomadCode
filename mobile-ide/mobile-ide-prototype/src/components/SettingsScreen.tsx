@@ -9,7 +9,7 @@
  * No Save button required — live preview.
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -19,9 +19,15 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
 import { activateExtension, deactivateExtension } from '../extensions/sandbox';
 import type { ExtensionManifest } from '../extensions/sandbox';
+
+// Required once per file by expo-auth-session to complete any pending auth sessions.
+WebBrowser.maybeCompleteAuthSession();
 import useSettingsStore from '../stores/useSettingsStore';
+import useAuthStore from '../stores/useAuthStore';
 import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, useTheme } from '../theme/tokens';
 import type { ThemeId } from '../theme/tokens';
 
@@ -42,11 +48,75 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const addExtension = useSettingsStore((s) => s.addExtension);
   const removeExtension = useSettingsStore((s) => s.removeExtension);
 
+  // Auth store selectors
+  const authToken = useAuthStore((s) => s.token);
+  const authUsername = useAuthStore((s) => s.username);
+  const authError = useAuthStore((s) => s.error);
+  const authLoading = useAuthStore((s) => s.isLoading);
+  const signInWithToken = useAuthStore((s) => s.signInWithToken);
+  const signOut = useAuthStore((s) => s.signOut);
+  const setError = useAuthStore((s) => s.setError);
+
+  // OAuth hooks (expo-auth-session)
+  // GitHub OAuth 2.0 is not OIDC-compliant and has no discovery document at
+  // /.well-known/openid-configuration. useAutoDiscovery would always return null,
+  // making useAuthRequest unable to build a request. Use manual endpoints instead.
+  const discovery: AuthSession.DiscoveryDocument = {
+    authorizationEndpoint: 'https://github.com/login/oauth/authorize',
+    tokenEndpoint: 'https://github.com/login/oauth/access_token',
+  };
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID ?? '',
+      scopes: ['repo', 'read:user'],
+      redirectUri: AuthSession.makeRedirectUri({ scheme: 'nomadcode' }),
+    },
+    discovery,
+  );
+
+  // Handle OAuth response — exchange authorization code for access token
+  useEffect(() => {
+    if (response?.type === 'success' && response.params.code) {
+      const exchangeCode = async () => {
+        try {
+          // NOTE: client_secret is read from EXPO_PUBLIC_GITHUB_CLIENT_SECRET, which is
+          // bundled into the app binary at build time. Acceptable for development only.
+          // Replace with a server-side proxy endpoint before any production release.
+          const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+            method: 'POST',
+            headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              client_id: process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID ?? '',
+              client_secret: process.env.EXPO_PUBLIC_GITHUB_CLIENT_SECRET ?? '',
+              code: response.params.code,
+            }),
+          });
+          const data: unknown = await tokenRes.json();
+          if (
+            typeof data === 'object' &&
+            data !== null &&
+            'access_token' in data &&
+            typeof (data as { access_token: unknown }).access_token === 'string'
+          ) {
+            await signInWithToken((data as { access_token: string }).access_token);
+          } else {
+            setError('GitHub did not return an access token. Check your OAuth app configuration.');
+          }
+        } catch {
+          setError('Could not reach GitHub. Check your connection.');
+        }
+      };
+      exchangeCode();
+    }
+  }, [response, signInWithToken, setError]);
+
   // Initialize selectedMode from the active theme (fix I-1: desync with active theme)
   const [selectedMode, setSelectedMode] = useState<Mode>(() => THEMES[theme].mode);
 
   const [extName, setExtName] = useState('');
   const [extSource, setExtSource] = useState('');
+  const [showPat, setShowPat] = useState(false);
+  const [patValue, setPatValue] = useState('');
 
   // Active theme tokens for theming the UI
   const tokens = useTheme();
@@ -99,6 +169,10 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
     deactivateExtension(id);
     removeExtension(id);
   }, [removeExtension]);
+
+  const handlePatConnect = useCallback(() => {
+    if (patValue.trim()) signInWithToken(patValue.trim());
+  }, [patValue, signInWithToken]);
 
   const installEnabled = extName.trim().length > 0 && extSource.trim().length > 0;
 
@@ -163,6 +237,87 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
+
+          {/* ── Section: GitHub Account ──────────────────────────────────── */}
+          <Text style={[styles.sectionLabel, dynamicSectionLabel]}>GITHUB ACCOUNT</Text>
+
+          {authToken ? (
+            /* Signed-in view */
+            <View style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.editorRowLabel, { color: tokens.text }]}>@{authUsername ?? 'GitHub User'}</Text>
+                <Text style={{ color: tokens.textMuted, fontSize: 12 }}>Connected</Text>
+              </View>
+              <TouchableOpacity
+                testID="btn-sign-out"
+                onPress={signOut}
+                style={styles.fontButton}
+                accessibilityLabel="Sign out of GitHub"
+                accessibilityRole="button"
+              >
+                <Text style={{ color: tokens.error, fontSize: 14, fontWeight: '600' }}>Sign out</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            /* Signed-out view */
+            <View>
+              <TouchableOpacity
+                testID="btn-oauth-signin"
+                style={[styles.extInstallBtn, { backgroundColor: tokens.accent, borderColor: tokens.accent }]}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in with GitHub"
+                onPress={() => { if (request) promptAsync(); }}
+                disabled={authLoading}
+                accessibilityState={{ disabled: authLoading }}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 15 }}>
+                  {authLoading ? 'Connecting…' : 'Sign in with GitHub'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                testID="btn-pat-toggle"
+                onPress={() => setShowPat((v) => !v)}
+                accessibilityRole="button"
+                accessibilityLabel="Toggle Personal Access Token input"
+                style={{ marginBottom: 8, alignItems: 'center' }}
+              >
+                <Text style={{ color: tokens.textMuted, fontSize: 13 }}>
+                  {showPat ? 'Hide token input' : 'Use a Personal Access Token instead'}
+                </Text>
+              </TouchableOpacity>
+
+              {showPat && (
+                <View>
+                  <TextInput
+                    testID="pat-input"
+                    placeholder="ghp_xxxxxxxxxxxx"
+                    placeholderTextColor={tokens.textMuted}
+                    value={patValue}
+                    onChangeText={setPatValue}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+                  />
+                  <TouchableOpacity
+                    testID="btn-pat-connect"
+                    onPress={handlePatConnect}
+                    disabled={!patValue.trim() || authLoading}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: !patValue.trim() || authLoading }}
+                    style={[styles.extInstallBtn, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}
+                  >
+                    <Text style={{ color: tokens.text, fontWeight: '600', fontSize: 15 }}>Connect</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {authError ? (
+                <Text style={{ color: tokens.error, fontSize: 13, marginBottom: 8 }}>{authError}</Text>
+              ) : null}
+            </View>
+          )}
 
           {/* ── Section: Appearance ─────────────────────────────────────── */}
           <Text style={[styles.sectionLabel, dynamicSectionLabel]}>APPEARANCE</Text>
@@ -446,6 +601,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     marginBottom: 8,
+    minHeight: 44,
   },
   extVersion: {
     fontSize: 12,

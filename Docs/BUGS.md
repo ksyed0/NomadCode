@@ -53,6 +53,45 @@ Status: Fixed
 Fix Branch: feature/epic-0004-command-palette
 Lesson Encoded: No
 
+BUG-0006: EXPO_PUBLIC_GITHUB_CLIENT_SECRET bundled in app binary; env name mismatch (AUTH-1)
+Severity: Critical
+Related Story: US-0022
+Related Task:
+Steps to Reproduce:
+  1. Build the Expo app with EXPO_PUBLIC_GITHUB_CLIENT_SECRET set in .env
+  2. Unpack the JS bundle — client_secret is readable in plain text
+  3. OR follow .env.example (GITHUB_CLIENT_SECRET) — OAuth silently fails with empty secret
+Expected: Client secret stays server-side; OAuth sign-in works
+Actual: Secret bundled into binary; or OAuth silently fails due to env name mismatch
+Status: Fixed
+Fix Branch: feature/epic-0007-auth
+Lesson Encoded: No
+
+BUG-0007: useAutoDiscovery('https://github.com') always returns null — OAuth button non-functional (AUTH-2)
+Severity: High
+Related Story: US-0022
+Related Task:
+Steps to Reproduce:
+  1. Open SettingsScreen and press "Sign in with GitHub"
+Expected: Browser opens to GitHub OAuth authorization page
+Actual: Nothing happens — request is null because GitHub has no OIDC discovery document
+Status: Fixed
+Fix Branch: feature/epic-0007-auth
+Lesson Encoded: No
+
+BUG-0008: Empty catch block in exchangeCode silently discards all OAuth errors (AUTH-3)
+Severity: Medium
+Related Story: US-0022
+Related Task:
+Steps to Reproduce:
+  1. Trigger OAuth flow on a device with no network
+  2. Complete authorization — app receives auth code but token exchange fetch throws
+Expected: User sees an error message
+Actual: Error silently swallowed; no feedback shown; authError never set
+Status: Fixed
+Fix Branch: feature/epic-0007-auth
+Lesson Encoded: No
+
 BUG-0005: No swipe gesture trigger for command palette (CP-5)
 Severity: Low
 Related Story: US-0015

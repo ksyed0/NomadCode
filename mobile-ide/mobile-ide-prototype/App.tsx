@@ -11,7 +11,7 @@
  * Future cloud/sync integration points are marked with: // CLOUD_HOOK
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -33,6 +33,7 @@ import ExtensionHost from './src/components/ExtensionHost';
 import TabletResponsive from './src/layout/TabletResponsive';
 import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
 import useSettingsStore from './src/stores/useSettingsStore';
+import useAuthStore from './src/stores/useAuthStore';
 import { useTheme } from './src/theme/tokens';
 
 // ---------------------------------------------------------------------------
@@ -51,6 +52,14 @@ export default function App() {
   // ── Settings store ────────────────────────────────────────────────────────
   const hasCompletedSetup = useSettingsStore((s) => s.hasCompletedSetup);
   const installedExtensions = useSettingsStore((s) => s.installedExtensions);
+
+  // ── Auth store ────────────────────────────────────────────────────────────
+  const hydrateAuth = useAuthStore((s) => s.hydrate);
+
+  // Restore auth session from keychain on mount
+  useEffect(() => {
+    hydrateAuth();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Editor state ──────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<EditorTab[]>([]);
