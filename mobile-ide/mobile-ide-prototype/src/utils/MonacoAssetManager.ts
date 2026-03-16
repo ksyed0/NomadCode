@@ -21,7 +21,7 @@
  *   await MonacoAssetManager.downloadForOffline((pct) => setProgress(pct));
  */
 
-import * as ExpoFS from 'expo-file-system';
+import * as ExpoFS from 'expo-file-system/legacy';
 
 // ---------------------------------------------------------------------------
 // Constants
