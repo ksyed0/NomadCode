@@ -103,7 +103,7 @@ export default function TabletResponsive({
         onTerminalHeightChange?.(clampTerminalHeight(terminalHeight, gs.dy));
       },
     }),
-  ).current;
+  );
 
   // NOTE: Same stale-closure caveat as panResponder above.
   const swipePanResponder = useRef(
@@ -115,7 +115,7 @@ export default function TabletResponsive({
         }
       },
     }),
-  ).current;
+  );
 
   // Shared gesture zone — placed at the top of the main editor area in both layouts.
   // Captures downward swipes to open the command palette.
@@ -123,7 +123,8 @@ export default function TabletResponsive({
     <View
       testID="swipe-zone"
       style={styles.swipeZone}
-      {...swipePanResponder.panHandlers}
+      // eslint-disable-next-line react-hooks/refs
+      {...swipePanResponder.current.panHandlers}
     />
   );
 
@@ -162,7 +163,8 @@ export default function TabletResponsive({
             <View
               testID="terminal-resize-handle"
               style={[styles.resizeHandle, { backgroundColor: t.bgElevated, borderTopColor: t.border }]}
-              {...panResponder.panHandlers}
+              // eslint-disable-next-line react-hooks/refs
+              {...panResponder.current.panHandlers}
             />
             <View style={[styles.terminalStrip, { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg }]}>
               {terminal}
