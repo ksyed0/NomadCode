@@ -141,6 +141,18 @@ jest.mock('react-native-webview', () => {
   return { WebView };
 });
 
+// Mock expo-auth-session (used by SettingsScreen OAuth flow)
+jest.mock('expo-auth-session', () => ({
+  useAutoDiscovery: jest.fn(() => null),
+  useAuthRequest: jest.fn(() => [null, null, jest.fn()]),
+  makeRedirectUri: jest.fn(() => 'nomadcode://auth'),
+}));
+
+// Mock expo-web-browser (used by SettingsScreen OAuth flow)
+jest.mock('expo-web-browser', () => ({
+  maybeCompleteAuthSession: jest.fn(),
+}));
+
 // Mock MonacoAssetManager so it resolves immediately without network
 jest.mock('../../src/utils/MonacoAssetManager', () => ({
   MonacoAssetManager: {

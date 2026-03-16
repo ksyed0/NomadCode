@@ -73,6 +73,16 @@ jest.mock('../../src/stores/useAuthStore', () => ({
   ),
 }));
 
+jest.mock('expo-auth-session', () => ({
+  useAutoDiscovery: jest.fn(() => null),
+  useAuthRequest: jest.fn(() => [null, null, jest.fn()]),
+  makeRedirectUri: jest.fn(() => 'nomadcode://auth'),
+}));
+
+jest.mock('expo-web-browser', () => ({
+  maybeCompleteAuthSession: jest.fn(),
+}));
+
 import SettingsScreen from '../../src/components/SettingsScreen';
 
 beforeEach(() => {
@@ -245,6 +255,23 @@ describe('SettingsScreen — GitHub Account section (signed out)', () => {
     // PAT input is visible but empty
     fireEvent.press(screen.getByTestId('btn-pat-connect'));
     expect(mockSignInWithToken).not.toHaveBeenCalled();
+  });
+
+  it('calls promptOAuth when Sign in with GitHub is pressed and request is ready', () => {
+    const mockPrompt = jest.fn().mockResolvedValue(undefined);
+    const AuthSession = require('expo-auth-session');
+    AuthSession.useAuthRequest.mockReturnValueOnce([{ url: 'https://github.com' }, null, mockPrompt]);
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent.press(screen.getByTestId('btn-oauth-signin'));
+    expect(mockPrompt).toHaveBeenCalled();
+  });
+
+  it('does not call promptOAuth when request is not ready', () => {
+    const mockPrompt = jest.fn();
+    // useAuthRequest returns null request (not ready)
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent.press(screen.getByTestId('btn-oauth-signin'));
+    expect(mockPrompt).not.toHaveBeenCalled();
   });
 });
 

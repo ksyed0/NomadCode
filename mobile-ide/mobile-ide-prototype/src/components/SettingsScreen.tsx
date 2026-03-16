@@ -9,7 +9,7 @@
  * No Save button required — live preview.
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -19,7 +19,11 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
 import { activateExtension, deactivateExtension } from '../extensions/sandbox';
+
+WebBrowser.maybeCompleteAuthSession();
 import type { ExtensionManifest } from '../extensions/sandbox';
 import useSettingsStore from '../stores/useSettingsStore';
 import useAuthStore from '../stores/useAuthStore';
@@ -50,6 +54,48 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const authLoading = useAuthStore((s) => s.isLoading);
   const signInWithToken = useAuthStore((s) => s.signInWithToken);
   const signOut = useAuthStore((s) => s.signOut);
+
+  // OAuth hooks (expo-auth-session)
+  const discovery = AuthSession.useAutoDiscovery('https://github.com');
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID ?? '',
+      scopes: ['repo', 'read:user'],
+      redirectUri: AuthSession.makeRedirectUri({ scheme: 'nomadcode' }),
+    },
+    discovery,
+  );
+
+  // Handle OAuth response — exchange authorization code for access token
+  useEffect(() => {
+    if (response?.type === 'success' && response.params.code) {
+      const exchangeCode = async () => {
+        try {
+          const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+            method: 'POST',
+            headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              client_id: process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID ?? '',
+              client_secret: process.env.EXPO_PUBLIC_GITHUB_CLIENT_SECRET ?? '',
+              code: response.params.code,
+            }),
+          });
+          const data: unknown = await tokenRes.json();
+          if (
+            typeof data === 'object' &&
+            data !== null &&
+            'access_token' in data &&
+            typeof (data as { access_token: unknown }).access_token === 'string'
+          ) {
+            await signInWithToken((data as { access_token: string }).access_token);
+          }
+        } catch {
+          // Network errors are surfaced by signInWithToken on next invocation
+        }
+      };
+      exchangeCode();
+    }
+  }, [response, signInWithToken]);
 
   // Initialize selectedMode from the active theme (fix I-1: desync with active theme)
   const [selectedMode, setSelectedMode] = useState<Mode>(() => THEMES[theme].mode);
@@ -207,9 +253,7 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
                 style={[styles.extInstallBtn, { backgroundColor: tokens.accent, borderColor: tokens.accent }]}
                 accessibilityRole="button"
                 accessibilityLabel="Sign in with GitHub"
-                onPress={() => {
-                  // OAuth wired in Task 5
-                }}
+                onPress={() => { if (request) promptAsync(); }}
                 disabled={authLoading}
                 accessibilityState={{ disabled: authLoading }}
               >
