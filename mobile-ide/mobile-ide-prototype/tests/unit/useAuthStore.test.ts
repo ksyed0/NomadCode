@@ -82,6 +82,7 @@ describe('useAuthStore — signInWithToken (PAT)', () => {
     mockGitHubUser();
     const { result } = renderHook(() => useAuthStore());
     await act(async () => { await result.current.signInWithToken('ghp_valid'); });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const SecureStore = require('expo-secure-store');
     expect(SecureStore.setItemAsync).toHaveBeenCalledWith('github_token', 'ghp_valid');
   });
@@ -92,6 +93,7 @@ describe('useAuthStore — signInWithToken (PAT)', () => {
     await act(async () => { await result.current.signInWithToken('ghp_bad'); });
     expect(result.current.token).toBeNull();
     expect(result.current.error).toBeTruthy();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const SecureStore = require('expo-secure-store');
     expect(SecureStore.setItemAsync).not.toHaveBeenCalled();
   });
@@ -128,6 +130,7 @@ describe('useAuthStore — signOut', () => {
     const { result } = renderHook(() => useAuthStore());
     await act(async () => { await result.current.signInWithToken('ghp_valid'); });
     await act(async () => { await result.current.signOut(); });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const SecureStore = require('expo-secure-store');
     expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('github_token');
   });
@@ -166,6 +169,7 @@ describe('useAuthStore — hydrate', () => {
     const { result } = renderHook(() => useAuthStore());
     await act(async () => { await result.current.hydrate(); });
     expect(result.current.token).toBeNull();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const SecureStore = require('expo-secure-store');
     expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('github_token');
   });

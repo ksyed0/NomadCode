@@ -262,6 +262,7 @@ describe('SettingsScreen — GitHub Account section (signed out)', () => {
 
   it('calls promptOAuth when Sign in with GitHub is pressed and request is ready', () => {
     const mockPrompt = jest.fn().mockResolvedValue(undefined);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const AuthSession = require('expo-auth-session');
     AuthSession.useAuthRequest.mockReturnValueOnce([{ url: 'https://github.com' }, null, mockPrompt]);
     render(<SettingsScreen visible={true} onClose={jest.fn()} />);
@@ -278,6 +279,7 @@ describe('SettingsScreen — GitHub Account section (signed out)', () => {
   });
 
   it('calls setError when OAuth code exchange fetch throws a network error', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const AuthSession = require('expo-auth-session');
     AuthSession.useAuthRequest.mockReturnValueOnce([
       { url: 'https://github.com' },
@@ -293,6 +295,7 @@ describe('SettingsScreen — GitHub Account section (signed out)', () => {
   });
 
   it('calls setError when OAuth token exchange returns no access_token', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const AuthSession = require('expo-auth-session');
     AuthSession.useAuthRequest.mockReturnValueOnce([
       { url: 'https://github.com' },
