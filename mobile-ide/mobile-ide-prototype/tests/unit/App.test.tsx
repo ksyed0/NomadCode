@@ -123,9 +123,9 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
 
 // Mock react-native-webview (TurboModule not available in Jest)
 jest.mock('react-native-webview', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require('react-native');
   const WebView = React.forwardRef(
     (props: { onMessage?: (e: object) => void }, ref: unknown) => {
