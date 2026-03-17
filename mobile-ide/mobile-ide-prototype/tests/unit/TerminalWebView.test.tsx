@@ -196,7 +196,7 @@ describe('TerminalWebView', () => {
     const container = screen.getByTestId('terminal-webview-container');
     const flatStyle = ([] as object[]).concat(container.props.style ?? []);
     const hasHidden = flatStyle.some(
-      (s: Record<string, unknown>) => s?.display === 'none',
+      (s) => (s as Record<string, unknown>)?.display === 'none',
     );
     expect(hasHidden).toBe(false);
   });
