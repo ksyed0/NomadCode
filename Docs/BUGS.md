@@ -92,6 +92,21 @@ Status: Fixed
 Fix Branch: feature/epic-0007-auth
 Lesson Encoded: No
 
+BUG-0009: Landscape-locked app crashes on iPhone simulator when SetupWizard Modal is presented (SIM-1)
+Severity: Medium
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Run app via Expo Go on iPhone simulator (any iPhone model)
+  2. Wait ~10 seconds for Zustand store to hydrate
+  3. SetupWizard Modal becomes visible
+Expected: Modal opens normally
+Actual: SIGABRT crash in -[UIViewController __supportedInterfaceOrientations] during modal presentation
+Root Cause: iOS 16+ throws when a modal is presented in a landscape-locked app on iPhone; iPads handle this correctly
+Status: Open
+Fix Branch:
+Lesson Encoded: No
+
 BUG-0005: No swipe gesture trigger for command palette (CP-5)
 Severity: Low
 Related Story: US-0015
