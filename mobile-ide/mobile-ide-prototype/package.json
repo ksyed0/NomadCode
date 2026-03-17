@@ -17,6 +17,7 @@
     "test:e2e:android": "detox test --configuration android.emu.debug",
     "test:e2e:build:ios": "detox build --configuration ios.ipad.debug",
     "test:e2e:build:android": "detox build --configuration android.emu.debug",
+    "build:terminal": "node src/terminal/bundle/build.js",
     "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit"
   },
@@ -30,6 +31,7 @@
     "expo-secure-store": "~14.0.1",
     "expo-status-bar": "~2.0.1",
     "expo-web-browser": "~14.0.2",
+    "isomorphic-git": "^1.37.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.0",
@@ -39,12 +41,14 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.0",
+    "@size-limit/preset-app": "^12.0.1",
     "@testing-library/react-native": "^12.8.0",
     "@types/jest": "^29.5.0",
     "@types/react": "~18.3.0",
-    "detox": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
+    "detox": "^20.0.0",
+    "esbuild": "^0.27.4",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.0",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -52,7 +56,6 @@
     "jest-expo": "~52.0.0",
     "jest-junit": "^16.0.0",
     "react-test-renderer": "18.3.1",
-    "@size-limit/preset-app": "^12.0.1",
     "size-limit": "^12.0.1",
     "typescript": "^5.3.3"
   },
@@ -64,7 +67,8 @@
     "coverageDirectory": "../../Docs/coverage",
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
-      "!src/**/*.d.ts"
+      "!src/**/*.d.ts",
+      "!src/terminal/bundle/**"
     ],
     "coverageThreshold": {
       "global": {
@@ -82,7 +86,7 @@
     ],
     "testResultsProcessor": "jest-junit",
     "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-webview)"
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-webview|isomorphic-git)"
     ]
   }
 }

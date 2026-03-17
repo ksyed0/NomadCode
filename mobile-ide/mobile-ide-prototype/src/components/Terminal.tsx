@@ -29,6 +29,10 @@ interface OutputLine {
 let lineId = 0;
 
 /**
+ * @deprecated Use TerminalWebView instead. This component is a prototype stub
+ * that will be removed in a future release.
+ */
+/**
  * Terminal — sandboxed interactive terminal.
  *
  * NOTE: This is a prototype stub rendering a mock terminal UI.

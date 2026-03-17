@@ -29,13 +29,13 @@ Dependencies: EPIC-0001, EPIC-0002
 EPIC-0004: Command Palette
 Description: Fuzzy-search command palette accessible by gesture or Cmd+P for keyboard-free power workflows.
 Release Target: Release 0.5 (Beta)
-Status: Planned
+Status: Done
 Dependencies: EPIC-0001
 
 EPIC-0005: Customization
 Description: Light/dark themes, font size settings, and extension installation.
 Release Target: Release 1.0 (GA)
-Status: Planned
+Status: Done
 Dependencies: EPIC-0001, EPIC-0002, EPIC-0003, EPIC-0004
 
 EPIC-0006: Plan Visualizer
@@ -47,7 +47,7 @@ Dependencies: None
 EPIC-0007: Authentication
 Description: GitHub OAuth sign-in via browser redirect, secure token storage in platform keychain, and sign-out with token revocation.
 Release Target: Release 1.0 (GA)
-Status: Planned
+Status: Done
 Dependencies: EPIC-0005
 
 EPIC-0008: Git Integration

@@ -4,6 +4,57 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 5 — 2026-03-17
+
+### What Was Done
+- Fixed CI failures on Dependabot PRs:
+  - PR #30 (eslint-plugin-react-hooks 4→7): fixed `react-hooks/set-state-in-effect` in CommandPalette.tsx (moved setState to render-time derived value); fixed `react-hooks/refs` in TabletResponsive.tsx (eslint-disable on PanResponder spread)
+  - PR #31 (zustand 5.0.11→5.0.12): regenerated lock file via `npm install`; merged
+  - PR #32 (eslint 8→10): closed — ESLint v10 requires full flat config migration, incompatible with current plugin peer deps
+  - PR #33 (react-test-renderer 18→19): closed — React 19 incompatible with expo@52
+- Resolved merge conflicts on PR #34 (feature/epic-0007-auth → develop): kept EPIC-0007 additions, took develop's Dependabot versions for pre-existing packages
+- Code reviewed PR #34 via 5-agent parallel review; found and fixed 3 bugs:
+  - BUG-0006 (AUTH-1): EXPO_PUBLIC_ prefix on client_secret bundled it in binary — fixed env naming
+  - BUG-0007 (AUTH-2): useAutoDiscovery always null for GitHub — replaced with hardcoded DiscoveryDocument
+  - BUG-0008 (AUTH-3): empty catch block silently discarded OAuth errors — added setError calls
+- Fixed expo-file-system/legacy import path (subpath only exists in v55+; pinned to v18 for expo@52)
+- Fixed react-native-webview and react-native version warnings (minor)
+- Added `scheme: "nomadcode"` to app.json (required by expo-auth-session makeRedirectUri)
+- Confirmed app runs on iPad Pro simulator (landscape orientation); documented BUG-0009 (iPhone landscape + modal crash)
+- Updated RELEASE_PLAN.md: EPIC-0004, EPIC-0005, EPIC-0007 → Done
+
+### Current State
+- Branch: `develop` (EPIC-0007 merged via PR #34)
+- All tests passing (last confirmed run pre-merge)
+- EPIC-0001 (Code Editing): Done
+- EPIC-0002 (File Management): Done
+- EPIC-0003 (Terminal): **Next up** — stub exists at `src/components/Terminal.tsx`
+- EPIC-0004 (Command Palette): Done
+- EPIC-0005 (Customization): Done
+- EPIC-0006 (Plan Visualizer): Done
+- EPIC-0007 (Authentication): Done
+
+### Test Status
+- All mobile unit tests passing (confirmed pre-merge)
+- Coverage ≥ 80% on all modified files
+
+### Key Files Modified
+- `src/components/CommandPalette.tsx` — removed set-state-in-effect, derived clampedIndex at render
+- `src/layout/TabletResponsive.tsx` — eslint-disable for PanResponder refs
+- `src/components/SettingsScreen.tsx` — hardcoded GitHub DiscoveryDocument, setError in catch blocks
+- `src/stores/useAuthStore.ts` — setError action
+- `src/utils/FileSystemBridge.ts`, `MonacoAssetManager.ts`, `SetupWizard.tsx` — removed /legacy import path
+- `app.json` — added scheme: nomadcode
+- `Docs/BUGS.md` — BUG-0006 through BUG-0009
+- `Docs/RELEASE_PLAN.md` — EPIC-0004, 0005, 0007 → Done
+
+### Next Session Pick-up
+1. Start EPIC-0003 (Terminal): US-0012, US-0013, US-0014
+   - `Terminal.tsx` stub already exists — needs real WASI/xterm integration
+   - Branch from `develop`: `feature/epic-0003-terminal`
+
+---
+
 ## Session 4 — 2026-03-12
 
 ### What Was Done
