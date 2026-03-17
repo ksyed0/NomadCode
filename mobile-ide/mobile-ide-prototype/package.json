@@ -17,6 +17,7 @@
     "test:e2e:android": "detox test --configuration android.emu.debug",
     "test:e2e:build:ios": "detox build --configuration ios.ipad.debug",
     "test:e2e:build:android": "detox build --configuration android.emu.debug",
+    "build:terminal": "node src/terminal/bundle/build.js",
     "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit"
   },
