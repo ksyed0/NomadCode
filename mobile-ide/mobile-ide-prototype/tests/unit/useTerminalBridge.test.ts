@@ -23,6 +23,7 @@ import type { WebViewMessageEvent } from 'react-native-webview';
 const mockInjectJavaScript = jest.fn();
 
 jest.mock('react-native-webview', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require('react');
   // Provide a minimal WebView component so the ref type resolves at runtime.
   const MockWebView = React.forwardRef(

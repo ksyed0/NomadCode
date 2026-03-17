@@ -29,7 +29,7 @@ const mockSendToWebView = jest.fn();
 // ---------------------------------------------------------------------------
 
 jest.mock('react-native-webview', () => ({
-  WebView: jest.fn(({ onMessage, onError, onLayout, ...props }) => {
+  WebView: jest.fn(({ onMessage, onError, onLayout, ..._props }) => {
     // Store callbacks for test access.
     mockWebViewCallbacks.onMessage = onMessage;
     mockWebViewCallbacks.onError = onError;
