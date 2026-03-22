@@ -643,3 +643,58 @@ Post-rollback:
 Periodically, at the start of a new session, analyze the entire project and all its files **before** reading instruction files and memory. Flag issues, inconsistencies, or problems. This is the equivalent of an independent code audit.
 
 After the review is complete, proceed with the normal session startup sequence.
+
+---
+
+## ⚙️ CI/CD & Release Workflow
+
+This project uses GitHub Actions with branch protection on `main` and `develop`.
+Required status checks before merge: **Lint + Test + Dependency Audit**.
+
+### Branch Protection Context
+
+- `develop` and `main` both have required checks — PRs cannot merge until all required CI jobs pass.
+- `enforce_admins: false` on both branches — the `--admin` flag on `gh pr merge` can bypass required checks.
+
+### Version-Bump Workflow (`.github/workflows/version-bump.yml`)
+
+Triggers when a PR (excluding other `chore/version-bump` PRs) merges to `develop`.
+
+Pattern:
+1. Checkout with `fetch-depth: 0` and configure git identity
+2. `npm version patch --no-git-tag-version` in `mobile-ide/mobile-ide-prototype/`
+3. Create branch `chore/version-bump-{new-version}`
+4. Commit the bumped `package.json` — **no `[skip ci]` in the message**
+5. Open PR to `develop` via `gh pr create`
+6. Merge immediately with `gh pr merge --squash --admin`
+   - `--admin` bypasses branch protection (works because `enforce_admins: false`)
+   - **Never use `--auto` here:** `--auto` waits for required CI checks; if the commit carries `[skip ci]`, those checks never run and the merge stalls forever
+
+### Release-Tag Workflow (`.github/workflows/release-tag.yml`)
+
+Triggers on `pull_request: types: [closed]` targeting `main`, only when `merged == true`.
+
+Pattern:
+1. Checkout with `fetch-depth: 0` (so all tags are visible)
+2. Read version: `VERSION=$(jq -r .version mobile-ide/mobile-ide-prototype/package.json)`
+3. Idempotency guard: `git ls-remote --tags origin "v$VERSION"` — skip if tag already exists
+4. Create annotated tag: `git tag -a "v$VERSION" -m "Release v$VERSION"`
+5. Push tag: `git push origin "v$VERSION"`
+6. Create GitHub Release: `gh release create "v$VERSION" --generate-notes`
+
+Requires `permissions: contents: write`.
+
+### Retroactive Tagging (one-time, manual)
+
+After the workflow PR merges to `develop` and is promoted to `main`, tag the current `main` HEAD:
+
+```bash
+VERSION=$(jq -r .version mobile-ide/mobile-ide-prototype/package.json)
+git tag -a "v$VERSION" HEAD -m "Release v$VERSION"
+git push origin "v$VERSION"
+gh release create "v$VERSION" --generate-notes
+```
+
+### ⚠️ Conflict Note: `release.yml`
+
+`release.yml` uses `semantic-release` on push to `main` and also creates tags and releases. Before enabling `release-tag.yml`, confirm whether `semantic-release` is active. If it is, the two workflows will conflict (duplicate tags). Disable or remove `release.yml` if switching to the manual tag workflow.
