@@ -99,3 +99,7 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-17 | 5df17e42-ad34-4199-aa96-39d751943be5 | feature/EPIC-0003-wasi-terminal-runtime | 0 | 0 | 0 | 0.0000 |
 | 2026-03-17 | 5df17e42-ad34-4199-aa96-39d751943be5 | feature/EPIC-0003-wasi-terminal-runtime | 0 | 0 | 0 | 0.0000 |
 | 2026-03-17 | 5df17e42-ad34-4199-aa96-39d751943be5 | feature/EPIC-0003-wasi-terminal-runtime | 0 | 0 | 0 | 0.0000 |
+| 2026-03-17 | 618e45c0-a9e7-43d3-b13a-e314cd13566c | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-17 | 618e45c0-a9e7-43d3-b13a-e314cd13566c | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-17 | 43095709-c0a2-4e54-b46e-8218de84d6f5 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-03-22 | 138374ce-9b14-4115-94c3-fbcf4f36a5ae | feature/ci-workflow-improvements | 0 | 0 | 0 | 0.0000 |
