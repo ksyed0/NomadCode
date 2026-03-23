@@ -63,10 +63,11 @@ async function build() {
   fs.writeFileSync(path.join(__dirname, 'terminalHtmlContent.ts'), tsContent, 'utf8');
   console.log('✓ terminalHtmlContent.ts updated');
 
-  // Bundle size gate — warn if over 2 MB, do not fail build
+  // Bundle size gate — fail build if over 2 MB
   const htmlSize = Buffer.byteLength(html, 'utf8');
   if (htmlSize > 2 * 1024 * 1024) {
     console.warn(`⚠ WARNING: terminal.html is ${(htmlSize / 1024 / 1024).toFixed(2)} MB — exceeds 2 MB ceiling. Consider switching to asset-based loading.`);
+    process.exit(1);
   } else {
     console.log(`✓ Bundle size: ${(htmlSize / 1024 / 1024).toFixed(2)} MB (within 2 MB ceiling)`);
   }

@@ -486,7 +486,6 @@ export async function dispatch(
       const consoleMock = {
         log: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
         error: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
-        warn: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
       };
       try {
         // eslint-disable-next-line no-new-func
