@@ -11,6 +11,11 @@
 
 import git from 'isomorphic-git';
 import http from 'isomorphic-git/http/web';
+import * as prettierStandalone from 'prettier/standalone';
+import * as prettierBabelPlugin from 'prettier/plugins/babel';
+import * as prettierEstreePlugin from 'prettier/plugins/estree';
+// eslint (full package) is Node.js-only and cannot be bundled for WebView — deferred to v1.x
+// typescript package is ~10 MB and exceeds the 2 MB bundle ceiling — tsc deferred to v1.x
 
 /* -------------------------------------------------------------------------- */
 /*  Global type declarations for the WebView environment                       */
@@ -316,11 +321,51 @@ async function handleGit(
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Pre-bundled npx tool registry                                              */
+/* -------------------------------------------------------------------------- */
+
+const bundledNpxTools: Record<
+  string,
+  (args: string[], cwd: string) => Promise<{ output: string; exitCode: number }>
+> = {
+  prettier: async (toolArgs, toolCwd) => {
+    const filePath = resolvePath(toolArgs[0] ?? '', toolCwd);
+    if (!toolArgs[0]) return { output: 'usage: npx prettier <file>', exitCode: 1 };
+    let code: string;
+    try {
+      code = await vfsRead(filePath);
+    } catch {
+      return { output: `prettier: ${toolArgs[0]}: No such file or directory`, exitCode: 1 };
+    }
+    if (code.length > 500 * 1024) {
+      return { output: 'prettier: file exceeds 500 KB limit', exitCode: 1 };
+    }
+    try {
+      const formatted = await prettierStandalone.format(code, {
+        parser: 'babel',
+        plugins: [prettierBabelPlugin, prettierEstreePlugin],
+      });
+      await vfsWrite(filePath, formatted);
+      return { output: `Formatted ${toolArgs[0]}`, exitCode: 0 };
+    } catch (e) {
+      return { output: `prettier: ${(e as Error).message}`, exitCode: 1 };
+    }
+  },
+
+  // eslint deferred to v1.x — full eslint package requires Node.js builtins (fs, path) and cannot
+  // be bundled for a browser/WebView target. Consider eslint-linter-browserify as a future replacement.
+
+  // tsc deferred to v1.x — typescript package is ~10 MB and exceeds the 2 MB bundle ceiling.
+  // Consider using a stripped-down TS transpiler (e.g. sucrase or @babel/standalone) as a future replacement.
+};
+
+/* -------------------------------------------------------------------------- */
 /*  Shell dispatcher                                                            */
 /* -------------------------------------------------------------------------- */
 
 export async function dispatch(
   cmd: string,
+  depth = 0,
 ): Promise<{ output: string; exitCode: number; clearScreen?: boolean }> {
   const trimmed = cmd.trim();
   if (!trimmed) return { output: '', exitCode: 0 };
@@ -428,6 +473,33 @@ export async function dispatch(
     case 'clear':
       return { output: '', exitCode: 0, clearScreen: true };
 
+    case 'node': {
+      if (!args[0]) return { output: 'usage: node <file>', exitCode: 1 };
+      const filePath = resolvePath(args[0], cwd);
+      let code: string;
+      try {
+        code = await vfsRead(filePath);
+      } catch {
+        return { output: `node: ${args[0]}: No such file or directory`, exitCode: 1 };
+      }
+      const lines: string[] = [];
+      const consoleMock = {
+        log: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
+        error: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
+        warn: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
+      };
+      try {
+        // eslint-disable-next-line no-new-func
+        new Function('console', 'require', code)(
+          consoleMock,
+          (_mod: string) => { throw new Error('require() is not available in NomadCode'); }
+        );
+        return { output: lines.join('\n'), exitCode: 0 };
+      } catch (e) {
+        return { output: `node: ${(e as Error).message}`, exitCode: 1 };
+      }
+    }
+
     case 'npm': {
       if (!args[0]) {
         return { output: 'usage: npm run <script>', exitCode: 1 };
@@ -435,8 +507,40 @@ export async function dispatch(
       if (args[0] === 'install' || args[0] === 'i') {
         return { output: "npm install is not supported in NomadCode — packages are pre-bundled", exitCode: 1 };
       }
-      // For 'npm run' and other subcommands — return unsupported for now (Task 3 will implement 'run')
+      if (args[0] === 'run') {
+        const scriptName = args[1];
+        if (!scriptName) return { output: 'usage: npm run <script>', exitCode: 1 };
+        const pkgPath = resolvePath('package.json', cwd);
+        let pkg: { scripts?: Record<string, string> };
+        try {
+          const raw = await vfsRead(pkgPath);
+          pkg = JSON.parse(raw) as { scripts?: Record<string, string> };
+        } catch {
+          return { output: 'npm run: could not read package.json', exitCode: 1 };
+        }
+        const scriptCmd = pkg.scripts?.[scriptName];
+        if (!scriptCmd) {
+          return { output: `npm run: script '${scriptName}' not found in package.json`, exitCode: 1 };
+        }
+        if (depth >= 5) {
+          return { output: 'npm run: maximum script recursion depth exceeded', exitCode: 1 };
+        }
+        return dispatch(scriptCmd, depth + 1);
+      }
       return { output: `npm: '${args[0]}' is not a supported npm command`, exitCode: 1 };
+    }
+
+    case 'npx': {
+      const pkg = args[0];
+      if (!pkg) return { output: 'usage: npx <package> [args...]', exitCode: 1 };
+      const runner = bundledNpxTools[pkg];
+      if (!runner) {
+        return {
+          output: `npx: '${pkg}' is not available in the offline bundle. Bundled tools: prettier`,
+          exitCode: 1,
+        };
+      }
+      return runner(args.slice(1), cwd);
     }
 
     case 'git':
