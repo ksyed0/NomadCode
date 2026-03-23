@@ -787,7 +787,7 @@ git commit -m "feat(US-0020): mount ExtensionHost in App.tsx with editor callbac
 ### Task 5: Mark ACs done in RELEASE_PLAN.md and full test run
 
 **Files:**
-- Modify: `Docs/RELEASE_PLAN.md`
+- Modify: `docs/RELEASE_PLAN.md`
 
 **Step 1: Check all tests pass**
 
@@ -799,12 +799,12 @@ Expected: all tests pass, ≥80% coverage on all new/modified files.
 
 **Step 2: Mark ACs in RELEASE_PLAN.md**
 
-In `Docs/RELEASE_PLAN.md`, find the US-0020 block and update all 4 ACs from `[ ]` to `[x]`, and change `Status: Planned` to `Status: Done`.
+In `docs/RELEASE_PLAN.md`, find the US-0020 block and update all 4 ACs from `[ ]` to `[x]`, and change `Status: Planned` to `Status: Done`.
 
 **Step 3: Commit**
 
 ```bash
-git add Docs/RELEASE_PLAN.md
+git add docs/RELEASE_PLAN.md
 git commit -m "chore(US-0020): mark AC-0060–0063 done in RELEASE_PLAN"
 ```
 

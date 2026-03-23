@@ -1,9 +1,12 @@
+# Dependencies
+node_modules/
+
 # Generated coverage output — do not commit
-Docs/coverage/
+docs/coverage/
 
 # Generated plan visualizer artifacts — deployed to GitHub Pages, not committed
-Docs/plan-status.html
-Docs/plan-status.json
+docs/plan-status.html
+docs/plan-status.json
 
 # OS files
 .DS_Store

@@ -45,8 +45,8 @@ Running log of what was done each session, errors, test results, and blockers.
 - `src/stores/useAuthStore.ts` — setError action
 - `src/utils/FileSystemBridge.ts`, `MonacoAssetManager.ts`, `SetupWizard.tsx` — removed /legacy import path
 - `app.json` — added scheme: nomadcode
-- `Docs/BUGS.md` — BUG-0006 through BUG-0009
-- `Docs/RELEASE_PLAN.md` — EPIC-0004, 0005, 0007 → Done
+- `docs/BUGS.md` — BUG-0006 through BUG-0009
+- `docs/RELEASE_PLAN.md` — EPIC-0004, 0005, 0007 → Done
 
 ### Next Session Pick-up
 1. Start EPIC-0003 (Terminal): US-0012, US-0013, US-0014
@@ -62,8 +62,8 @@ Running log of what was done each session, errors, test results, and blockers.
 - Checked out `develop`, pulled latest
 - Brainstormed EPIC-0004 Command Palette: audited existing `CommandPalette.tsx`, chose full audit+rebuild with visible/onClose API, keyboard navigation, and swipe gesture trigger
 - Logged 5 bugs to `BUGS.md` (CP-1–CP-5): onRequestClose fire, backdrop-only-dismiss, missing explicit tests, uncovered lines, no swipe trigger
-- Wrote design doc: `Docs/plans/2026-03-12-epic-0004-command-palette-design.md`
-- Wrote implementation plan: `Docs/plans/2026-03-12-epic-0004-command-palette-plan.md`
+- Wrote design doc: `docs/plans/2026-03-12-epic-0004-command-palette-design.md`
+- Wrote implementation plan: `docs/plans/2026-03-12-epic-0004-command-palette-plan.md`
 - Created feature branch `feature/epic-0004-command-palette` from develop
 - Executed subagent-driven development (5 tasks):
   - Task 1: 26-test suite for CommandPalette (all 8 ACs + keyboard nav + edge cases)
@@ -100,9 +100,9 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ### Post-PR Fix
 - Discovered plan visualizer showing 0 bugs despite BUGS.md having 5 entries
-- Root cause 1: config pointed to `Docs/BUGS.md` (didn't exist); root BUGS.md was ignored
+- Root cause 1: config pointed to `docs/BUGS.md` (didn't exist); root BUGS.md was ignored
 - Root cause 2: parser expects `BUG-XXXX:` lines; root BUGS.md used `CP-1`/markdown headings
-- Fix: created `Docs/BUGS.md` in machine-readable format (BUG-0001–BUG-0005, all Status: Fixed)
+- Fix: created `docs/BUGS.md` in machine-readable format (BUG-0001–BUG-0005, all Status: Fixed)
 - Updated root BUGS.md with BUG-IDs and FIXED status; ID_REGISTRY BUG next → BUG-0006
 - Dashboard now reports 5 bugs correctly
 - PR #16 merged → develop
@@ -118,13 +118,13 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ### What Was Done
 - Installed PlanVisualizer tooling via `install.sh` (tools/, tests/, jest.config.js, GitHub Actions workflow)
-- Fixed `plan-visualizer.yml`: path filters `docs/` → `Docs/` (Linux case-sensitive); Pages artifact path `./docs` → `./Docs`
+- Fixed `plan-visualizer.yml`: path filters `docs/` → `docs/` (Linux case-sensitive); Pages artifact path `./docs` → `./Docs`
 - Confirmed `.claude/settings.json` Stop hook already present (`node tools/capture-cost.js`)
 - Merged PR #13: PlanVisualizer install + workflow fixes
 - Added 42 ACs (AC-0022–AC-0063) to `RELEASE_PLAN.md` for 14 stories missing acceptance criteria (US-0003–US-0007, US-0012–US-0020)
 - Appended 110 TC entries to `TEST_CASES.md` (28 bridge entries TC-0035–TC-0080 + 82 new TC-0081–TC-0162) — traceability matrix now covers all 21 stories
 - Updated `ID_REGISTRY.md`: next AC → AC-0064, next TC → TC-0163
-- Fixed `jest.config.js`: added `coverageDirectory: 'Docs/coverage'` — resolves N/A on Lines/Branch Cov stat cards
+- Fixed `jest.config.js`: added `coverageDirectory: 'docs/coverage'` — resolves N/A on Lines/Branch Cov stat cards
 - Fixed `render-html.js`: changed fixed-colour stat cards (Stories, Progress %, Projected, AI Actual) from coloured text to `text-white`
 - Diagnosed iOS Simulator `NSPOSIXErrorDomain code=60` (ETIMEDOUT) — root cause: Metro using network IP; fix: `npx expo start --localhost`
 - Fixed deprecated Expo packages via `npx expo install`
@@ -167,12 +167,12 @@ Running log of what was done each session, errors, test results, and blockers.
   - Created `progress.md` (this file)
   - Created `findings.md`
   - Created `task_plan.md`
-  - Created `Docs/ID_REGISTRY.md`
-  - Created `Docs/RELEASE_PLAN.md`
-  - Created `Docs/TEST_CASES.md`
-  - Created `Docs/BUGS.md`
-  - Created `Docs/LESSONS.md`
-  - Created `Docs/ROLLBACK.md`
+  - Created `docs/ID_REGISTRY.md`
+  - Created `docs/RELEASE_PLAN.md`
+  - Created `docs/TEST_CASES.md`
+  - Created `docs/BUGS.md`
+  - Created `docs/LESSONS.md`
+  - Created `docs/ROLLBACK.md`
   - Created `architecture/ERROR_TAXONOMY.md`
   - Created `tools/` directory
   - Created `.tmp/` directory

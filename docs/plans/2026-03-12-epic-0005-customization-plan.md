@@ -19,7 +19,7 @@
 - Zustand is already installed (`^5.0.0`). AsyncStorage and expo-document-picker are NOT — install them.
 - `Editor.tsx` already has `fontSize` local state and `changeFontSize` — Task 7 promotes these to the store.
 - `CommandPalette.tsx` already has color constants at the top (BG_BASE, BG_ELEVATED, etc.) — Task 6 replaces them with `useTheme()`.
-- Design doc: `Docs/plans/2026-03-12-epic-0005-customization-design.md`
+- Design doc: `docs/plans/2026-03-12-epic-0005-customization-design.md`
 - WCAG requirement: all text/bg pairs must meet 4.5:1 contrast (enforced by theme design, not at runtime).
 - `error` (#EF4444) and `success` (#22C55E) are fixed across all themes.
 
@@ -1325,9 +1325,9 @@ git commit -m "feat(EPIC-0005): wire Editor fontSize to settings store; apply th
 **Files:**
 - Modify: `App.tsx`
 - Modify: `tests/unit/App.test.tsx`
-- Modify: `Docs/plan-status.json`
-- Modify: `Docs/RELEASE_PLAN.md`
-- Modify: `Docs/ID_REGISTRY.md`
+- Modify: `docs/plan-status.json`
+- Modify: `docs/RELEASE_PLAN.md`
+- Modify: `docs/ID_REGISTRY.md`
 - Modify: `progress.md`
 
 ### App.tsx changes
@@ -1373,17 +1373,17 @@ it('SetupWizard is visible when hasCompletedSetup is false', () => {
 
 ### Docs updates
 
-**Step 5: Update `Docs/plan-status.json`**
+**Step 5: Update `docs/plan-status.json`**
 - EPIC-0005 status: `"Planned"` → `"Done"`
 - US-0018, US-0019 status: `"Planned"` → `"Done"`, `branch` → `"feature/epic-0005-customization"`
 - AC-0054–AC-0059: `"done": false` → `"done": true`
 - TC-0149–TC-0159 (existing EPIC-0005 TCs): `"status": "Not Run"` → `"status": "Pass"`
 - Add new TCs (TC-0185 onwards) for store, wizard, settings, gear icon tests
 
-**Step 6: Update `Docs/RELEASE_PLAN.md`**
+**Step 6: Update `docs/RELEASE_PLAN.md`**
 - US-0018, US-0019: `Status: Planned` → `Status: Done`; `[ ]` → `[x]` for all ACs
 
-**Step 7: Update `Docs/ID_REGISTRY.md`**
+**Step 7: Update `docs/ID_REGISTRY.md`**
 - TC: update next available ID to reflect new TCs added
 
 **Step 8: Regenerate dashboard**
@@ -1408,8 +1408,8 @@ Expected: all tests pass.
 
 ```bash
 git add App.tsx tests/unit/App.test.tsx \
-        Docs/plan-status.json Docs/plan-status.html Docs/RELEASE_PLAN.md \
-        Docs/ID_REGISTRY.md progress.md Docs/AI_COST_LOG.md
+        docs/plan-status.json docs/plan-status.html docs/RELEASE_PLAN.md \
+        docs/ID_REGISTRY.md progress.md docs/AI_COST_LOG.md
 git commit -m "feat(EPIC-0005): wire App.tsx; update all docs for EPIC-0005 completion"
 ```
 

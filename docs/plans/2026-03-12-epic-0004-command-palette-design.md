@@ -117,9 +117,9 @@ Selected item renders with `backgroundColor: '#2563EB'` (Nomad Blue) highlight.
 | `App.tsx` | Switch to `visible`/`onClose` pattern, pass `onOpenPalette` |
 | `tests/unit/CommandPalette.test.tsx` | Rebuild to cover all 8 ACs + new tests (~22 total) |
 | `tests/unit/TabletResponsive.test.tsx` | Add swipe gesture tests |
-| `Docs/plan-status.json` | Mark all EPIC-0004 ACs done |
-| `Docs/RELEASE_PLAN.md` | Mark all EPIC-0004 ACs checked |
-| `Docs/ID_REGISTRY.md` | Update TC sequence |
+| `docs/plan-status.json` | Mark all EPIC-0004 ACs done |
+| `docs/RELEASE_PLAN.md` | Mark all EPIC-0004 ACs checked |
+| `docs/ID_REGISTRY.md` | Update TC sequence |
 | `progress.md` | Update session state |
 
 ---

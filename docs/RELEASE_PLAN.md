@@ -1,7 +1,7 @@
 # RELEASE_PLAN.md — NomadCode Release Plan
 
 Epics, User Stories, Tasks, MVP definition, and release milestones.
-All artefact IDs are permanent — never reused. Consult `Docs/ID_REGISTRY.md` before adding new artefacts.
+All artefact IDs are permanent — never reused. Consult `docs/ID_REGISTRY.md` before adding new artefacts.
 
 ---
 

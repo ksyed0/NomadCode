@@ -15,7 +15,7 @@ const sample = `
 
 ## L-0007 — All config paths must use lowercase
 **Rule:** Every path in plan-visualizer.config.json must match the actual directory casing on Linux.
-*Learned when the workflow deployed ./docs but the generator wrote to Docs/.*
+*Learned when the workflow deployed ./docs but the generator wrote to docs/.*
 **Date:** 2026-03-10
 
 ---

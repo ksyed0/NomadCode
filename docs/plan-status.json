@@ -2420,7 +2420,7 @@
     },
     {
       "date": "2026-03-11",
-      "summary": "Installed PlanVisualizer tooling via `install.sh` (tools/, tests/, jest.config.js, GitHub Actions workflow); Fixed `plan-visualizer.yml`: path filters `docs/` → `Docs/` (Linux case-sensitive); Pages artifact path `./docs` → `./Docs`; Confirmed `.claude/settings.json` Stop hook already present (`node tools/capture-cost.js`)"
+      "summary": "Installed PlanVisualizer tooling via `install.sh` (tools/, tests/, jest.config.js, GitHub Actions workflow); Fixed `plan-visualizer.yml`: path filters `docs/` → `docs/` (Linux case-sensitive); Pages artifact path `./docs` → `./Docs`; Confirmed `.claude/settings.json` Stop hook already present (`node tools/capture-cost.js`)"
     },
     {
       "date": "2026-03-09",

@@ -666,7 +666,7 @@ Exit code 127 is sent to React Native via `COMMAND_COMPLETE`. No stack trace is 
 | TC-0307–TC-0316 | Test Cases | useTerminalBridge — hook tests (10 tests) |
 | TC-0317–TC-0324 | Test Cases | TerminalWebView — component tests (8 tests) |
 
-> **Note:** The ID ranges above must be verified against `Docs/ID_REGISTRY.md` before implementation begins. If the registry has advanced beyond these values, use the next available IDs.
+> **Note:** The ID ranges above must be verified against `docs/ID_REGISTRY.md` before implementation begins. If the registry has advanced beyond these values, use the next available IDs.
 
 ---
 
@@ -784,7 +784,7 @@ If existing `Terminal.tsx` tests import the component by its default export, the
 | File path | Change |
 |---|---|
 | `components/Terminal.tsx` | Add deprecation comment at top of file: `@deprecated — replaced by TerminalWebView.tsx (EPIC-0003 Phase 2). Do not add new features here.` |
-| `Docs/ID_REGISTRY.md` | Advance ID counters to reflect new US, AC, and TC artefacts |
+| `docs/ID_REGISTRY.md` | Advance ID counters to reflect new US, AC, and TC artefacts |
 | `progress.md` | Update with Phase 2 implementation status |
 
 ### Files NOT Modified

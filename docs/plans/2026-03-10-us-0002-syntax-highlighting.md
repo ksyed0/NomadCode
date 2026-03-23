@@ -25,12 +25,12 @@ git checkout -b feature/US-0002-syntax-highlighting
 ## Task 1: Assign AC IDs and update registry
 
 **Files:**
-- Modify: `Docs/RELEASE_PLAN.md`
-- Modify: `Docs/ID_REGISTRY.md`
+- Modify: `docs/RELEASE_PLAN.md`
+- Modify: `docs/ID_REGISTRY.md`
 
 **Step 1: Update ID_REGISTRY.md**
 
-In `Docs/ID_REGISTRY.md`, change:
+In `docs/ID_REGISTRY.md`, change:
 ```
 | AC | AC-0012 | AC-0011 |
 ```
@@ -50,7 +50,7 @@ Find the US-0002 block and replace the three `AC-TBD` lines with:
 
 **Step 3: Commit**
 ```bash
-git add Docs/RELEASE_PLAN.md Docs/ID_REGISTRY.md
+git add docs/RELEASE_PLAN.md docs/ID_REGISTRY.md
 git commit -m "docs(US-0002): assign AC-0012..AC-0014"
 ```
 
@@ -296,7 +296,7 @@ git commit -m "feat(US-0002/AC-0013-AC-0014): KeyboardAvoidingView for virtual k
 ## Task 4: Mark US-0002 Done in RELEASE_PLAN.md
 
 **Files:**
-- Modify: `Docs/RELEASE_PLAN.md`
+- Modify: `docs/RELEASE_PLAN.md`
 
 **Step 1: Update US-0002 block**
 
@@ -328,7 +328,7 @@ Also add a `Definition of Done` checklist and mark relevant items complete.
 
 **Step 3: Commit**
 ```bash
-git add Docs/RELEASE_PLAN.md
+git add docs/RELEASE_PLAN.md
 git commit -m "docs(US-0002): mark Done — all ACs verified"
 ```
 

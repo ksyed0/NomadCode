@@ -64,7 +64,7 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "coverageDirectory": "../../Docs/coverage",
+    "coverageDirectory": "../../docs/coverage",
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
       "!src/**/*.d.ts",

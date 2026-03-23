@@ -1,7 +1,7 @@
 # TEST_CASES.md — NomadCode
 
 Manual and automated test cases linked to User Stories and Acceptance Criteria.
-All IDs are permanent — consult `Docs/ID_REGISTRY.md` before adding new entries.
+All IDs are permanent — consult `docs/ID_REGISTRY.md` before adding new entries.
 
 ---
 

@@ -1013,15 +1013,15 @@ git commit -m "feat(EPIC-0004): update App.tsx to visible/onClose API + wire onO
 ## Task 6: Update plan-status.json, RELEASE_PLAN.md, ID_REGISTRY.md
 
 **Files:**
-- Modify: `mobile-ide/mobile-ide-prototype/Docs/plan-status.json` (relative path from repo root: `Docs/plan-status.json`)
-- Modify: `Docs/RELEASE_PLAN.md`
-- Modify: `Docs/ID_REGISTRY.md`
+- Modify: `mobile-ide/mobile-ide-prototype/docs/plan-status.json` (relative path from repo root: `docs/plan-status.json`)
+- Modify: `docs/RELEASE_PLAN.md`
+- Modify: `docs/ID_REGISTRY.md`
 
-### Step 1: Mark EPIC-0004 done in Docs/plan-status.json
+### Step 1: Mark EPIC-0004 done in docs/plan-status.json
 
 Find the EPIC-0004 entry and set `"status": "Done"`. Find US-0015, US-0016, US-0017 and set each to `"status": "Done"`. Find AC-0046 through AC-0053 and mark each `"done": true`.
 
-### Step 2: Mark ACs checked in Docs/RELEASE_PLAN.md
+### Step 2: Mark ACs checked in docs/RELEASE_PLAN.md
 
 Change all `- [ ] AC-004x` under EPIC-0004 to `- [x] AC-004x`.
 
@@ -1043,7 +1043,7 @@ node tools/generate-plan.js
 ### Step 5: Commit everything
 
 ```bash
-git add Docs/plan-status.json Docs/RELEASE_PLAN.md Docs/ID_REGISTRY.md Docs/plan-status.html Docs/AI_COST_LOG.md
+git add docs/plan-status.json docs/RELEASE_PLAN.md docs/ID_REGISTRY.md docs/plan-status.html docs/AI_COST_LOG.md
 git commit -m "chore(EPIC-0004): mark all ACs done, update plan-status, ID registry"
 ```
 
@@ -1067,7 +1067,7 @@ Expected: All tests pass, no failures.
 ### Step 3: Commit progress.md and push
 
 ```bash
-git add progress.md Docs/AI_COST_LOG.md
+git add progress.md docs/AI_COST_LOG.md
 git commit -m "chore: update progress.md for EPIC-0004 completion"
 git push -u origin feature/epic-0004-command-palette
 ```
