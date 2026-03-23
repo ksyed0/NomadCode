@@ -43,6 +43,15 @@ function sendToRN(msg: object): void {
   window.ReactNativeWebView.postMessage(JSON.stringify(msg));
 }
 
+/**
+ * Resolve a shell argument to an absolute path.
+ * If `arg` already starts with '/' it is returned as-is;
+ * otherwise it is joined with `cwd` and duplicate slashes are collapsed.
+ */
+function resolvePath(arg: string, baseCwd: string): string {
+  return arg.startsWith('/') ? arg : `${baseCwd}/${arg}`.replace(/\/+/g, '/');
+}
+
 /* -------------------------------------------------------------------------- */
 /*  VFS bridge — wraps each RN file operation as an async promise              */
 /* -------------------------------------------------------------------------- */
@@ -325,9 +334,7 @@ export async function dispatch(
 
     case 'cd': {
       const target = args[0] || '/';
-      cwd = target.startsWith('/')
-        ? target
-        : `${cwd}/${target}`.replace(/\/+/g, '/');
+      cwd = resolvePath(target, cwd);
       return { output: '', exitCode: 0 };
     }
 
@@ -374,9 +381,7 @@ export async function dispatch(
       if (!args[0]) {
         return { output: 'usage: touch <file>', exitCode: 1 };
       }
-      const touchPath = args[0].startsWith('/')
-        ? args[0]
-        : `${cwd}/${args[0]}`.replace(/\/+/g, '/');
+      const touchPath = resolvePath(args[0], cwd);
       try {
         await vfsRead(touchPath);
         // File exists — no-op
@@ -396,12 +401,8 @@ export async function dispatch(
       if (!args[0] || !args[1]) {
         return { output: 'usage: cp <src> <dest>', exitCode: 1 };
       }
-      const cpSrc = args[0].startsWith('/')
-        ? args[0]
-        : `${cwd}/${args[0]}`.replace(/\/+/g, '/');
-      const cpDest = args[1].startsWith('/')
-        ? args[1]
-        : `${cwd}/${args[1]}`.replace(/\/+/g, '/');
+      const cpSrc = resolvePath(args[0], cwd);
+      const cpDest = resolvePath(args[1], cwd);
       try {
         await vfsCopy(cpSrc, cpDest);
         return { output: '', exitCode: 0 };
@@ -414,12 +415,8 @@ export async function dispatch(
       if (!args[0] || !args[1]) {
         return { output: 'usage: mv <src> <dest>', exitCode: 1 };
       }
-      const mvSrc = args[0].startsWith('/')
-        ? args[0]
-        : `${cwd}/${args[0]}`.replace(/\/+/g, '/');
-      const mvDest = args[1].startsWith('/')
-        ? args[1]
-        : `${cwd}/${args[1]}`.replace(/\/+/g, '/');
+      const mvSrc = resolvePath(args[0], cwd);
+      const mvDest = resolvePath(args[1], cwd);
       try {
         await vfsMove(mvSrc, mvDest);
         return { output: '', exitCode: 0 };
@@ -432,11 +429,14 @@ export async function dispatch(
       return { output: '', exitCode: -1 };
 
     case 'npm': {
+      if (!args[0]) {
+        return { output: 'usage: npm run <script>', exitCode: 1 };
+      }
       if (args[0] === 'install' || args[0] === 'i') {
         return { output: "npm install is not supported in NomadCode — packages are pre-bundled", exitCode: 1 };
       }
       // For 'npm run' and other subcommands — return unsupported for now (Task 3 will implement 'run')
-      return { output: `npm: '${args[0] ?? ''}' is not a supported npm command`, exitCode: 1 };
+      return { output: `npm: '${args[0]}' is not a supported npm command`, exitCode: 1 };
     }
 
     case 'git':
@@ -473,12 +473,14 @@ function initTerminal(): void {
       if (!cmd) return;
       printLine(`$ ${cmd}`, 'command');
       const { output: out, exitCode } = await dispatch(cmd);
+      const rnExitCode = exitCode === -1 ? 0 : exitCode;
       if (exitCode === -1) {
         // Clear sentinel — empty the output before printing the new prompt
         output.innerHTML = '';
       }
-      if (out) printLine(out, exitCode === 0 ? '' : 'error');
-      sendToRN({ type: 'COMMAND_COMPLETE', exitCode });
+      if (out) printLine(out, rnExitCode === 0 ? '' : 'error');
+      // -1 is a DOM-only sentinel for "clear screen" and must never reach RN
+      sendToRN({ type: 'COMMAND_COMPLETE', exitCode: rnExitCode });
     }
   });
 

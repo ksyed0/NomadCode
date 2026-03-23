@@ -149,7 +149,7 @@ describe('useTerminalBridge', () => {
     expect(mockHandleMessage).not.toHaveBeenCalled();
   });
 
-  // 5-9. FILE_* messages call FileBridge.handleMessage
+  // 5-11. FILE_* messages call FileBridge.handleMessage
   const fileMessages: WebViewToRN[] = [
     { type: 'FILE_READ', requestId: 'req-1', path: '/a.txt' },
     {
@@ -161,6 +161,8 @@ describe('useTerminalBridge', () => {
     { type: 'FILE_LIST', requestId: 'req-3', path: '/' },
     { type: 'FILE_MKDIR', requestId: 'req-4', path: '/new-dir' },
     { type: 'FILE_DELETE', requestId: 'req-5', path: '/old.txt' },
+    { type: 'FILE_COPY', requestId: 'req-6', src: '/a.txt', dest: '/b.txt' },
+    { type: 'FILE_MOVE', requestId: 'req-7', src: '/a.txt', dest: '/c.txt' },
   ];
 
   fileMessages.forEach((fileMsg) => {
