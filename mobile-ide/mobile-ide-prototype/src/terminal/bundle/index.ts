@@ -321,6 +321,12 @@ async function handleGit(
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Constants                                                                  */
+/* -------------------------------------------------------------------------- */
+
+const MAX_SCRIPT_FILE_SIZE = 500 * 1024; // 500 KB
+
+/* -------------------------------------------------------------------------- */
 /*  Pre-bundled npx tool registry                                              */
 /* -------------------------------------------------------------------------- */
 
@@ -337,7 +343,7 @@ const bundledNpxTools: Record<
     } catch {
       return { output: `prettier: ${toolArgs[0]}: No such file or directory`, exitCode: 1 };
     }
-    if (code.length > 500 * 1024) {
+    if (code.length > MAX_SCRIPT_FILE_SIZE) {
       return { output: 'prettier: file exceeds 500 KB limit', exitCode: 1 };
     }
     try {
@@ -481,6 +487,9 @@ export async function dispatch(
         code = await vfsRead(filePath);
       } catch {
         return { output: `node: ${args[0]}: No such file or directory`, exitCode: 1 };
+      }
+      if (code.length > MAX_SCRIPT_FILE_SIZE) {
+        return { output: `node: file exceeds maximum size (${MAX_SCRIPT_FILE_SIZE / 1024} KB)`, exitCode: 1 };
       }
       const lines: string[] = [];
       const consoleMock = {
