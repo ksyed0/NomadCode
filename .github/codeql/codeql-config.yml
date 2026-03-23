@@ -1,0 +1,4 @@
+paths-ignore:
+  - '**/dist/**'
+  - '**/*.min.js'
+  - 'mobile-ide/mobile-ide-prototype/src/terminal/bundle/dist/**'

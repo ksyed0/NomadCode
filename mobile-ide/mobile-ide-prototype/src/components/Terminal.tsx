@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { FileSystemBridge } from '../utils/FileSystemBridge';
+import { useTheme } from '../theme/tokens';
 
 interface TerminalProps {
   workingDirectory?: string;
@@ -28,6 +29,10 @@ interface OutputLine {
 let lineId = 0;
 
 /**
+ * @deprecated Use TerminalWebView instead. This component is a prototype stub
+ * that will be removed in a future release.
+ */
+/**
  * Terminal — sandboxed interactive terminal.
  *
  * NOTE: This is a prototype stub rendering a mock terminal UI.
@@ -35,6 +40,7 @@ let lineId = 0;
  * via a message-passing API.
  */
 export function Terminal({ workingDirectory = '/', onCommand, visible }: TerminalProps) {
+  const t = useTheme();
   const [input, setInput] = useState('');
   const [cwd, setCwd] = useState(workingDirectory);
   const [history, setHistory] = useState<string[]>([]);
@@ -127,14 +133,14 @@ export function Terminal({ workingDirectory = '/', onCommand, visible }: Termina
   return (
     <View
       testID="terminal-container"
-      style={[styles.container, visible === false && { display: 'none' }]}
+      style={[styles.container, { backgroundColor: t.bg }, visible === false && { display: 'none' }]}
     >
     <KeyboardAvoidingView
       style={styles.innerContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.header}>
-        <Text style={styles.headerText}>TERMINAL</Text>
+      <View style={[styles.header, { borderBottomColor: t.border, backgroundColor: t.bgElevated }]}>
+        <Text style={[styles.headerText, { color: t.textMuted }]}>TERMINAL</Text>
       </View>
       <ScrollView
         ref={scrollRef}
@@ -150,8 +156,9 @@ export function Terminal({ workingDirectory = '/', onCommand, visible }: Termina
             <Text
               style={[
                 styles.line,
-                line.type === 'command' && styles.commandLine,
-                line.type === 'error' && styles.errorLine,
+                { color: t.text },
+                line.type === 'command' && { color: t.success },
+                line.type === 'error' && { color: t.error },
               ]}
             >
               {line.text}
@@ -159,10 +166,10 @@ export function Terminal({ workingDirectory = '/', onCommand, visible }: Termina
           </TouchableOpacity>
         ))}
       </ScrollView>
-      <View style={styles.inputRow}>
-        <Text style={styles.prompt}>$</Text>
+      <View style={[styles.inputRow, { borderTopColor: t.bgElevated }]}>
+        <Text style={[styles.prompt, { color: t.success }]}>$</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: t.text }]}
           value={input}
           onChangeText={setInput}
           onSubmitEditing={handleSubmit}
@@ -171,14 +178,14 @@ export function Terminal({ workingDirectory = '/', onCommand, visible }: Termina
           autoCapitalize="none"
           spellCheck={false}
           placeholder="Enter command..."
-          placeholderTextColor="#475569"
+          placeholderTextColor={t.textMuted}
           blurOnSubmit={false}
         />
         <TouchableOpacity testID="history-up" onPress={handleHistoryUp} style={styles.histBtn}>
-          <Text style={styles.histBtnText}>↑</Text>
+          <Text style={[styles.histBtnText, { color: t.textMuted }]}>↑</Text>
         </TouchableOpacity>
         <TouchableOpacity testID="history-down" onPress={handleHistoryDown} style={styles.histBtn}>
-          <Text style={styles.histBtnText}>↓</Text>
+          <Text style={[styles.histBtnText, { color: t.textMuted }]}>↓</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -189,7 +196,6 @@ export function Terminal({ workingDirectory = '/', onCommand, visible }: Termina
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D1117',
   },
   innerContainer: {
     flex: 1,
@@ -198,11 +204,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
-    backgroundColor: '#1E293B',
   },
   headerText: {
-    color: '#64748B',
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1,
@@ -214,16 +217,9 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   line: {
-    color: '#CBD5E1',
     fontSize: 13,
     fontFamily: 'monospace',
     lineHeight: 20,
-  },
-  commandLine: {
-    color: '#22C55E',
-  },
-  errorLine: {
-    color: '#EF4444',
   },
   inputRow: {
     flexDirection: 'row',
@@ -231,17 +227,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
   },
   prompt: {
-    color: '#22C55E',
     fontFamily: 'monospace',
     fontSize: 14,
     marginRight: 8,
   },
   input: {
     flex: 1,
-    color: '#E2E8F0',
     fontSize: 13,
     fontFamily: 'monospace',
   },
@@ -250,7 +243,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   histBtnText: {
-    color: '#64748B',
     fontSize: 14,
     fontFamily: 'monospace',
   },

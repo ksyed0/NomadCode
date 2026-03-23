@@ -1,0 +1,77 @@
+/**
+ * useTerminalBridge — bidirectional message bridge between React Native and the
+ * WebView-hosted terminal.
+ *
+ * US-0047 / EPIC-0003
+ *
+ * The hook owns:
+ *   - A WebView ref the caller attaches via `<WebView ref={webViewRef} />`
+ *   - `sendToWebView`: posts a typed RNToWebView message into the WebView by
+ *     injecting a call to `window.receiveFromRN(msg)`.
+ *   - `onMessage`: receives WebViewToRN messages from the WebView, routes
+ *     FILE_* messages through FileBridge, and calls back the optional
+ *     `onCommandComplete` listener for COMMAND_COMPLETE events.
+ */
+
+import { useCallback, useRef } from 'react';
+import type WebView from 'react-native-webview';
+import type { WebViewMessageEvent } from 'react-native-webview';
+import { FileBridge } from '../terminal/FileBridge';
+import type { RNToWebView, WebViewToRN } from '../terminal/protocol';
+
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
+
+export interface UseTerminalBridgeOptions {
+  onCommandComplete?: (exitCode: number) => void;
+}
+
+export interface UseTerminalBridgeResult {
+  webViewRef: React.RefObject<WebView>;
+  sendToWebView: (msg: RNToWebView) => void;
+  onMessage: (event: WebViewMessageEvent) => void;
+}
+
+// ---------------------------------------------------------------------------
+// Hook
+// ---------------------------------------------------------------------------
+
+export function useTerminalBridge(
+  options?: UseTerminalBridgeOptions,
+): UseTerminalBridgeResult {
+  const webViewRef = useRef<WebView>(null);
+
+  const sendToWebView = useCallback((msg: RNToWebView): void => {
+    webViewRef.current?.injectJavaScript(
+      `window.receiveFromRN(${JSON.stringify(msg)})`,
+    );
+  }, []);
+
+  const onMessage = useCallback(
+    (event: WebViewMessageEvent): void => {
+      let msg: WebViewToRN;
+      try {
+        msg = JSON.parse(event.nativeEvent.data) as WebViewToRN;
+      } catch (e) {
+        console.warn('[useTerminalBridge] Failed to parse WebView message', e);
+        return;
+      }
+
+      if (msg.type === 'COMMAND_COMPLETE') {
+        options?.onCommandComplete?.(msg.exitCode);
+        return;
+      }
+
+      // All FILE_* messages are handled by FileBridge asynchronously.
+      void (async () => {
+        const response = await FileBridge.handleMessage(msg);
+        sendToWebView(response);
+      })();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [options?.onCommandComplete, sendToWebView],
+  );
+
+  return { webViewRef, sendToWebView, onMessage };
+}

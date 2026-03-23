@@ -26,7 +26,7 @@ Last updated: 2026-03-10
 | TC | TC-0035 | TC-0034 |
 | BUG | BUG-0001 | — |
 
-Source of truth: `Docs/ID_REGISTRY.md` — always consult before creating artefacts.
+Source of truth: `docs/ID_REGISTRY.md` — always consult before creating artefacts.
 
 ---
 
@@ -51,9 +51,9 @@ Source of truth: `Docs/ID_REGISTRY.md` — always consult before creating artefa
 | `mobile-ide/mobile-ide-prototype/src/components/Editor.tsx` | Main editor component |
 | `mobile-ide/mobile-ide-prototype/src/components/FileExplorer.tsx` | File tree UI |
 | `mobile-ide/mobile-ide-prototype/src/utils/FileSystemBridge.ts` | FS abstraction layer |
-| `Docs/ID_REGISTRY.md` | Next available artefact IDs |
-| `Docs/RELEASE_PLAN.md` | Epics, user stories, tasks |
-| `Docs/TEST_CASES.md` | Human-readable test cases |
+| `docs/ID_REGISTRY.md` | Next available artefact IDs |
+| `docs/RELEASE_PLAN.md` | Epics, user stories, tasks |
+| `docs/TEST_CASES.md` | Human-readable test cases |
 | `tools/generate-plan.js` | Regenerates plan dashboard |
 
 ---

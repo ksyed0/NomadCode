@@ -18,6 +18,8 @@ import {
   View,
 } from 'react-native';
 
+import { useTheme } from '../theme/tokens';
+
 // ---------------------------------------------------------------------------
 // Breakpoints and defaults
 // ---------------------------------------------------------------------------
@@ -52,6 +54,10 @@ interface TabletResponsiveProps {
   terminalHeight?: number;
   /** Called when user drags the resize handle */
   onTerminalHeightChange?: (height: number) => void;
+  /** Called when user swipes down on the main editor area to open command palette */
+  onOpenPalette?: () => void;
+  /** Called when user presses the gear icon to open settings */
+  onOpenSettings?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,6 +72,11 @@ export function clampTerminalHeight(current: number, dy: number): number {
   return Math.max(MIN_TERMINAL_HEIGHT, Math.min(MAX_TERMINAL_HEIGHT, current - dy));
 }
 
+/** Exported for unit-testing the swipe-to-open predicate. */
+export function isDownwardSwipe(dy: number, vy: number): boolean {
+  return dy > 40 && vy > 0.3;
+}
+
 export default function TabletResponsive({
   sidebar,
   main,
@@ -73,12 +84,18 @@ export default function TabletResponsive({
   sidebarWidth = SIDEBAR_WIDTH,
   terminalHeight = TERMINAL_HEIGHT,
   onTerminalHeightChange,
+  onOpenPalette,
+  onOpenSettings,
 }: TabletResponsiveProps) {
+  const t = useTheme();
   const isTablet = useIsTablet();
   const [phoneSidebarOpen, setPhoneSidebarOpen] = useState(false);
 
   const showTerminal = terminal !== null;
 
+  // NOTE: PanResponder callbacks close over props at mount time.
+  // Callers must pass stable callback references (e.g. via useCallback)
+  // to avoid stale-closure issues on re-render.
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -86,16 +103,58 @@ export default function TabletResponsive({
         onTerminalHeightChange?.(clampTerminalHeight(terminalHeight, gs.dy));
       },
     }),
-  ).current;
+  );
+
+  // NOTE: Same stale-closure caveat as panResponder above.
+  const swipePanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderRelease: (_, gs) => {
+        if (isDownwardSwipe(gs.dy, gs.vy)) {
+          onOpenPalette?.();
+        }
+      },
+    }),
+  );
+
+  // Shared gesture zone — placed at the top of the main editor area in both layouts.
+  // Captures downward swipes to open the command palette.
+  const swipeZoneView = (
+    <View
+      testID="swipe-zone"
+      style={styles.swipeZone}
+      // eslint-disable-next-line react-hooks/refs
+      {...swipePanResponder.current.panHandlers}
+    />
+  );
+
+  // Gear icon button — opens settings
+  const gearButton = (
+    <TouchableOpacity
+      testID="settings-gear"
+      onPress={() => onOpenSettings?.()}
+      style={styles.gearBtn}
+      accessibilityLabel="Open settings"
+      accessibilityRole="button"
+    >
+      <Text style={[styles.gearIcon, { color: t.textMuted }]}>⚙</Text>
+    </TouchableOpacity>
+  );
 
   // ── Tablet layout ──────────────────────────────────────────────────────────
   if (isTablet) {
     return (
-      <View style={styles.root}>
+      <View style={[styles.root, { backgroundColor: t.bg }]}>
         {/* Main row: sidebar + editor */}
         <View style={styles.row}>
-          <View style={[styles.sidebar, { width: sidebarWidth }]}>{sidebar}</View>
-          <View style={styles.mainArea}>{main}</View>
+          <View style={[styles.sidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
+            {gearButton}
+            {sidebar}
+          </View>
+          <View style={styles.mainArea}>
+            {swipeZoneView}
+            {main}
+          </View>
         </View>
 
         {/* Terminal strip at bottom */}
@@ -103,10 +162,11 @@ export default function TabletResponsive({
           <>
             <View
               testID="terminal-resize-handle"
-              style={styles.resizeHandle}
-              {...panResponder.panHandlers}
+              style={[styles.resizeHandle, { backgroundColor: t.bgElevated, borderTopColor: t.border }]}
+              // eslint-disable-next-line react-hooks/refs
+              {...panResponder.current.panHandlers}
             />
-            <View style={[styles.terminalStrip, { height: terminalHeight }]}>
+            <View style={[styles.terminalStrip, { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg }]}>
               {terminal}
             </View>
           </>
@@ -117,20 +177,23 @@ export default function TabletResponsive({
 
   // ── Phone layout ───────────────────────────────────────────────────────────
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: t.bg }]}>
       {/* Editor fills the top area */}
-      <View style={styles.phoneMainArea}>{main}</View>
+      <View style={styles.phoneMainArea}>
+        {swipeZoneView}
+        {main}
+      </View>
 
       {/* Terminal slides up from the bottom */}
       {showTerminal && (
-        <View style={[styles.phoneTerminal, { height: terminalHeight }]}>
+        <View style={[styles.phoneTerminal, { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg }]}>
           {terminal}
         </View>
       )}
 
       {/* Floating sidebar toggle button (bottom-left) */}
       <TouchableOpacity
-        style={styles.phoneSidebarToggle}
+        style={[styles.phoneSidebarToggle, { backgroundColor: t.accent }]}
         onPress={() => setPhoneSidebarOpen((v) => !v)}
         activeOpacity={0.8}
       >
@@ -148,7 +211,8 @@ export default function TabletResponsive({
             onPress={() => setPhoneSidebarOpen(false)}
           />
           {/* Drawer panel */}
-          <Animated.View style={[styles.phoneSidebar, { width: sidebarWidth }]}>
+          <Animated.View style={[styles.phoneSidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
+            {gearButton}
             {sidebar}
           </Animated.View>
         </>
@@ -158,13 +222,12 @@ export default function TabletResponsive({
 }
 
 // ---------------------------------------------------------------------------
-// Styles
+// Styles (non-color values only — colors come from theme tokens via inline styles)
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   // Tablet
   row: {
@@ -172,25 +235,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   sidebar: {
-    backgroundColor: '#1E293B',
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#334155',
   },
   mainArea: {
     flex: 1,
   },
+  swipeZone: {
+    height: 8,
+    width: '100%',
+    backgroundColor: 'transparent',
+  },
   resizeHandle: {
     height: 6,
-    backgroundColor: '#1E293B',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#334155',
     alignItems: 'center',
     justifyContent: 'center',
   },
   terminalStrip: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#334155',
-    backgroundColor: '#0D1117',
   },
   // Phone
   phoneMainArea: {
@@ -198,8 +260,6 @@ const styles = StyleSheet.create({
   },
   phoneTerminal: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#334155',
-    backgroundColor: '#0D1117',
   },
   phoneSidebarToggle: {
     position: 'absolute',
@@ -208,7 +268,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
@@ -231,9 +290,9 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     bottom: 0,
-    backgroundColor: '#1E293B',
     zIndex: 11,
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#334155',
   },
+  gearBtn: { padding: 10, alignItems: 'center', justifyContent: 'center' },
+  gearIcon: { fontSize: 18 },
 });

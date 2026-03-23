@@ -1,0 +1,2 @@
+# Mark esbuild dist output as generated — excluded from CodeQL and linguist stats
+mobile-ide/mobile-ide-prototype/src/terminal/bundle/dist/** linguist-generated=true

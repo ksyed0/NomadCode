@@ -8,8 +8,25 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { PanResponder, Text } from 'react-native';
-import TabletResponsive, { clampTerminalHeight, useIsTablet } from '../../src/layout/TabletResponsive';
+import TabletResponsive, { clampTerminalHeight, isDownwardSwipe, useIsTablet } from '../../src/layout/TabletResponsive';
 import { renderHook } from '@testing-library/react-native';
+
+// Mock useTheme so TabletResponsive can render without a real Zustand store
+jest.mock('../../src/theme/tokens', () => ({
+  useTheme: () => ({
+    bg: '#0F172A',
+    bgElevated: '#1E293B',
+    bgHighlight: '#1D3461',
+    text: '#E2E8F0',
+    textMuted: '#64748B',
+    border: '#334155',
+    accent: '#2563EB',
+    keyword: '#7C3AED',
+    string: '#0D9488',
+    error: '#EF4444',
+    success: '#22C55E',
+  }),
+}));
 
 // ---------------------------------------------------------------------------
 // Mock useWindowDimensions
@@ -246,11 +263,16 @@ describe('TabletResponsive — terminal resize handle', () => {
   it('calls onTerminalHeightChange when PanResponder move fires', () => {
     // Capture the PanResponder callbacks so we can invoke them directly in tests
     // (raw responder event firing crashes due to internal touchHistory math)
+    // NOTE: TabletResponsive creates two PanResponders — terminal resize (index 0)
+    //       and swipe zone (index 1). We capture only the first (index 0) here.
     let capturedCallbacks: Record<string, (...args: unknown[]) => unknown> = {};
+    let callIdx = 0;
     const spy = jest
       .spyOn(PanResponder, 'create')
       .mockImplementation((cbs) => {
-        capturedCallbacks = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+        if (callIdx++ === 0) {
+          capturedCallbacks = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+        }
         return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
       });
 
@@ -294,5 +316,163 @@ describe('clampTerminalHeight', () => {
 
   it('clamps to MAX_TERMINAL_HEIGHT (400) when dragging too far up', () => {
     expect(clampTerminalHeight(220, -300)).toBe(400);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isDownwardSwipe utility
+// ---------------------------------------------------------------------------
+
+describe('isDownwardSwipe', () => {
+  it('returns true when dy > 40 and vy > 0.3', () => {
+    expect(isDownwardSwipe(50, 0.4)).toBe(true);
+  });
+
+  it('returns false when dy is exactly 40 (not strictly greater)', () => {
+    expect(isDownwardSwipe(40, 0.4)).toBe(false);
+  });
+
+  it('returns false when vy is exactly 0.3 (not strictly greater)', () => {
+    expect(isDownwardSwipe(50, 0.3)).toBe(false);
+  });
+
+  it('returns false when dy is below threshold', () => {
+    expect(isDownwardSwipe(30, 0.4)).toBe(false);
+  });
+
+  it('returns false when vy is below threshold', () => {
+    expect(isDownwardSwipe(50, 0.2)).toBe(false);
+  });
+
+  it('returns true at minimum passing values (dy=41, vy=0.31)', () => {
+    expect(isDownwardSwipe(41, 0.31)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Swipe gesture zone
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — swipe gesture zone', () => {
+  beforeEach(() => setWidth(1024));
+
+  // Shared spy state for PanResponder tests
+  let capturedSwipeCbs: Record<string, (...args: unknown[]) => unknown> = {};
+  let swipeSpy: jest.SpyInstance | null = null;
+
+  function installSwipeSpy() {
+    capturedSwipeCbs = {};
+    let callIdx = 0;
+    swipeSpy = jest.spyOn(PanResponder, 'create').mockImplementation((cbs) => {
+      // First call = terminal resize PanResponder; second call = swipe zone
+      if (callIdx++ === 1) {
+        capturedSwipeCbs = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+      }
+      return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
+    });
+  }
+
+  afterEach(() => {
+    swipeSpy?.mockRestore();
+    swipeSpy = null;
+  });
+
+  it('renders swipe-zone testID in main area (tablet)', () => {
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(screen.getByTestId('swipe-zone')).toBeTruthy();
+  });
+
+  it('renders swipe-zone on phone layout too', () => {
+    setWidth(375);
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(screen.getByTestId('swipe-zone')).toBeTruthy();
+  });
+
+  it('calls onOpenPalette when swipe-down gesture is released', () => {
+    installSwipeSpy();
+    const onOpenPalette = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        onOpenPalette={onOpenPalette}
+      />,
+    );
+
+    expect(capturedSwipeCbs.onStartShouldSetPanResponder?.()).toBe(true);
+    capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.4 });
+    expect(onOpenPalette).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onOpenPalette for swipes below threshold', () => {
+    installSwipeSpy();
+    const onOpenPalette = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        onOpenPalette={onOpenPalette}
+      />,
+    );
+
+    capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 30, vy: 0.4 }); // dy too small
+    capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.2 }); // vy too small
+    expect(onOpenPalette).toHaveBeenCalledTimes(0);
+  });
+
+  it('does not crash when onOpenPalette is not provided', () => {
+    installSwipeSpy();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+      />,
+    );
+    expect(() =>
+      capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.4 }),
+    ).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Settings gear icon
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — settings gear icon', () => {
+  beforeEach(() => setWidth(1024));
+
+  it('renders the gear icon', () => {
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(screen.getByTestId('settings-gear')).toBeTruthy();
+  });
+
+  it('pressing gear icon calls onOpenSettings', () => {
+    const onOpenSettings = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={null}
+        onOpenSettings={onOpenSettings}
+      />,
+    );
+    fireEvent.press(screen.getByTestId('settings-gear'));
+    expect(onOpenSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not crash when onOpenSettings is not provided', () => {
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(() => fireEvent.press(screen.getByTestId('settings-gear'))).not.toThrow();
   });
 });

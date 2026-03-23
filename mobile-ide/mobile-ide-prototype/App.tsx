@@ -11,7 +11,7 @@
  * Future cloud/sync integration points are marked with: // CLOUD_HOOK
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -27,8 +27,14 @@ import Editor, { EditorTab, getLanguageForFile } from './src/components/Editor';
 import FileExplorer from './src/components/FileExplorer';
 import { Terminal } from './src/components/Terminal';
 import { Command, CommandPalette } from './src/components/CommandPalette';
+import SetupWizard from './src/components/SetupWizard';
+import SettingsScreen from './src/components/SettingsScreen';
+import ExtensionHost from './src/components/ExtensionHost';
 import TabletResponsive from './src/layout/TabletResponsive';
 import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
+import useSettingsStore from './src/stores/useSettingsStore';
+import useAuthStore from './src/stores/useAuthStore';
+import { useTheme } from './src/theme/tokens';
 
 // ---------------------------------------------------------------------------
 // Root document directory — all local project files live here
@@ -40,6 +46,21 @@ const ROOT_PATH = FileSystemBridge.documentDirectory;
 // ---------------------------------------------------------------------------
 
 export default function App() {
+  // ── Theme tokens ──────────────────────────────────────────────────────────
+  const t = useTheme();
+
+  // ── Settings store ────────────────────────────────────────────────────────
+  const hasCompletedSetup = useSettingsStore((s) => s.hasCompletedSetup);
+  const installedExtensions = useSettingsStore((s) => s.installedExtensions);
+
+  // ── Auth store ────────────────────────────────────────────────────────────
+  const hydrateAuth = useAuthStore((s) => s.hydrate);
+
+  // Restore auth session from keychain on mount
+  useEffect(() => {
+    hydrateAuth();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Editor state ──────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<EditorTab[]>([]);
   const [activeTabPath, setActiveTabPath] = useState<string | null>(null);
@@ -47,6 +68,7 @@ export default function App() {
   // ── Panel visibility ──────────────────────────────────────────────────────
   const [showTerminal, setShowTerminal] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [terminalHeight, setTerminalHeight] = useState(220);
 
   // ── Git status (updated after Git operations) ─────────────────────────────
@@ -121,6 +143,15 @@ export default function App() {
     if (tab) saveFile(tab.path, tab.content);
   }, [tabs, activeTabPath, saveFile]);
 
+  const getEditorContent = useCallback((): string => {
+    return tabs.find((t) => t.path === activeTabPath)?.content ?? '';
+  }, [tabs, activeTabPath]);
+
+  const replaceEditorContent = useCallback((text: string) => {
+    if (!activeTabPath) return;
+    updateContent(activeTabPath, text);
+  }, [activeTabPath, updateContent]);
+
   const deleteFile = useCallback(async (path: string) => {
     Alert.alert('Delete file', `Delete "${path.split('/').pop()}"?`, [
       { text: 'Cancel', style: 'cancel' },
@@ -187,7 +218,7 @@ export default function App() {
   // Command palette commands
   // ---------------------------------------------------------------------------
 
-  const paletteCommands: Command[] = [
+  const paletteCommands = useMemo<Command[]>(() => [
     {
       id: 'file-save',
       label: 'File: Save',
@@ -223,7 +254,7 @@ export default function App() {
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
-  ];
+  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath]);
 
   const handlePaletteSelect = useCallback((cmd: Command) => {
     setShowPalette(false);
@@ -235,8 +266,8 @@ export default function App() {
   // ---------------------------------------------------------------------------
 
   return (
-    <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
+    <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]}>
+      <StatusBar barStyle="light-content" backgroundColor={t.bg} />
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
       <View style={styles.statusBar}>
@@ -275,6 +306,8 @@ export default function App() {
         terminal={<Terminal workingDirectory={ROOT_PATH} onCommand={console.log} visible={showTerminal} />}
         terminalHeight={terminalHeight}
         onTerminalHeightChange={setTerminalHeight}
+        onOpenPalette={() => setShowPalette(true)}
+        onOpenSettings={() => setShowSettings(true)}
       />
 
       {/* ── Floating action buttons (bottom-right) ───────────────────────── */}
@@ -301,12 +334,27 @@ export default function App() {
       </View>
 
       {/* ── Command palette modal ─────────────────────────────────────────── */}
-      {showPalette && (
-        <CommandPalette
-          commands={paletteCommands}
-          onSelect={handlePaletteSelect}
-        />
-      )}
+      <CommandPalette
+        visible={showPalette}
+        commands={paletteCommands}
+        onClose={() => setShowPalette(false)}
+        onSelect={handlePaletteSelect}
+      />
+
+      {/* ── First-run setup wizard ────────────────────────────────────────── */}
+      <SetupWizard visible={!hasCompletedSetup} />
+
+      {/* ── Settings screen ───────────────────────────────────────────────── */}
+      <SettingsScreen visible={showSettings} onClose={() => setShowSettings(false)} />
+
+      {/* ── Extension host (hidden, always mounted) ──────────────────────── */}
+      <ExtensionHost
+        manifests={installedExtensions}
+        onGetEditorContent={getEditorContent}
+        onReplaceEditorContent={replaceEditorContent}
+        onShowMessage={(text) => Alert.alert('Extension', text)}
+        onShowError={(text) => Alert.alert('Extension Error', text, [{ text: 'OK', style: 'destructive' }])}
+      />
     </SafeAreaView>
   );
 }
@@ -318,7 +366,6 @@ export default function App() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   statusBar: {
     height: 28,
