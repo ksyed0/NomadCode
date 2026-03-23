@@ -22,6 +22,8 @@
  * TC-0339: npm i — same error, exitCode 1
  * TC-0340: npx prettier index.js — vfsWrite called with formatted result, exitCode 0
  * TC-0341: npx unknown-tool — contains 'not available', 'Bundled tools: prettier', exitCode 1
+ * TC-0342: npm run with script chain > 5 levels deep — exitCode 1, 'maximum script recursion depth'
+ * TC-0343: npm run with script chain exactly 4 levels deep — exitCode 0, output 'ok'
  * TC-0344: unknown command — 'command not found', exitCode 127
  */
 
@@ -392,6 +394,64 @@ describe('TC-0341: npx unknown-tool', () => {
     expect(result.output).toContain('Bundled tools: prettier');
     expect(result.output).not.toContain('eslint');
     expect(result.output).not.toContain('tsc');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0342 — npm run depth guard fires at > 5 levels                         */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0342: npm run with script that recurses > 5 levels', () => {
+  it('returns exitCode 1 and output contains "maximum script recursion depth"', async () => {
+    // Chain a→b→c→d→e→f→f: depth 0→1→2→3→4→5 — guard fires at depth >= 5.
+    setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') {
+        return JSON.stringify({
+          scripts: {
+            a: 'npm run b',
+            b: 'npm run c',
+            c: 'npm run d',
+            d: 'npm run e',
+            e: 'npm run f',
+            f: 'npm run f',
+          },
+        });
+      }
+      return null;
+    });
+
+    const result = await dispatch('npm run a');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('maximum script recursion depth');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0343 — npm run chain that terminates at exactly depth 4 succeeds       */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0343: npm run chain that terminates at depth 4 (a→b→c→d→echo ok)', () => {
+  it('returns exitCode 0 and output "ok"', async () => {
+    // Chain a→b→c→d→echo ok: depth 0→1→2→3→4, echo executes at depth 4, guard not triggered.
+    setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') {
+        return JSON.stringify({
+          scripts: {
+            a: 'npm run b',
+            b: 'npm run c',
+            c: 'npm run d',
+            d: 'echo ok',
+          },
+        });
+      }
+      return null;
+    });
+
+    const result = await dispatch('npm run a');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toBe('ok');
   });
 });
 
