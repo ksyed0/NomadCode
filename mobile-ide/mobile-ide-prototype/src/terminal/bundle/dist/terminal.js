@@ -34991,6 +34991,7 @@ $1 $2
       return { output: `git: ${e.message}`, exitCode: 1 };
     }
   }
+  var MAX_SCRIPT_FILE_SIZE = 500 * 1024;
   var bundledNpxTools = {
     prettier: async (toolArgs, toolCwd) => {
       var _a13;
@@ -35002,7 +35003,7 @@ $1 $2
       } catch (e) {
         return { output: `prettier: ${toolArgs[0]}: No such file or directory`, exitCode: 1 };
       }
-      if (code.length > 500 * 1024) {
+      if (code.length > MAX_SCRIPT_FILE_SIZE) {
         return { output: "prettier: file exceeds 500 KB limit", exitCode: 1 };
       }
       try {
@@ -35123,11 +35124,13 @@ $1 $2
         } catch (e) {
           return { output: `node: ${args[0]}: No such file or directory`, exitCode: 1 };
         }
+        if (code.length > MAX_SCRIPT_FILE_SIZE) {
+          return { output: `node: file exceeds maximum size (${MAX_SCRIPT_FILE_SIZE / 1024} KB)`, exitCode: 1 };
+        }
         const lines = [];
         const consoleMock = {
           log: (...a3) => lines.push(a3.map(String).join(" ")),
-          error: (...a3) => lines.push(a3.map(String).join(" ")),
-          warn: (...a3) => lines.push(a3.map(String).join(" "))
+          error: (...a3) => lines.push(a3.map(String).join(" "))
         };
         try {
           new Function("console", "require", code)(
