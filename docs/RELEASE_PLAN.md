@@ -257,6 +257,75 @@ Acceptance Criteria:
   - [x] AC-0044: Error/unknown-command lines are rendered in the error color (Coral #EF4444)
   - [x] AC-0045: Regular output lines are rendered in the standard text color
 Dependencies: US-0012
+
+US-0050 (EPIC-0003): As a developer, I can use `touch`, `cp`, and `mv` commands to create and manage files.
+Priority: High (P0)
+Estimate: M
+Status: Done
+Branch: feature/epic-0003-terminal
+Acceptance Criteria:
+  - [x] AC-0136: `touch <file>` creates a file if it doesn't exist; no-op if it does
+  - [x] AC-0137: `cp <src> <dest>` copies a file/directory
+  - [x] AC-0138: `mv <src> <dest>` moves/renames a file/directory
+Dependencies: US-0012
+
+US-0051 (EPIC-0003): As a developer, I can use `clear` to reset the terminal screen.
+Priority: Medium (P1)
+Estimate: S
+Status: Done
+Branch: feature/epic-0003-terminal
+Acceptance Criteria:
+  - [x] AC-0139: `clear` resets terminal output
+Dependencies: US-0012
+
+US-0052 (EPIC-0003): As a developer, I can run `node <file>` to execute JavaScript files.
+Priority: High (P0)
+Estimate: M
+Status: Done
+Branch: feature/epic-0003-terminal
+Acceptance Criteria:
+  - [x] AC-0140: `node <file>` executes JS via WebView engine, capturing console.log output
+  - [x] AC-0141: `node <file>` with `require()` returns a clear error
+Dependencies: US-0012
+
+US-0053 (EPIC-0003): As a developer, I can use `npm run <script>` to run package.json scripts.
+Priority: High (P0)
+Estimate: M
+Status: Done
+Branch: feature/epic-0003-terminal
+Acceptance Criteria:
+  - [x] AC-0142: `npm run <script>` reads package.json and runs the matching script
+  - [x] AC-0143: `npm run <missing>` returns 'not found in package.json' error
+  - [x] AC-0144: `npm install` returns 'not supported' error
+Dependencies: US-0012
+
+US-0054 (EPIC-0003): As a developer, I can use `npx prettier` offline to format code.
+Priority: Medium (P1)
+Estimate: M
+Status: Done
+Branch: feature/epic-0003-terminal
+Acceptance Criteria:
+  - [x] AC-0145: `npx prettier <file>` formats the file using pre-bundled prettier
+  - [x] AC-0146: `npx <unknown>` returns 'not available' with list of bundled tools
+Dependencies: US-0012
+
+US-0055 (EPIC-0003): As a developer, I see clear error messages for unsupported operations.
+Priority: High (P0)
+Estimate: S
+Status: Done
+Branch: feature/epic-0003-terminal
+Acceptance Criteria:
+  - [x] AC-0147: All unsupported operations return specific, actionable error messages
+Dependencies: US-0012
+
+US-0056 (EPIC-0003): App.tsx uses TerminalWebView for the live terminal experience.
+Priority: High (P0)
+Estimate: S
+Status: Done
+Branch: feature/epic-0003-terminal
+Acceptance Criteria:
+  - [x] AC-0148: App.tsx renders TerminalWebView instead of the deprecated Terminal stub
+Dependencies: US-0012
 ```
 
 ### EPIC-0004: Command Palette
