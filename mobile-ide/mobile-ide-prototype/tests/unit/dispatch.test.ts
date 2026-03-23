@@ -389,7 +389,7 @@ describe('TC-0341: npx unknown-tool', () => {
 
     expect(result.exitCode).toBe(1);
     expect(result.output).toContain('not available');
-    expect(result.output).toContain('prettier');
+    expect(result.output).toContain('Bundled tools: prettier');
     expect(result.output).not.toContain('eslint');
     expect(result.output).not.toContain('tsc');
   });
