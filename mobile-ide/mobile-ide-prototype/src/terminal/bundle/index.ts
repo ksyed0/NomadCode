@@ -108,6 +108,28 @@ async function vfsDelete(path: string): Promise<void> {
   });
 }
 
+async function vfsCopy(src: string, dest: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const requestId = generateId();
+    pendingRequests.set(requestId, (_result, error) => {
+      if (error) reject(new Error(error));
+      else resolve();
+    });
+    sendToRN({ type: 'FILE_COPY', requestId, src, dest });
+  });
+}
+
+async function vfsMove(src: string, dest: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const requestId = generateId();
+    pendingRequests.set(requestId, (_result, error) => {
+      if (error) reject(new Error(error));
+      else resolve();
+    });
+    sendToRN({ type: 'FILE_MOVE', requestId, src, dest });
+  });
+}
+
 /* -------------------------------------------------------------------------- */
 /*  isomorphic-git fs adapter                                                  */
 /* -------------------------------------------------------------------------- */
@@ -348,11 +370,80 @@ export async function dispatch(
       }
     }
 
+    case 'touch': {
+      if (!args[0]) {
+        return { output: 'usage: touch <file>', exitCode: 1 };
+      }
+      const touchPath = args[0].startsWith('/')
+        ? args[0]
+        : `${cwd}/${args[0]}`.replace(/\/+/g, '/');
+      try {
+        await vfsRead(touchPath);
+        // File exists — no-op
+        return { output: '', exitCode: 0 };
+      } catch {
+        // File does not exist — create it
+        try {
+          await vfsWrite(touchPath, '');
+          return { output: '', exitCode: 0 };
+        } catch (e) {
+          return { output: `touch: ${(e as Error).message}`, exitCode: 1 };
+        }
+      }
+    }
+
+    case 'cp': {
+      if (!args[0] || !args[1]) {
+        return { output: 'usage: cp <src> <dest>', exitCode: 1 };
+      }
+      const cpSrc = args[0].startsWith('/')
+        ? args[0]
+        : `${cwd}/${args[0]}`.replace(/\/+/g, '/');
+      const cpDest = args[1].startsWith('/')
+        ? args[1]
+        : `${cwd}/${args[1]}`.replace(/\/+/g, '/');
+      try {
+        await vfsCopy(cpSrc, cpDest);
+        return { output: '', exitCode: 0 };
+      } catch (e) {
+        return { output: `cp: ${(e as Error).message}`, exitCode: 1 };
+      }
+    }
+
+    case 'mv': {
+      if (!args[0] || !args[1]) {
+        return { output: 'usage: mv <src> <dest>', exitCode: 1 };
+      }
+      const mvSrc = args[0].startsWith('/')
+        ? args[0]
+        : `${cwd}/${args[0]}`.replace(/\/+/g, '/');
+      const mvDest = args[1].startsWith('/')
+        ? args[1]
+        : `${cwd}/${args[1]}`.replace(/\/+/g, '/');
+      try {
+        await vfsMove(mvSrc, mvDest);
+        return { output: '', exitCode: 0 };
+      } catch (e) {
+        return { output: `mv: ${(e as Error).message}`, exitCode: 1 };
+      }
+    }
+
+    case 'clear':
+      return { output: '', exitCode: -1 };
+
+    case 'npm': {
+      if (args[0] === 'install' || args[0] === 'i') {
+        return { output: "npm install is not supported in NomadCode — packages are pre-bundled", exitCode: 1 };
+      }
+      // For 'npm run' and other subcommands — return unsupported for now (Task 3 will implement 'run')
+      return { output: `npm: '${args[0] ?? ''}' is not a supported npm command`, exitCode: 1 };
+    }
+
     case 'git':
       return handleGit(args);
 
     default:
-      return { output: `${base}: command not found`, exitCode: 127 };
+      return { output: `bash: ${base}: command not found`, exitCode: 127 };
   }
 }
 
@@ -382,6 +473,10 @@ function initTerminal(): void {
       if (!cmd) return;
       printLine(`$ ${cmd}`, 'command');
       const { output: out, exitCode } = await dispatch(cmd);
+      if (exitCode === -1) {
+        // Clear sentinel — empty the output before printing the new prompt
+        output.innerHTML = '';
+      }
       if (out) printLine(out, exitCode === 0 ? '' : 'error');
       sendToRN({ type: 'COMMAND_COMPLETE', exitCode });
     }
