@@ -321,7 +321,7 @@ async function handleGit(
 
 export async function dispatch(
   cmd: string,
-): Promise<{ output: string; exitCode: number }> {
+): Promise<{ output: string; exitCode: number; clearScreen?: boolean }> {
   const trimmed = cmd.trim();
   if (!trimmed) return { output: '', exitCode: 0 };
 
@@ -426,7 +426,7 @@ export async function dispatch(
     }
 
     case 'clear':
-      return { output: '', exitCode: -1 };
+      return { output: '', exitCode: 0, clearScreen: true };
 
     case 'npm': {
       if (!args[0]) {
@@ -472,15 +472,13 @@ function initTerminal(): void {
       input.value = '';
       if (!cmd) return;
       printLine(`$ ${cmd}`, 'command');
-      const { output: out, exitCode } = await dispatch(cmd);
-      const rnExitCode = exitCode === -1 ? 0 : exitCode;
-      if (exitCode === -1) {
-        // Clear sentinel — empty the output before printing the new prompt
+      const { output: out, exitCode, clearScreen } = await dispatch(cmd);
+      if (clearScreen) {
+        // Clear the output before printing the new prompt
         output.innerHTML = '';
       }
-      if (out) printLine(out, rnExitCode === 0 ? '' : 'error');
-      // -1 is a DOM-only sentinel for "clear screen" and must never reach RN
-      sendToRN({ type: 'COMMAND_COMPLETE', exitCode: rnExitCode });
+      if (out) printLine(out, exitCode === 0 ? '' : 'error');
+      sendToRN({ type: 'COMMAND_COMPLETE', exitCode });
     }
   });
 
