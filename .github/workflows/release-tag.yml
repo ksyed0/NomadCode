@@ -12,7 +12,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # fetch-depth: 0 ensures all existing tags are available for the idempotency check
           fetch-depth: 0
