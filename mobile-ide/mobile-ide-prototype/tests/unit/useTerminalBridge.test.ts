@@ -234,4 +234,47 @@ describe('useTerminalBridge', () => {
 
     expect(mockHandleMessage).not.toHaveBeenCalled();
   });
+
+  // 13. BUG-0011 — unknown message type is silently dropped (no FileBridge call)
+  it('onMessage with unknown type does not call FileBridge.handleMessage', async () => {
+    const { result } = renderHook(() => useTerminalBridge());
+
+    await act(async () => {
+      result.current.onMessage(
+        makeMessageEvent({ type: 'UNKNOWN_MSG', requestId: 'req-99' }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(mockHandleMessage).not.toHaveBeenCalled();
+  });
+
+  // 14. BUG-0011 — unknown message type emits a __DEV__ warning
+  it('onMessage with unknown type logs a console.warn in __DEV__ mode', async () => {
+    const consoleSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
+
+    // Force __DEV__ truthy for this test (Jest runs with NODE_ENV=test;
+    // React Native sets __DEV__ = true in test environments).
+    const prevDev = (global as Record<string, unknown>).__DEV__;
+    (global as Record<string, unknown>).__DEV__ = true;
+
+    const { result } = renderHook(() => useTerminalBridge());
+
+    await act(async () => {
+      result.current.onMessage(
+        makeMessageEvent({ type: 'UNKNOWN_MSG', requestId: 'req-99' }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[useTerminalBridge] Unhandled message type:',
+      'UNKNOWN_MSG',
+    );
+
+    (global as Record<string, unknown>).__DEV__ = prevDev;
+    consoleSpy.mockRestore();
+  });
 });
