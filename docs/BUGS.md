@@ -129,7 +129,7 @@ Steps to Reproduce:
 Expected: User script cannot access native bridge
 Actual: Script can forge arbitrary FILE_WRITE/FILE_READ messages directly to the native bridge, bypassing all dispatch() guards
 Root Cause: new Function('console', 'require', code) shadows console and require but leaves full WebView global scope accessible including window.ReactNativeWebView
-Status: Open
+Status: Fixed
 Fix Branch: feature/epic-0003-terminal
 Lesson Encoded: No
 
@@ -143,7 +143,7 @@ Steps to Reproduce:
 Expected: Error logged, message dropped safely
 Actual: switch falls through with fileResult unassigned; spread of undefined produces FILE_RESULT with no result/error fields; vfsRead silently resolves to '' instead of rejecting
 Root Cause: No guard for unrecognised message types before FileBridge.handleMessage call in useTerminalBridge
-Status: Open
+Status: Fixed
 Fix Branch: feature/epic-0003-terminal
 Lesson Encoded: No
 
@@ -157,7 +157,7 @@ Steps to Reproduce:
 Expected: /foo (parent directory)
 Actual: /foo/bar/.. (unnormalised path compounds with subsequent operations)
 Root Cause: resolvePath concatenates segments without resolving .. — Expo FileSystem handles it at OS level but isomorphic-git string-comparison logic and pwd output are incorrect
-Status: Open
+Status: Fixed
 Fix Branch: feature/epic-0003-terminal
 Lesson Encoded: No
 
@@ -170,7 +170,7 @@ Steps to Reproduce:
 Expected: No type errors
 Actual: TS7031/TS7006 implicit any on statusMatrix destructuring and git.log callback parameter in src/terminal/bundle/index.ts
 Root Cause: Destructure pattern lacks explicit type annotation on statusMatrix row and git.log commit parameter
-Status: Open
+Status: Fixed
 Fix Branch: feature/epic-0003-terminal
 Lesson Encoded: No
 
@@ -184,6 +184,6 @@ Steps to Reproduce:
 Expected: Error after 5 levels of recursion with clear message
 Actual: Behavior is correct (depth guard fires) but no test verifies this — confirmed by absence of TC-0342/TC-0343 in dispatch.test.ts
 Root Cause: Depth guard test case skipped in Task 5 implementation
-Status: Open
+Status: Fixed
 Fix Branch: feature/epic-0003-terminal
 Lesson Encoded: No
