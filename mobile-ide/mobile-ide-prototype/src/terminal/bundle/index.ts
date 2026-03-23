@@ -54,7 +54,14 @@ function sendToRN(msg: object): void {
  * otherwise it is joined with `cwd` and duplicate slashes are collapsed.
  */
 function resolvePath(arg: string, baseCwd: string): string {
-  return arg.startsWith('/') ? arg : `${baseCwd}/${arg}`.replace(/\/+/g, '/');
+  const raw = arg.startsWith('/') ? arg : `${baseCwd}/${arg}`;
+  const parts = raw.split('/').filter(Boolean);
+  const stack: string[] = [];
+  for (const p of parts) {
+    if (p === '..') stack.pop();
+    else if (p !== '.') stack.push(p);
+  }
+  return '/' + stack.join('/');
 }
 
 /* -------------------------------------------------------------------------- */
@@ -233,7 +240,7 @@ async function handleGit(
         if (statusMatrix.length === 0) {
           return { output: 'nothing to commit, working tree clean', exitCode: 0 };
         }
-        const lines = statusMatrix.map(([filepath, head, workdir, stage]) => {
+        const lines = statusMatrix.map(([filepath, head, workdir, stage]: [string, number, number, number]) => {
           if (head === 0 && workdir === 2) return `?? ${filepath}`;
           if (head === 1 && workdir === 2 && stage === 2) return `M  ${filepath}`;
           if (head === 1 && workdir === 2 && stage === 1) return ` M ${filepath}`;
@@ -250,7 +257,7 @@ async function handleGit(
           return { output: '(no commits)', exitCode: 0 };
         }
         const lines = commits.map(
-          (c) => `${c.oid.slice(0, 7)} ${c.commit.message.split('\n')[0]}`,
+          (c: { oid: string; commit: { message: string } }) => `${c.oid.slice(0, 7)} ${c.commit.message.split('\n')[0]}`,
         );
         return { output: lines.join('\n'), exitCode: 0 };
       }
@@ -496,15 +503,18 @@ export async function dispatch(
         log: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
         error: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
       };
+      const _savedBridge = (window as unknown as Record<string, unknown>).ReactNativeWebView;
+      (window as unknown as Record<string, unknown>).ReactNativeWebView = undefined;
       try {
         // eslint-disable-next-line no-new-func
-        new Function('console', 'require', code)(
-          consoleMock,
-          (_mod: string) => { throw new Error('require() is not available in NomadCode'); }
-        );
+        new Function('console', 'require', code)(consoleMock, () => {
+          throw new Error('require() is not available in NomadCode');
+        });
         return { output: lines.join('\n'), exitCode: 0 };
       } catch (e) {
         return { output: `node: ${(e as Error).message}`, exitCode: 1 };
+      } finally {
+        (window as unknown as Record<string, unknown>).ReactNativeWebView = _savedBridge;
       }
     }
 
