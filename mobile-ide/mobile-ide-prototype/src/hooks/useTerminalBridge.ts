@@ -64,8 +64,11 @@ export function useTerminalBridge(
       }
 
       // All FILE_* messages are handled by FileBridge asynchronously.
+      // Type-narrow: after COMMAND_COMPLETE check, msg is guaranteed to be a FileMessage
       void (async () => {
-        const response = await FileBridge.handleMessage(msg);
+        const response = await FileBridge.handleMessage(
+          msg as Extract<typeof msg, { type: 'FILE_READ' | 'FILE_WRITE' | 'FILE_LIST' | 'FILE_MKDIR' | 'FILE_DELETE' }>
+        );
         sendToWebView(response);
       })();
     },
