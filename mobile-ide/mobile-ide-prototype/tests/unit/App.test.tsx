@@ -141,6 +141,22 @@ jest.mock('react-native-webview', () => {
   return { WebView };
 });
 
+// Spy-able TerminalWebView mock — renders a testID so we can assert it mounted,
+// and captures the props passed to it so TC-0346 can inspect onCommand.
+const mockTerminalWebViewProps: Record<string, unknown>[] = [];
+jest.mock('../../src/components/TerminalWebView', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+  return {
+    TerminalWebView: (props: Record<string, unknown>) => {
+      mockTerminalWebViewProps.push(props);
+      return <View testID="terminal-webview-mock" />;
+    },
+  };
+});
+
 // Mock expo-auth-session (used by SettingsScreen OAuth flow)
 jest.mock('expo-auth-session', () => ({
   useAutoDiscovery: jest.fn(() => null),
@@ -167,6 +183,7 @@ jest.mock('../../src/utils/MonacoAssetManager', () => ({
 
 beforeEach(() => {
   mockHydrate.mockClear();
+  mockTerminalWebViewProps.length = 0;
 });
 
 // ---------------------------------------------------------------------------
@@ -260,5 +277,28 @@ describe('App — auth hydration', () => {
     await waitFor(() => {
       expect(mockHydrate).toHaveBeenCalledTimes(1);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TerminalWebView wiring (EPIC-0003)
+// TC-0345: App renders TerminalWebView (not a stub) when showTerminal=true
+// TC-0346: TerminalWebView receives an onCommand prop that is a function
+// ---------------------------------------------------------------------------
+
+describe('App — TerminalWebView wiring (EPIC-0003)', () => {
+  it('TC-0345: renders TerminalWebView in the component tree on initial mount', () => {
+    // TerminalWebView is always mounted (visible prop controls display:none).
+    // The mock renders testID="terminal-webview-mock" unconditionally.
+    render(<App />);
+    expect(screen.getByTestId('terminal-webview-mock')).toBeTruthy();
+  });
+
+  it('TC-0346: TerminalWebView receives an onCommand prop that is a function', () => {
+    render(<App />);
+    // The mock captured all prop objects passed to TerminalWebView.
+    expect(mockTerminalWebViewProps.length).toBeGreaterThan(0);
+    const props = mockTerminalWebViewProps[0];
+    expect(typeof props.onCommand).toBe('function');
   });
 });

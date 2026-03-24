@@ -2,11 +2,15 @@
  * Unit tests — FileBridge
  *
  * Covers: readFile, writeFile, listDirectory, makeDirectory, deleteEntry,
- *         and handleMessage routing.
+ *         copyEntry, moveEntry, and handleMessage routing.
  *
  * AC-0126: readFile reads file content
  * AC-0127: writeFile writes content and returns 'ok'
  * AC-0128: listDirectory returns JSON array with '/' suffix for directories
+ * AC-0137: copyEntry copies file and returns 'ok'
+ * AC-0138: moveEntry moves file and returns 'ok'
+ * AC-0139: handleMessage routes FILE_COPY to copyEntry
+ * AC-0140: handleMessage routes FILE_MOVE to moveEntry
  */
 
 import { FileBridge } from '../../src/terminal/FileBridge';
@@ -22,6 +26,8 @@ const mockReadDirectoryAsync = jest.fn();
 const mockGetInfoAsync = jest.fn();
 const mockMakeDirectoryAsync = jest.fn();
 const mockDeleteAsync = jest.fn();
+const mockCopyAsync = jest.fn();
+const mockMoveAsync = jest.fn();
 
 jest.mock('expo-file-system', () => ({
   readAsStringAsync: (...args: unknown[]) => mockReadAsStringAsync(...args),
@@ -30,6 +36,8 @@ jest.mock('expo-file-system', () => ({
   getInfoAsync: (...args: unknown[]) => mockGetInfoAsync(...args),
   makeDirectoryAsync: (...args: unknown[]) => mockMakeDirectoryAsync(...args),
   deleteAsync: (...args: unknown[]) => mockDeleteAsync(...args),
+  copyAsync: (...args: unknown[]) => mockCopyAsync(...args),
+  moveAsync: (...args: unknown[]) => mockMoveAsync(...args),
   documentDirectory: '/docs/',
 }));
 
@@ -179,7 +187,7 @@ describe('FileBridge.deleteEntry', () => {
 
 type FileMsg = Extract<
   WebViewToRN,
-  { type: 'FILE_READ' | 'FILE_WRITE' | 'FILE_LIST' | 'FILE_MKDIR' | 'FILE_DELETE' }
+  { type: 'FILE_READ' | 'FILE_WRITE' | 'FILE_LIST' | 'FILE_MKDIR' | 'FILE_DELETE' | 'FILE_COPY' | 'FILE_MOVE' }
 >;
 
 describe('FileBridge.handleMessage', () => {
@@ -245,5 +253,71 @@ describe('FileBridge.handleMessage', () => {
     if (response.type === 'FILE_RESULT') {
       expect(response.requestId).toBe('unique-id-999');
     }
+  });
+
+  it('AC-0139: routes FILE_COPY to copyEntry', async () => {
+    mockCopyAsync.mockResolvedValueOnce(undefined);
+
+    const msg: FileMsg = { type: 'FILE_COPY', requestId: 'req-copy-1', src: '/docs/a.ts', dest: '/docs/b.ts' };
+    const response = await FileBridge.handleMessage(msg);
+
+    expect(response).toMatchObject({ type: 'FILE_RESULT', requestId: 'req-copy-1', result: 'ok' });
+    expect(mockCopyAsync).toHaveBeenCalledWith({ from: '/docs/a.ts', to: '/docs/b.ts' });
+  });
+
+  it('AC-0140: routes FILE_MOVE to moveEntry', async () => {
+    mockMoveAsync.mockResolvedValueOnce(undefined);
+
+    const msg: FileMsg = { type: 'FILE_MOVE', requestId: 'req-move-1', src: '/docs/c.ts', dest: '/docs/d.ts' };
+    const response = await FileBridge.handleMessage(msg);
+
+    expect(response).toMatchObject({ type: 'FILE_RESULT', requestId: 'req-move-1', result: 'ok' });
+    expect(mockMoveAsync).toHaveBeenCalledWith({ from: '/docs/c.ts', to: '/docs/d.ts' });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// copyEntry
+// ---------------------------------------------------------------------------
+
+describe('FileBridge.copyEntry', () => {
+  it('AC-0137: copies file and returns ok', async () => {
+    mockCopyAsync.mockResolvedValueOnce(undefined);
+
+    const result = await FileBridge.copyEntry('/docs/src.ts', '/docs/dest.ts');
+
+    expect(result).toEqual({ result: 'ok' });
+    expect(mockCopyAsync).toHaveBeenCalledWith({ from: '/docs/src.ts', to: '/docs/dest.ts' });
+  });
+
+  it('returns error when copy fails', async () => {
+    mockCopyAsync.mockRejectedValueOnce(new Error('Source not found'));
+
+    const result = await FileBridge.copyEntry('/docs/missing.ts', '/docs/dest.ts');
+
+    expect(result).toEqual({ result: null, error: 'Source not found' });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// moveEntry
+// ---------------------------------------------------------------------------
+
+describe('FileBridge.moveEntry', () => {
+  it('AC-0138: moves file and returns ok', async () => {
+    mockMoveAsync.mockResolvedValueOnce(undefined);
+
+    const result = await FileBridge.moveEntry('/docs/old.ts', '/docs/new.ts');
+
+    expect(result).toEqual({ result: 'ok' });
+    expect(mockMoveAsync).toHaveBeenCalledWith({ from: '/docs/old.ts', to: '/docs/new.ts' });
+  });
+
+  it('returns error when move fails', async () => {
+    mockMoveAsync.mockRejectedValueOnce(new Error('Permission denied'));
+
+    const result = await FileBridge.moveEntry('/docs/locked.ts', '/docs/target.ts');
+
+    expect(result).toEqual({ result: null, error: 'Permission denied' });
   });
 });

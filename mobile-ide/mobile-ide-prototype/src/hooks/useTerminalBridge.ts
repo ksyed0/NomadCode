@@ -20,6 +20,15 @@ import { FileBridge } from '../terminal/FileBridge';
 import type { RNToWebView, WebViewToRN } from '../terminal/protocol';
 
 // ---------------------------------------------------------------------------
+// Module-level constants
+// ---------------------------------------------------------------------------
+
+const VALID_FILE_TYPES = new Set([
+  'FILE_READ', 'FILE_WRITE', 'FILE_LIST', 'FILE_MKDIR',
+  'FILE_DELETE', 'FILE_COPY', 'FILE_MOVE',
+] as const);
+
+// ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 
@@ -60,6 +69,11 @@ export function useTerminalBridge(
 
       if (msg.type === 'COMMAND_COMPLETE') {
         options?.onCommandComplete?.(msg.exitCode);
+        return;
+      }
+
+      if (!VALID_FILE_TYPES.has(msg.type)) {
+        if (__DEV__) console.warn('[useTerminalBridge] Unhandled message type:', msg.type);
         return;
       }
 

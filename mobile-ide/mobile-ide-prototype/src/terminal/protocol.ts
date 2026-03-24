@@ -15,4 +15,6 @@ export type WebViewToRN =
   | { type: 'FILE_LIST';   requestId: string; path: string }
   | { type: 'FILE_MKDIR';  requestId: string; path: string }
   | { type: 'FILE_DELETE'; requestId: string; path: string }
+  | { type: 'FILE_COPY';   requestId: string; src: string; dest: string }
+  | { type: 'FILE_MOVE';   requestId: string; src: string; dest: string }
   | { type: 'COMMAND_COMPLETE'; exitCode: number };

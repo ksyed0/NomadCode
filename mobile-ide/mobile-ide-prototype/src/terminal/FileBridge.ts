@@ -13,7 +13,7 @@ export type FileResult = { result: string | null; error?: string };
 
 type FileMessage = Extract<
   WebViewToRN,
-  { type: 'FILE_READ' | 'FILE_WRITE' | 'FILE_LIST' | 'FILE_MKDIR' | 'FILE_DELETE' }
+  { type: 'FILE_READ' | 'FILE_WRITE' | 'FILE_LIST' | 'FILE_MKDIR' | 'FILE_DELETE' | 'FILE_COPY' | 'FILE_MOVE' }
 >;
 
 export class FileBridge {
@@ -91,6 +91,32 @@ export class FileBridge {
   }
 
   /**
+   * Copy a file or directory from src to dest. Returns { result: 'ok' } on success,
+   * { result: null, error: string } on failure.
+   */
+  static async copyEntry(src: string, dest: string): Promise<FileResult> {
+    try {
+      await FileSystem.copyAsync({ from: src, to: dest });
+      return { result: 'ok' };
+    } catch (e) {
+      return { result: null, error: (e as Error).message };
+    }
+  }
+
+  /**
+   * Move/rename a file or directory from src to dest. Returns { result: 'ok' } on success,
+   * { result: null, error: string } on failure.
+   */
+  static async moveEntry(src: string, dest: string): Promise<FileResult> {
+    try {
+      await FileSystem.moveAsync({ from: src, to: dest });
+      return { result: 'ok' };
+    } catch (e) {
+      return { result: null, error: (e as Error).message };
+    }
+  }
+
+  /**
    * Route a WebViewToRN file message to the correct method.
    * Returns an RNToWebView FILE_RESULT message.
    */
@@ -112,6 +138,12 @@ export class FileBridge {
         break;
       case 'FILE_DELETE':
         fileResult = await FileBridge.deleteEntry(msg.path);
+        break;
+      case 'FILE_COPY':
+        fileResult = await FileBridge.copyEntry(msg.src, msg.dest);
+        break;
+      case 'FILE_MOVE':
+        fileResult = await FileBridge.moveEntry(msg.src, msg.dest);
         break;
     }
 

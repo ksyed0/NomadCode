@@ -11,6 +11,11 @@
 
 import git from 'isomorphic-git';
 import http from 'isomorphic-git/http/web';
+import * as prettierStandalone from 'prettier/standalone';
+import * as prettierBabelPlugin from 'prettier/plugins/babel';
+import * as prettierEstreePlugin from 'prettier/plugins/estree';
+// eslint (full package) is Node.js-only and cannot be bundled for WebView — deferred to v1.x
+// typescript package is ~10 MB and exceeds the 2 MB bundle ceiling — tsc deferred to v1.x
 
 /* -------------------------------------------------------------------------- */
 /*  Global type declarations for the WebView environment                       */
@@ -41,6 +46,22 @@ function generateId(): string {
 
 function sendToRN(msg: object): void {
   window.ReactNativeWebView.postMessage(JSON.stringify(msg));
+}
+
+/**
+ * Resolve a shell argument to an absolute path.
+ * If `arg` already starts with '/' it is returned as-is;
+ * otherwise it is joined with `cwd` and duplicate slashes are collapsed.
+ */
+function resolvePath(arg: string, baseCwd: string): string {
+  const raw = arg.startsWith('/') ? arg : `${baseCwd}/${arg}`;
+  const parts = raw.split('/').filter(Boolean);
+  const stack: string[] = [];
+  for (const p of parts) {
+    if (p === '..') stack.pop();
+    else if (p !== '.') stack.push(p);
+  }
+  return '/' + stack.join('/');
 }
 
 /* -------------------------------------------------------------------------- */
@@ -105,6 +126,28 @@ async function vfsDelete(path: string): Promise<void> {
       else resolve();
     });
     sendToRN({ type: 'FILE_DELETE', requestId, path });
+  });
+}
+
+async function vfsCopy(src: string, dest: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const requestId = generateId();
+    pendingRequests.set(requestId, (_result, error) => {
+      if (error) reject(new Error(error));
+      else resolve();
+    });
+    sendToRN({ type: 'FILE_COPY', requestId, src, dest });
+  });
+}
+
+async function vfsMove(src: string, dest: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const requestId = generateId();
+    pendingRequests.set(requestId, (_result, error) => {
+      if (error) reject(new Error(error));
+      else resolve();
+    });
+    sendToRN({ type: 'FILE_MOVE', requestId, src, dest });
   });
 }
 
@@ -197,7 +240,7 @@ async function handleGit(
         if (statusMatrix.length === 0) {
           return { output: 'nothing to commit, working tree clean', exitCode: 0 };
         }
-        const lines = statusMatrix.map(([filepath, head, workdir, stage]) => {
+        const lines = statusMatrix.map(([filepath, head, workdir, stage]: [string, number, number, number]) => {
           if (head === 0 && workdir === 2) return `?? ${filepath}`;
           if (head === 1 && workdir === 2 && stage === 2) return `M  ${filepath}`;
           if (head === 1 && workdir === 2 && stage === 1) return ` M ${filepath}`;
@@ -214,7 +257,7 @@ async function handleGit(
           return { output: '(no commits)', exitCode: 0 };
         }
         const lines = commits.map(
-          (c) => `${c.oid.slice(0, 7)} ${c.commit.message.split('\n')[0]}`,
+          (c: { oid: string; commit: { message: string } }) => `${c.oid.slice(0, 7)} ${c.commit.message.split('\n')[0]}`,
         );
         return { output: lines.join('\n'), exitCode: 0 };
       }
@@ -285,12 +328,58 @@ async function handleGit(
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Constants                                                                  */
+/* -------------------------------------------------------------------------- */
+
+const MAX_SCRIPT_FILE_SIZE = 500 * 1024; // 500 KB
+
+/* -------------------------------------------------------------------------- */
+/*  Pre-bundled npx tool registry                                              */
+/* -------------------------------------------------------------------------- */
+
+const bundledNpxTools: Record<
+  string,
+  (args: string[], cwd: string) => Promise<{ output: string; exitCode: number }>
+> = {
+  prettier: async (toolArgs, toolCwd) => {
+    const filePath = resolvePath(toolArgs[0] ?? '', toolCwd);
+    if (!toolArgs[0]) return { output: 'usage: npx prettier <file>', exitCode: 1 };
+    let code: string;
+    try {
+      code = await vfsRead(filePath);
+    } catch {
+      return { output: `prettier: ${toolArgs[0]}: No such file or directory`, exitCode: 1 };
+    }
+    if (code.length > MAX_SCRIPT_FILE_SIZE) {
+      return { output: 'prettier: file exceeds 500 KB limit', exitCode: 1 };
+    }
+    try {
+      const formatted = await prettierStandalone.format(code, {
+        parser: 'babel',
+        plugins: [prettierBabelPlugin, prettierEstreePlugin],
+      });
+      await vfsWrite(filePath, formatted);
+      return { output: `Formatted ${toolArgs[0]}`, exitCode: 0 };
+    } catch (e) {
+      return { output: `prettier: ${(e as Error).message}`, exitCode: 1 };
+    }
+  },
+
+  // eslint deferred to v1.x — full eslint package requires Node.js builtins (fs, path) and cannot
+  // be bundled for a browser/WebView target. Consider eslint-linter-browserify as a future replacement.
+
+  // tsc deferred to v1.x — typescript package is ~10 MB and exceeds the 2 MB bundle ceiling.
+  // Consider using a stripped-down TS transpiler (e.g. sucrase or @babel/standalone) as a future replacement.
+};
+
+/* -------------------------------------------------------------------------- */
 /*  Shell dispatcher                                                            */
 /* -------------------------------------------------------------------------- */
 
 export async function dispatch(
   cmd: string,
-): Promise<{ output: string; exitCode: number }> {
+  depth = 0,
+): Promise<{ output: string; exitCode: number; clearScreen?: boolean }> {
   const trimmed = cmd.trim();
   if (!trimmed) return { output: '', exitCode: 0 };
 
@@ -303,9 +392,7 @@ export async function dispatch(
 
     case 'cd': {
       const target = args[0] || '/';
-      cwd = target.startsWith('/')
-        ? target
-        : `${cwd}/${target}`.replace(/\/+/g, '/');
+      cwd = resolvePath(target, cwd);
       return { output: '', exitCode: 0 };
     }
 
@@ -348,11 +435,137 @@ export async function dispatch(
       }
     }
 
+    case 'touch': {
+      if (!args[0]) {
+        return { output: 'usage: touch <file>', exitCode: 1 };
+      }
+      const touchPath = resolvePath(args[0], cwd);
+      try {
+        await vfsRead(touchPath);
+        // File exists — no-op
+        return { output: '', exitCode: 0 };
+      } catch {
+        // File does not exist — create it
+        try {
+          await vfsWrite(touchPath, '');
+          return { output: '', exitCode: 0 };
+        } catch (e) {
+          return { output: `touch: ${(e as Error).message}`, exitCode: 1 };
+        }
+      }
+    }
+
+    case 'cp': {
+      if (!args[0] || !args[1]) {
+        return { output: 'usage: cp <src> <dest>', exitCode: 1 };
+      }
+      const cpSrc = resolvePath(args[0], cwd);
+      const cpDest = resolvePath(args[1], cwd);
+      try {
+        await vfsCopy(cpSrc, cpDest);
+        return { output: '', exitCode: 0 };
+      } catch (e) {
+        return { output: `cp: ${(e as Error).message}`, exitCode: 1 };
+      }
+    }
+
+    case 'mv': {
+      if (!args[0] || !args[1]) {
+        return { output: 'usage: mv <src> <dest>', exitCode: 1 };
+      }
+      const mvSrc = resolvePath(args[0], cwd);
+      const mvDest = resolvePath(args[1], cwd);
+      try {
+        await vfsMove(mvSrc, mvDest);
+        return { output: '', exitCode: 0 };
+      } catch (e) {
+        return { output: `mv: ${(e as Error).message}`, exitCode: 1 };
+      }
+    }
+
+    case 'clear':
+      return { output: '', exitCode: 0, clearScreen: true };
+
+    case 'node': {
+      if (!args[0]) return { output: 'usage: node <file>', exitCode: 1 };
+      const filePath = resolvePath(args[0], cwd);
+      let code: string;
+      try {
+        code = await vfsRead(filePath);
+      } catch {
+        return { output: `node: ${args[0]}: No such file or directory`, exitCode: 1 };
+      }
+      if (code.length > MAX_SCRIPT_FILE_SIZE) {
+        return { output: `node: file exceeds maximum size (${MAX_SCRIPT_FILE_SIZE / 1024} KB)`, exitCode: 1 };
+      }
+      const lines: string[] = [];
+      const consoleMock = {
+        log: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
+        error: (...a: unknown[]) => lines.push(a.map(String).join(' ')),
+      };
+      const _savedBridge = (window as unknown as Record<string, unknown>).ReactNativeWebView;
+      (window as unknown as Record<string, unknown>).ReactNativeWebView = undefined;
+      try {
+        // eslint-disable-next-line no-new-func
+        new Function('console', 'require', code)(consoleMock, () => {
+          throw new Error('require() is not available in NomadCode');
+        });
+        return { output: lines.join('\n'), exitCode: 0 };
+      } catch (e) {
+        return { output: `node: ${(e as Error).message}`, exitCode: 1 };
+      } finally {
+        (window as unknown as Record<string, unknown>).ReactNativeWebView = _savedBridge;
+      }
+    }
+
+    case 'npm': {
+      if (!args[0]) {
+        return { output: 'usage: npm run <script>', exitCode: 1 };
+      }
+      if (args[0] === 'install' || args[0] === 'i') {
+        return { output: "npm install is not supported in NomadCode — packages are pre-bundled", exitCode: 1 };
+      }
+      if (args[0] === 'run') {
+        const scriptName = args[1];
+        if (!scriptName) return { output: 'usage: npm run <script>', exitCode: 1 };
+        const pkgPath = resolvePath('package.json', cwd);
+        let pkg: { scripts?: Record<string, string> };
+        try {
+          const raw = await vfsRead(pkgPath);
+          pkg = JSON.parse(raw) as { scripts?: Record<string, string> };
+        } catch {
+          return { output: 'npm run: could not read package.json', exitCode: 1 };
+        }
+        const scriptCmd = pkg.scripts?.[scriptName];
+        if (!scriptCmd) {
+          return { output: `npm run: script '${scriptName}' not found in package.json`, exitCode: 1 };
+        }
+        if (depth >= 5) {
+          return { output: 'npm run: maximum script recursion depth exceeded', exitCode: 1 };
+        }
+        return dispatch(scriptCmd, depth + 1);
+      }
+      return { output: `npm: '${args[0]}' is not a supported npm command`, exitCode: 1 };
+    }
+
+    case 'npx': {
+      const pkg = args[0];
+      if (!pkg) return { output: 'usage: npx <package> [args...]', exitCode: 1 };
+      const runner = bundledNpxTools[pkg];
+      if (!runner) {
+        return {
+          output: `npx: '${pkg}' is not available in the offline bundle. Bundled tools: prettier`,
+          exitCode: 1,
+        };
+      }
+      return runner(args.slice(1), cwd);
+    }
+
     case 'git':
       return handleGit(args);
 
     default:
-      return { output: `${base}: command not found`, exitCode: 127 };
+      return { output: `bash: ${base}: command not found`, exitCode: 127 };
   }
 }
 
@@ -381,7 +594,11 @@ function initTerminal(): void {
       input.value = '';
       if (!cmd) return;
       printLine(`$ ${cmd}`, 'command');
-      const { output: out, exitCode } = await dispatch(cmd);
+      const { output: out, exitCode, clearScreen } = await dispatch(cmd);
+      if (clearScreen) {
+        // Clear the output before printing the new prompt
+        output.innerHTML = '';
+      }
       if (out) printLine(out, exitCode === 0 ? '' : 'error');
       sendToRN({ type: 'COMMAND_COMPLETE', exitCode });
     }

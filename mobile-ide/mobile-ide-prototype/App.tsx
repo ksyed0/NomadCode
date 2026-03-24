@@ -25,7 +25,7 @@ import {
 
 import Editor, { EditorTab, getLanguageForFile } from './src/components/Editor';
 import FileExplorer from './src/components/FileExplorer';
-import { Terminal } from './src/components/Terminal';
+import { TerminalWebView } from './src/components/TerminalWebView';
 import { Command, CommandPalette } from './src/components/CommandPalette';
 import SetupWizard from './src/components/SetupWizard';
 import SettingsScreen from './src/components/SettingsScreen';
@@ -215,6 +215,14 @@ export default function App() {
   }, [tabs, activeTabPath, saveActiveFile]);
 
   // ---------------------------------------------------------------------------
+  // Terminal callbacks
+  // ---------------------------------------------------------------------------
+
+  const handleCommandComplete = useCallback((exitCode: number): void => {
+    if (__DEV__) console.log('[Terminal] exited', exitCode);
+  }, []);
+
+  // ---------------------------------------------------------------------------
   // Command palette commands
   // ---------------------------------------------------------------------------
 
@@ -303,7 +311,7 @@ export default function App() {
             onSave={saveFile}
           />
         }
-        terminal={<Terminal workingDirectory={ROOT_PATH} onCommand={console.log} visible={showTerminal} />}
+        terminal={<TerminalWebView workingDirectory={ROOT_PATH} onCommand={handleCommandComplete} visible={showTerminal} />}
         terminalHeight={terminalHeight}
         onTerminalHeightChange={setTerminalHeight}
         onOpenPalette={() => setShowPalette(true)}
