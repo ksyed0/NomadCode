@@ -72,7 +72,7 @@ export function useTerminalBridge(
         return;
       }
 
-      if (!VALID_FILE_TYPES.has(msg.type as string)) {
+      if (!VALID_FILE_TYPES.has(msg.type)) {
         if (__DEV__) console.warn('[useTerminalBridge] Unhandled message type:', msg.type);
         return;
       }
