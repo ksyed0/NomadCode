@@ -2,8 +2,13 @@ version: 2
 
 updates:
   # ── npm — prototype app ────────────────────────────────────────────────────
+  # Directory points to the npm workspace ROOT (/mobile-ide), not the workspace
+  # member (/mobile-ide/mobile-ide-prototype). This is required so Dependabot
+  # updates mobile-ide/package-lock.json (the root lockfile used by `npm ci`)
+  # rather than only updating the member's package.json and leaving transitive
+  # deps missing from the lockfile (which causes EUSAGE failures in CI).
   - package-ecosystem: npm
-    directory: /mobile-ide/mobile-ide-prototype
+    directory: /mobile-ide
     schedule:
       interval: weekly
       day: monday
