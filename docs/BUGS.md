@@ -118,3 +118,72 @@ Actual: No swipe handler existed; only FAB button worked
 Status: Fixed
 Fix Branch: feature/epic-0004-command-palette
 Lesson Encoded: No
+
+BUG-0010: node command exposes window.ReactNativeWebView to user scripts (TERM-1)
+Severity: High
+Related Story: US-0052
+Related Task:
+Steps to Reproduce:
+  1. Write a JS file containing: window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'FILE_WRITE', requestId: 'x', path: '/sensitive', content: 'injected' }))
+  2. Run: node /hack.js in terminal
+Expected: User script cannot access native bridge
+Actual: Script can forge arbitrary FILE_WRITE/FILE_READ messages directly to the native bridge, bypassing all dispatch() guards
+Root Cause: new Function('console', 'require', code) shadows console and require but leaves full WebView global scope accessible including window.ReactNativeWebView
+Status: Fixed
+Fix Branch: feature/epic-0003-terminal
+Lesson Encoded: No
+
+BUG-0011: Silent undefined spread in FileBridge.handleMessage for unknown message types (TERM-2)
+Severity: High
+Related Story: US-0052
+Related Task:
+Steps to Reproduce:
+  1. WebView sends a message with an unrecognised type (e.g. future protocol extension or malformed data)
+  2. useTerminalBridge passes it to FileBridge.handleMessage
+Expected: Error logged, message dropped safely
+Actual: switch falls through with fileResult unassigned; spread of undefined produces FILE_RESULT with no result/error fields; vfsRead silently resolves to '' instead of rejecting
+Root Cause: No guard for unrecognised message types before FileBridge.handleMessage call in useTerminalBridge
+Status: Fixed
+Fix Branch: feature/epic-0003-terminal
+Lesson Encoded: No
+
+BUG-0012: resolvePath does not normalise .. segments (TERM-3)
+Severity: Medium
+Related Story: US-0050
+Related Task:
+Steps to Reproduce:
+  1. cd .. in terminal
+  2. Run pwd
+Expected: /foo (parent directory)
+Actual: /foo/bar/.. (unnormalised path compounds with subsequent operations)
+Root Cause: resolvePath concatenates segments without resolving .. — Expo FileSystem handles it at OS level but isomorphic-git string-comparison logic and pwd output are incorrect
+Status: Fixed
+Fix Branch: feature/epic-0003-terminal
+Lesson Encoded: No
+
+BUG-0013: TypeScript strict-mode implicit any errors in terminal dispatcher (TERM-4)
+Severity: Medium
+Related Story: US-0052
+Related Task:
+Steps to Reproduce:
+  1. Run tsc --noEmit in mobile-ide/mobile-ide-prototype
+Expected: No type errors
+Actual: TS7031/TS7006 implicit any on statusMatrix destructuring and git.log callback parameter in src/terminal/bundle/index.ts
+Root Cause: Destructure pattern lacks explicit type annotation on statusMatrix row and git.log commit parameter
+Status: Fixed
+Fix Branch: feature/epic-0003-terminal
+Lesson Encoded: No
+
+BUG-0014: npm run depth guard has no test coverage (TERM-5)
+Severity: Low
+Related Story: US-0053
+Related Task:
+Steps to Reproduce:
+  1. Write package.json with: { "scripts": { "loop": "npm run loop" } }
+  2. Run: npm run loop
+Expected: Error after 5 levels of recursion with clear message
+Actual: Behavior is correct (depth guard fires) but no test verifies this — confirmed by absence of TC-0342/TC-0343 in dispatch.test.ts
+Root Cause: Depth guard test case skipped in Task 5 implementation
+Status: Fixed
+Fix Branch: feature/epic-0003-terminal
+Lesson Encoded: No
