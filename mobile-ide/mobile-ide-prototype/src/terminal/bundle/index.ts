@@ -296,7 +296,13 @@ async function handleGit(
     const errMsg = (e as Error).message ?? '';
     // Detect "not a git repository" — isomorphic-git surfaces Expo FileSystem
     // ENOENT when the .git directory doesn't exist.
-    if (errMsg.includes('ENOENT') || errMsg.includes('Could not find git repo')) {
+    if (
+      errMsg.includes('ENOENT') ||
+      errMsg.includes('Could not find git repo') ||
+      errMsg.includes('is not readable') ||
+      errMsg.includes("'readAsStringAsync'") ||
+      errMsg.includes("'readDirectoryAsync'")
+    ) {
       return {
         output: `fatal: not a git repository (or any of the parent directories): .git\nRun 'git init' to create one.`,
         exitCode: 128,
@@ -380,7 +386,18 @@ export async function dispatch(
 
     case 'ls': {
       try {
-        const entries = await vfsList(args[0] || cwd);
+        const flags = args.filter((a) => a.startsWith('-'));
+        const pathArgs = args.filter((a) => !a.startsWith('-'));
+        const target = pathArgs[0] ? resolvePath(pathArgs[0], cwd) : cwd;
+        const entries = await vfsList(target);
+        if (flags.includes('-l') || flags.includes('-la') || flags.includes('-al')) {
+          const lines = entries.map((e) => {
+            const isDir = e.endsWith('/');
+            const name = e.replace(/\/$/, '');
+            return `${isDir ? 'd' : '-'}rw-r--r--  1  user  0  ${name}`;
+          });
+          return { output: lines.join('\n'), exitCode: 0 };
+        }
         return { output: entries.join('\n'), exitCode: 0 };
       } catch (e) {
         return { output: `ls: ${(e as Error).message}`, exitCode: 1 };

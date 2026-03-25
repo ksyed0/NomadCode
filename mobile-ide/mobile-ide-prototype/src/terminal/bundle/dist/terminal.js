@@ -35035,7 +35035,7 @@ $1 $2
       }
     } catch (e) {
       const errMsg = (_a13 = e.message) != null ? _a13 : "";
-      if (errMsg.includes("ENOENT") || errMsg.includes("Could not find git repo")) {
+      if (errMsg.includes("ENOENT") || errMsg.includes("Could not find git repo") || errMsg.includes("is not readable") || errMsg.includes("'readAsStringAsync'") || errMsg.includes("'readDirectoryAsync'")) {
         return {
           output: `fatal: not a git repository (or any of the parent directories): .git
 Run 'git init' to create one.`,
@@ -35094,7 +35094,18 @@ Run 'git init' to create one.`,
         return { output: args.join(" "), exitCode: 0 };
       case "ls": {
         try {
-          const entries = await vfsList(args[0] || cwd);
+          const flags = args.filter((a3) => a3.startsWith("-"));
+          const pathArgs = args.filter((a3) => !a3.startsWith("-"));
+          const target = pathArgs[0] ? resolvePath(pathArgs[0], cwd) : cwd;
+          const entries = await vfsList(target);
+          if (flags.includes("-l") || flags.includes("-la") || flags.includes("-al")) {
+            const lines = entries.map((e) => {
+              const isDir = e.endsWith("/");
+              const name = e.replace(/\/$/, "");
+              return `${isDir ? "d" : "-"}rw-r--r--  1  user  0  ${name}`;
+            });
+            return { output: lines.join("\n"), exitCode: 0 };
+          }
           return { output: entries.join("\n"), exitCode: 0 };
         } catch (e) {
           return { output: `ls: ${e.message}`, exitCode: 1 };

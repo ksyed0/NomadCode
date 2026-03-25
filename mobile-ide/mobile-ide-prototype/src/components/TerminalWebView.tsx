@@ -67,6 +67,16 @@ export function TerminalWebView({
     sendToWebView({ type: 'SET_CWD', cwd: workingDirectory ?? '/' });
   }, [sendToWebView, workingDirectory]);
 
+  // Re-send SET_CWD when the terminal panel becomes visible.
+  // injectJavaScript is silently dropped on hidden (display:none) WebViews on
+  // some platforms, so the initial useEffect above may not reach the WebView.
+  // Sending again on first reveal guarantees delivery before the user types.
+  useEffect(() => {
+    if (visible) {
+      sendToWebView({ type: 'SET_CWD', cwd: workingDirectory ?? '/' });
+    }
+  }, [visible, sendToWebView, workingDirectory]);
+
   // Send SET_CWD once the WebView has fully loaded — this is the reliable
   // delivery path that fixes the VFS path issue.  The useEffect above handles
   // subsequent workingDirectory prop changes; this covers the initial mount

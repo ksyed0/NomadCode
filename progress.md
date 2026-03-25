@@ -4,6 +4,39 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 7 — 2026-03-25
+
+### What Was Done
+- **Updated root `BUGS.md`**: added BUG-0009 through BUG-0023 (all were in `docs/BUGS.md` but missing from human-readable root tracker)
+- **Merged PR #45** (`feature/EPIC-0003-terminal-ac-completion` → `develop`): editor tooltips, git init/errors, OAuth token bridge, VFS bridge/git fixes (BUG-0021/0022/0023), terminal commands (touch/cp/mv/clear/node/npm/npx)
+- **Uncommitted source changes committed**: SetupWizard theming (`useTheme()` dynamic colours), TerminalWebView SET_CWD re-send on `visible` change, terminal bundle `index.ts` updates, test updates
+
+### Current State
+- Branch: `develop` (post-merge of PR #45)
+- All mobile unit tests passing: **569 tests, 0 failures**
+- CI status: all key checks pass (Unit Tests, Lint, Build, CodeQL, Secret Scan); Semgrep static analysis fails (pre-existing, unrelated to this branch)
+- EPIC-0003 (Terminal): **Done** — merged to develop
+
+### Test Status
+- 569 passing, 0 failing
+- Coverage ≥ 80% on all modified files (CI confirmed)
+
+### Key Files Modified
+- `BUGS.md` — added BUG-0009 through BUG-0023
+- `progress.md` — this entry
+- `docs/AI_COST_LOG.md` — auto-appended by stop hook
+- `mobile-ide/mobile-ide-prototype/src/components/SetupWizard.tsx` — `useTheme()` dynamic colours
+- `mobile-ide/mobile-ide-prototype/src/components/TerminalWebView.tsx` — re-send SET_CWD on `visible`
+- `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts` — terminal command updates
+- `mobile-ide/mobile-ide-prototype/tests/unit/dispatch.test.ts` — test updates
+
+### Next Session Pick-up
+1. Decide next EPIC to implement (see RELEASE_PLAN.md)
+2. Investigate BUG-0009 (iPhone landscape crash on SetupWizard modal) — OPEN
+3. Consider workspace initialisation flow (Setup Wizard step 3 creates `workspace/` as actual working directory)
+
+---
+
 ## Session 6 — 2026-03-25
 
 ### What Was Done

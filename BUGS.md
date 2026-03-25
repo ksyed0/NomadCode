@@ -136,3 +136,247 @@ keyboard-free power workflows." Currently the only trigger is the FAB button. No
 `PanResponder` swipe-down gesture exists.
 
 **Fix:** Add `PanResponder` swipe zone at top of the editor main pane in `TabletResponsive`.
+
+---
+
+---
+
+## Simulator / Device (detected 2026-03-17)
+
+### BUG-0009 / SIM-1 — iPhone simulator crashes on `SetupWizard` modal presentation [OPEN]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/src/components/SetupWizard.tsx`
+**Description:**
+Running the app via Expo Go on an iPhone simulator crashes within ~10 seconds of launch.
+After Zustand store hydration, the `SetupWizard` `Modal` becomes visible; iOS 16+ throws a
+`SIGABRT` in `-[UIViewController __supportedInterfaceOrientations]` during modal presentation
+on a landscape-locked app. iPad handles this correctly.
+
+**Root cause:** iOS 16+ throws when a modal is presented inside a landscape-locked app on
+iPhone. The app enforces landscape orientation globally; iPhones do not support landscape-only
+modals in the same way iPads do.
+
+**Fix:** Gate `SetupWizard` to iPad only, or conditionally allow portrait on iPhone before
+presenting the modal. Needs investigation.
+
+---
+
+---
+
+## EPIC-0003 — Terminal (detected 2026-03-20, code review)
+
+### BUG-0010 / TERM-1 — `node` command exposes `window.ReactNativeWebView` to user scripts [FIXED]
+
+**Severity:** High
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts`
+**Description:**
+The `node` command evaluated user JS with `new Function('console', 'require', code)`, which
+shadowed `console` and `require` but left the full WebView global scope accessible, including
+`window.ReactNativeWebView`. A malicious script could forge arbitrary `FILE_WRITE`/`FILE_READ`
+messages directly to the native bridge, bypassing all dispatch guards.
+
+**Root cause:** `new Function` only masks names that are explicitly declared as parameters;
+globals like `window` remain fully accessible.
+
+**Fix:** Proxy `window.ReactNativeWebView` to `undefined` inside the `node` sandbox scope.
+
+---
+
+### BUG-0011 / TERM-2 — Silent `undefined` spread in `FileBridge.handleMessage` for unknown message types [FIXED]
+
+**Severity:** High
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/FileBridge.ts`
+**Description:**
+When the WebView sent a message with an unrecognised type, `useTerminalBridge` passed it to
+`FileBridge.handleMessage`, whose `switch` fell through without assigning `fileResult`.
+Spreading `undefined` produced a `FILE_RESULT` with no `result`/`error` fields; `vfsRead`
+silently resolved to `''` instead of rejecting.
+
+**Root cause:** No guard for unrecognised message types before the `FileBridge.handleMessage` call.
+
+**Fix:** Add an early-return guard for unknown types in `useTerminalBridge` before dispatching.
+
+---
+
+### BUG-0012 / TERM-3 — `resolvePath` does not normalise `..` segments [FIXED]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts`
+**Description:**
+`resolvePath` concatenated path segments without resolving `..`. Running `cd ..` then `pwd`
+produced `/foo/bar/..` — an unnormalised path that compounded with subsequent operations,
+causing `isomorphic-git` string-comparison and `pwd` output to be incorrect.
+
+**Root cause:** Expo FileSystem resolves `..` at the OS level but isomorphic-git uses string
+comparison on paths; unnormalised strings broke git operations silently.
+
+**Fix:** Run result through a POSIX-style `..` resolver after joining segments.
+
+---
+
+### BUG-0013 / TERM-4 — TypeScript strict-mode implicit `any` errors in terminal dispatcher [FIXED]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts`
+**Description:**
+`tsc --noEmit` reported `TS7031`/`TS7006` implicit `any` on `statusMatrix` destructuring and
+the `git.log` callback parameter.
+
+**Root cause:** Destructure pattern lacked explicit type annotations.
+
+**Fix:** Add explicit type annotations to `statusMatrix` row destructure and `git.log` commit
+callback parameter.
+
+---
+
+### BUG-0014 / TERM-5 — `npm run` depth guard has no test coverage [FIXED]
+
+**Severity:** Low
+**File:** `mobile-ide/mobile-ide-prototype/tests/unit/dispatch.test.ts`
+**Description:**
+The npm recursion depth guard (fires after 5 levels) was implemented but no test verified its
+behaviour. TC-0342/TC-0343 were absent from `dispatch.test.ts`.
+
+**Root cause:** Depth-guard test cases were skipped during the Task 5 implementation pass.
+
+**Fix:** Add TC-0342/TC-0343 covering the depth guard trigger and error message.
+
+---
+
+### BUG-0020 / TERM-7 — `App.tsx` wires deprecated `Terminal` stub instead of `TerminalWebView` [FIXED]
+
+**Severity:** High
+**File:** `mobile-ide/mobile-ide-prototype/App.tsx`
+**Description:**
+`App.tsx` imported `Terminal` from `./src/components/Terminal` (a deprecated stub marked
+`@deprecated` since `TerminalWebView` was written). The stub had no VFS bridge, no git, and
+no `touch` support; all unrecognised commands returned `bash: [command]: command not found`.
+
+**Root cause:** The import was never updated when `TerminalWebView` replaced the stub.
+
+**Fix:** Change the `App.tsx` import to use `TerminalWebView` and pass the required props.
+
+---
+
+### BUG-0021 / TERM-8 — `git status` throws "Cannot read properties of undefined (reading 'bind')" [FIXED]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts`
+**Description:**
+`isomorphic-git`'s `bindFs()` iterates a hardcoded commands array including `readlink` and
+`symlink`, calling `.bind()` on each. `gitFs.promises` was missing those two entries, so
+`undefined.bind()` threw before any git operation ran.
+
+**Root cause:** `gitFs.promises` was assembled manually and omitted `readlink`/`symlink`.
+
+**Fix:** Add `readlink` and `symlink` stubs to `gitFs.promises`.
+
+---
+
+### BUG-0022 / TERM-9 — Terminal `cwd` stays at `"/"` — `ls /` returns empty, `touch` creates files at wrong path [FIXED]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/src/components/TerminalWebView.tsx`
+**Description:**
+`TerminalWebView` sent `SET_CWD` via `useEffect` before `webViewRef.current` was populated.
+`injectJavaScript` silently dropped the message via optional chaining; `cwd` remained `"/"`.
+
+**Root cause:** The WebView bridge is not ready at `useEffect` mount time; the message needed
+to be sent after `onLoadEnd`.
+
+**Fix:** Move the initial `SET_CWD` dispatch to an `onLoadEnd` handler.
+
+---
+
+### BUG-0023 / TERM-10 — `sendToWebView` injects a JS object literal; `receiveFromRN` calls `JSON.parse` — all messages silently fail [FIXED]
+
+**Severity:** Critical
+**File:** `mobile-ide/mobile-ide-prototype/src/components/TerminalWebView.tsx`
+**Description:**
+`sendToWebView` called `injectJavaScript(`window.receiveFromRN(${JSON.stringify(msg)})`)`,
+passing a JS object literal. `receiveFromRN` immediately called `JSON.parse(msgJson)`, which
+coerced the object to `"[object Object]"` → `SyntaxError` → silent catch → message dropped.
+All VFS operations hung; `SET_CWD` never updated `cwd` from `"/"`.
+
+**Root cause:** `sendToWebView` needed to double-stringify so the injected JS passes a string
+literal that `JSON.parse` can parse.
+
+**Fix:** Change to `JSON.stringify(JSON.stringify(msg))` in `sendToWebView`.
+
+---
+
+---
+
+## Develop — Session 6 (detected 2026-03-25)
+
+### BUG-0015 / ANDROID-1 — `expo-crypto` missing from `package.json` causes "App entry not found" crash on Android [FIXED]
+
+**Severity:** Critical
+**File:** `mobile-ide/mobile-ide-prototype/package.json`
+**Description:**
+`expo-auth-session`'s top-level import calls `requireNativeModule('ExpoCrypto')`. Because
+`expo-crypto` was not in `package.json`, the native module was never compiled into the APK by
+Gradle autolinking, crashing the JS bundle before `AppRegistry.registerComponent`.
+
+**Root cause:** `expo-auth-session@~6.0.3` peer-depends on `expo-crypto`, which was omitted.
+
+**Fix:** Add `expo-crypto@~14.0.2` to `package.json`; rebuild APK.
+
+---
+
+### BUG-0016 / TERM-6 — Terminal dist bundle stale — all commands return "command not found" [FIXED]
+
+**Severity:** High
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/bundle/dist/terminal.js`
+**Description:**
+`dist/terminal.js` was an older build containing only the command-not-found fallback.
+`npm run build:terminal` had not been run after `index.ts` was updated with the full command
+dispatcher, so all commands silently failed at runtime.
+
+**Root cause:** Build artefact not regenerated after source change.
+
+**Fix:** Run `npm run build:terminal` to rebuild `dist/terminal.html` (677 KB) from current `index.ts`.
+
+---
+
+### BUG-0017 / UX-1 — No visible "New File" button in `FileExplorer` header [FIXED]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/src/components/FileExplorer.tsx`
+**Description:**
+The only way to create a new file was a long-press context menu — completely undiscoverable
+on first use. No `"+"` button or equivalent existed in the header.
+
+**Root cause:** Header action buttons were never added; file creation relied entirely on the
+context menu.
+
+**Fix:** Add `"+"` and `"⊞"` (new folder) icon buttons to the `FileExplorer` header.
+
+---
+
+### BUG-0018 / UX-2 — `onFileCreate` not wired in `App.tsx` — new files do not auto-open in editor [FIXED]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/App.tsx`
+**Description:**
+`FileExplorer` accepted an optional `onFileCreate` prop, but `App.tsx` never passed a handler.
+Files were created on disk but the editor never opened them.
+
+**Root cause:** Prop wiring omitted; the prop was optional so it silently did nothing.
+
+**Fix:** Pass `onFileCreate={openFile}` from `App.tsx` to `FileExplorer`.
+
+---
+
+### BUG-0019 / UX-3 — "File: New File" command missing from command palette [FIXED]
+
+**Severity:** Low
+**File:** `mobile-ide/mobile-ide-prototype/App.tsx`
+**Description:**
+Searching "new" or "file" in the command palette returned "No commands found". The palette
+only had Save, Close Tab, Toggle Terminal, Git Status, and Git Commit.
+
+**Root cause:** "File: New File" command was never registered in the palette command list.
+
+**Fix:** Register a `"File: New File"` command that triggers `triggerNewFile` state in `App.tsx`.
