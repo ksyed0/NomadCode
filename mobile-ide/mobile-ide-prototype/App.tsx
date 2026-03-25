@@ -322,7 +322,7 @@ export default function App() {
             onSave={saveFile}
           />
         }
-        terminal={<TerminalWebView workingDirectory={ROOT_PATH} onCommand={handleCommandComplete} visible={showTerminal} />
+        terminal={<TerminalWebView workingDirectory={ROOT_PATH} onCommand={handleCommandComplete} visible={showTerminal} />}
         terminalHeight={terminalHeight}
         onTerminalHeightChange={setTerminalHeight}
         onOpenPalette={() => setShowPalette(true)}

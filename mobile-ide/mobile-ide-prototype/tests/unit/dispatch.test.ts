@@ -74,7 +74,10 @@ function makeBridge(
 
 jest.mock('isomorphic-git', () => ({
   __esModule: true,
-  default: {},
+  default: {
+    init: jest.fn().mockResolvedValue(undefined),
+    statusMatrix: jest.fn(),
+  },
 }));
 jest.mock('isomorphic-git/http/web', () => ({ __esModule: true, default: {} }));
 
@@ -465,8 +468,19 @@ describe('TC-0344: somethingweird (unknown command)', () => {
 
     expect(result.exitCode).toBe(127);
     expect(result.output).toContain('command not found');
+  });
+});
 
 describe('dispatch — git init (AC-0130)', () => {
+  let mockInit: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockInit = (jest.requireMock('isomorphic-git') as { default: { init: jest.Mock } }).default.init;
+    mockInit.mockClear();
+    mockInit.mockResolvedValue(undefined);
+  });
+
   // TC-0345
   it('git init calls git.init and returns initialized message', async () => {
     const result = await dispatch('git init');
@@ -478,6 +492,14 @@ describe('dispatch — git init (AC-0130)', () => {
 });
 
 describe('dispatch — git friendly errors (AC-0135)', () => {
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockStatusMatrix = (jest.requireMock('isomorphic-git') as { default: { statusMatrix: jest.Mock } }).default.statusMatrix;
+    mockStatusMatrix.mockClear();
+  });
+
   // TC-0346
   it('git status ENOENT returns friendly "not a git repository" message', async () => {
     mockStatusMatrix.mockRejectedValue(

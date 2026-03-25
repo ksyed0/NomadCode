@@ -34786,6 +34786,73 @@ $1 $2
   var dD = { estree: Hs2, "estree-json": Xs2 };
   var CD = [...Qs2, ...ya2];
 
+  // src/terminal/bundle/gitFsAdapter.ts
+  function makeStatResult(isDir) {
+    return {
+      isFile: () => !isDir,
+      isDirectory: () => isDir,
+      isSymbolicLink: () => false,
+      size: 0,
+      mode: 33188,
+      mtimeMs: Date.now(),
+      ctimeMs: Date.now(),
+      uid: 0,
+      gid: 0
+    };
+  }
+  function buildGitFs(vfs) {
+    return {
+      promises: {
+        readFile: async (path, options) => {
+          const content = await vfs.read(path);
+          if (options == null ? void 0 : options.encoding) return content;
+          return new TextEncoder().encode(content);
+        },
+        writeFile: async (path, data) => {
+          const text = typeof data === "string" ? data : new TextDecoder().decode(data);
+          await vfs.write(path, text);
+        },
+        unlink: async (path) => {
+          await vfs.del(path);
+        },
+        readdir: async (path) => {
+          const entries = await vfs.list(path);
+          return entries.map((e) => e.replace(/\/$/, ""));
+        },
+        mkdir: async (path) => {
+          await vfs.mkdir(path);
+        },
+        rmdir: async (path) => {
+          await vfs.del(path);
+        },
+        stat: async (path) => {
+          const entries = await vfs.list(path).catch(() => null);
+          return makeStatResult(entries !== null);
+        },
+        lstat: async (path) => {
+          const entries = await vfs.list(path).catch(() => null);
+          return makeStatResult(entries !== null);
+        },
+        // isomorphic-git's bindFs() calls .bind() on EVERY entry in its
+        // `commands` array during FileSystem construction, including readlink
+        // and symlink.  If either is missing, `undefined.bind()` throws before
+        // any git operation runs (BUG-0021).  The VFS has no symlink support, so
+        // these stubs simply reject — isomorphic-git only invokes readlink when
+        // it actually encounters a symlink in the tree, which never happens here.
+        readlink: async (_path) => {
+          throw Object.assign(new Error("ENOSYS: readlink not supported"), {
+            code: "ENOSYS"
+          });
+        },
+        symlink: async (_target, _path) => {
+          throw Object.assign(new Error("ENOSYS: symlink not supported"), {
+            code: "ENOSYS"
+          });
+        }
+      }
+    };
+  }
+
   // src/terminal/bundle/index.ts
   var cwd = "/";
   var pendingRequests = /* @__PURE__ */ new Map();
@@ -34796,7 +34863,14 @@ $1 $2
     window.ReactNativeWebView.postMessage(JSON.stringify(msg));
   }
   function resolvePath(arg, baseCwd) {
-    return arg.startsWith("/") ? arg : `${baseCwd}/${arg}`.replace(/\/+/g, "/");
+    const raw = arg.startsWith("/") ? arg : `${baseCwd}/${arg}`;
+    const parts = raw.split("/").filter(Boolean);
+    const stack = [];
+    for (const p2 of parts) {
+      if (p2 === "..") stack.pop();
+      else if (p2 !== ".") stack.push(p2);
+    }
+    return "/" + stack.join("/");
   }
   async function vfsRead(path) {
     return new Promise((resolve, reject) => {
@@ -34874,61 +34948,24 @@ $1 $2
       sendToRN({ type: "FILE_MOVE", requestId, src, dest });
     });
   }
-  var gitFs = {
-    promises: {
-      readFile: async (path, options) => {
-        const content = await vfsRead(path);
-        if (options == null ? void 0 : options.encoding) return content;
-        return new TextEncoder().encode(content);
-      },
-      writeFile: async (path, data) => {
-        const text = typeof data === "string" ? data : new TextDecoder().decode(data);
-        await vfsWrite(path, text);
-      },
-      unlink: async (path) => {
-        await vfsDelete(path);
-      },
-      readdir: async (path) => {
-        const entries = await vfsList(path);
-        return entries.map((e) => e.replace(/\/$/, ""));
-      },
-      mkdir: async (path) => {
-        await vfsMkdir(path);
-      },
-      rmdir: async (path) => {
-        await vfsDelete(path);
-      },
-      stat: async (path) => {
-        const entries = await vfsList(path).catch(() => null);
-        return {
-          isFile: () => entries === null,
-          isDirectory: () => entries !== null,
-          isSymbolicLink: () => false,
-          size: 0,
-          mode: 33188,
-          mtimeMs: Date.now(),
-          ctimeMs: Date.now(),
-          uid: 0,
-          gid: 0
-        };
-      },
-      lstat: async (path) => {
-        const entries = await vfsList(path).catch(() => null);
-        return {
-          isFile: () => entries === null,
-          isDirectory: () => entries !== null,
-          isSymbolicLink: () => false,
-          size: 0,
-          mode: 33188,
-          mtimeMs: Date.now(),
-          ctimeMs: Date.now(),
-          uid: 0,
-          gid: 0
-        };
-      }
-    }
-  };
+  async function getToken() {
+    return new Promise((resolve) => {
+      const requestId = generateId();
+      pendingRequests.set(requestId, (result) => {
+        resolve(result);
+      });
+      sendToRN({ type: "GET_TOKEN", requestId });
+    });
+  }
+  var gitFs = buildGitFs({
+    read: vfsRead,
+    write: vfsWrite,
+    list: vfsList,
+    mkdir: vfsMkdir,
+    del: vfsDelete
+  });
   async function handleGit(args) {
+    var _a13;
     const [subcommand, ...rest] = args;
     try {
       switch (subcommand) {
@@ -34976,16 +35013,24 @@ $1 $2
           });
           return { output: `[${sha.slice(0, 7)}] ${message}`, exitCode: 0 };
         }
+        case "init": {
+          await import_isomorphic_git.default.init({ fs: gitFs, dir: cwd });
+          return {
+            output: `Initialized empty Git repository in ${cwd}/.git/`,
+            exitCode: 0
+          };
+        }
         case "push": {
           const remote = rest[0] || "origin";
           const branch = rest[1] || "main";
-          await import_isomorphic_git.default.push({
+          const pushToken = await getToken();
+          await import_isomorphic_git.default.push(__spreadValues({
             fs: gitFs,
             http: web_default,
             dir: cwd,
             remote,
             remoteRef: branch
-          });
+          }, pushToken ? { onAuth: () => ({ username: pushToken, password: "x-oauth-basic" }) } : {}));
           return {
             output: `Pushed to ${remote}/${branch}`,
             exitCode: 0
@@ -34997,12 +35042,13 @@ $1 $2
           if (!url) {
             return { output: "usage: git clone <url> [dir]", exitCode: 1 };
           }
-          await import_isomorphic_git.default.clone({
+          const cloneToken = await getToken();
+          await import_isomorphic_git.default.clone(__spreadValues({
             fs: gitFs,
             http: web_default,
             dir,
             url
-          });
+          }, cloneToken ? { onAuth: () => ({ username: cloneToken, password: "x-oauth-basic" }) } : {}));
           return { output: `Cloned ${url} into ${dir}`, exitCode: 0 };
         }
         default:
@@ -35012,7 +35058,15 @@ $1 $2
           };
       }
     } catch (e) {
-      return { output: `git: ${e.message}`, exitCode: 1 };
+      const errMsg = (_a13 = e.message) != null ? _a13 : "";
+      if (errMsg.includes("ENOENT") || errMsg.includes("Could not find git repo")) {
+        return {
+          output: `fatal: not a git repository (or any of the parent directories): .git
+Run 'git init' to create one.`,
+          exitCode: 128
+        };
+      }
+      return { output: `git: ${errMsg}`, exitCode: 1 };
     }
   }
   var MAX_SCRIPT_FILE_SIZE = 500 * 1024;
@@ -35156,16 +35210,17 @@ $1 $2
           log: (...a3) => lines.push(a3.map(String).join(" ")),
           error: (...a3) => lines.push(a3.map(String).join(" "))
         };
+        const _savedBridge = window.ReactNativeWebView;
+        window.ReactNativeWebView = void 0;
         try {
-          new Function("console", "require", code)(
-            consoleMock,
-            (_mod) => {
-              throw new Error("require() is not available in NomadCode");
-            }
-          );
+          new Function("console", "require", code)(consoleMock, () => {
+            throw new Error("require() is not available in NomadCode");
+          });
           return { output: lines.join("\n"), exitCode: 0 };
         } catch (e) {
           return { output: `node: ${e.message}`, exitCode: 1 };
+        } finally {
+          window.ReactNativeWebView = _savedBridge;
         }
       }
       case "npm": {
@@ -35245,7 +35300,7 @@ $1 $2
   }
   document.addEventListener("DOMContentLoaded", initTerminal);
   window.receiveFromRN = (msgJson) => {
-    var _a13;
+    var _a13, _b;
     try {
       const msg = JSON.parse(msgJson);
       if (msg.type === "FILE_RESULT" && msg.requestId) {
@@ -35253,6 +35308,12 @@ $1 $2
         if (resolver) {
           pendingRequests.delete(msg.requestId);
           resolver((_a13 = msg.result) != null ? _a13 : null, msg.error);
+        }
+      } else if (msg.type === "TOKEN_RESULT" && msg.requestId) {
+        const resolver = pendingRequests.get(msg.requestId);
+        if (resolver) {
+          pendingRequests.delete(msg.requestId);
+          resolver((_b = msg.token) != null ? _b : null);
         }
       } else if (msg.type === "SET_CWD" && msg.cwd) {
         cwd = msg.cwd;
