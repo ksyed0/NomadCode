@@ -250,6 +250,7 @@ export default function FileExplorer({
 
   useEffect(() => {
     if (triggerNewFile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       handleHeaderNewFile();
       onNewFileDismissed?.();
     }
@@ -298,7 +299,7 @@ export default function FileExplorer({
     } catch (err) {
       showErrorAlert(err);
     }
-  }, [nameModal, nameInputValue, onFileCreate, onFileRename, refreshContainingDir]);
+  }, [nameModal, nameInputValue, onFileCreate, onFileRename, refreshContainingDir, refreshTree, rootPath]);
 
   const handleNameCancel = useCallback(() => {
     setNameModal(null);
