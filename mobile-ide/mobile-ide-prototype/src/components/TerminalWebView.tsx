@@ -59,7 +59,17 @@ export function TerminalWebView({
   const [hasError, setHasError] = useState(false);
 
   // Send SET_CWD on mount (or when workingDirectory changes).
+  // Note: this may be dropped if webViewRef.current is not yet populated;
+  // handleLoadEnd guarantees delivery once the WebView finishes loading.
   useEffect(() => {
+    sendToWebView({ type: 'SET_CWD', cwd: workingDirectory ?? '/' });
+  }, [sendToWebView, workingDirectory]);
+
+  // Send SET_CWD once the WebView has fully loaded — this is the reliable
+  // delivery path that fixes the VFS path issue.  The useEffect above handles
+  // subsequent workingDirectory prop changes; this covers the initial mount
+  // where injectJavaScript may be called before the bridge is ready.
+  const handleLoadEnd = useCallback(() => {
     sendToWebView({ type: 'SET_CWD', cwd: workingDirectory ?? '/' });
   }, [sendToWebView, workingDirectory]);
 
@@ -138,6 +148,7 @@ export function TerminalWebView({
             onMessage={onMessage}
             onError={handleError}
             onLayout={handleLayout}
+            onLoadEnd={handleLoadEnd}
             javaScriptEnabled={true}
             domStorageEnabled={true}
             originWhitelist={['*']}

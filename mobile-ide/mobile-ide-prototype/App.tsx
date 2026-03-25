@@ -70,6 +70,7 @@ export default function App() {
   const [showPalette, setShowPalette] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [terminalHeight, setTerminalHeight] = useState(220);
+  const [triggerNewFile, setTriggerNewFile] = useState(false);
 
   // ── Git status (updated after Git operations) ─────────────────────────────
   const [gitBranch, setGitBranch] = useState('main');
@@ -228,6 +229,13 @@ export default function App() {
 
   const paletteCommands = useMemo<Command[]>(() => [
     {
+      id: 'file-new',
+      label: 'File: New File',
+      description: 'Create a new file in the workspace',
+      shortcut: '⌘N',
+      action: () => { setShowPalette(false); setTriggerNewFile(true); },
+    },
+    {
       id: 'file-save',
       label: 'File: Save',
       description: 'Save the active file to disk',
@@ -262,7 +270,7 @@ export default function App() {
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
-  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath]);
+  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setTriggerNewFile]);
 
   const handlePaletteSelect = useCallback((cmd: Command) => {
     setShowPalette(false);
@@ -298,7 +306,10 @@ export default function App() {
           <FileExplorer
             rootPath={ROOT_PATH}
             onFileSelect={openFile}
+            onFileCreate={openFile}
             onFileDelete={deleteFile}
+            triggerNewFile={triggerNewFile}
+            onNewFileDismissed={() => setTriggerNewFile(false)}
           />
         }
         main={
@@ -311,7 +322,7 @@ export default function App() {
             onSave={saveFile}
           />
         }
-        terminal={<TerminalWebView workingDirectory={ROOT_PATH} onCommand={handleCommandComplete} visible={showTerminal} />}
+        terminal={<TerminalWebView workingDirectory={ROOT_PATH} onCommand={handleCommandComplete} visible={showTerminal} />
         terminalHeight={terminalHeight}
         onTerminalHeightChange={setTerminalHeight}
         onOpenPalette={() => setShowPalette(true)}

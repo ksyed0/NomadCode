@@ -21,6 +21,9 @@ interface FileExplorerProps {
   onFileDelete?: (filePath: string) => void;
   onFileRename?: (oldPath: string, newPath: string) => void;
   onFileMove?: (from: string, to: string) => void;
+  /** Set true externally to open the new-file modal (e.g. from command palette). Reset via onNewFileDismissed. */
+  triggerNewFile?: boolean;
+  onNewFileDismissed?: () => void;
 }
 
 interface TreeNode extends FileEntry {
@@ -75,6 +78,8 @@ export default function FileExplorer({
   onFileCreate,
   onFileRename,
   onFileMove,
+  triggerNewFile,
+  onNewFileDismissed,
 }: FileExplorerProps) {
   const t = useTheme();
   const [nodes, setNodes] = useState<TreeNode[]>([]);
@@ -233,6 +238,23 @@ export default function FileExplorer({
     ]);
   }, [contextTarget, onFileDelete, refreshContainingDir]);
 
+  const handleHeaderNewFile = useCallback(() => {
+    setNameInputValue('');
+    setNameModal({ visible: true, mode: 'create-file', initialValue: '', targetNode: null });
+  }, []);
+
+  const handleHeaderNewFolder = useCallback(() => {
+    setNameInputValue('');
+    setNameModal({ visible: true, mode: 'create-dir', initialValue: '', targetNode: null });
+  }, []);
+
+  useEffect(() => {
+    if (triggerNewFile) {
+      handleHeaderNewFile();
+      onNewFileDismissed?.();
+    }
+  }, [triggerNewFile, handleHeaderNewFile, onNewFileDismissed]);
+
   const handleContextMove = useCallback(async () => {
     const target = contextTarget!;
     setContextTarget(null);
@@ -253,7 +275,7 @@ export default function FileExplorer({
     const trimmed = nameInputValue.trim();
     if (!trimmed) return;
 
-    const parentPath = resolveParentPath(targetNode!);
+    const parentPath = targetNode ? resolveParentPath(targetNode) : rootPath;
     const newPath = `${parentPath}/${trimmed}`;
 
     setNameModal(null);
@@ -263,10 +285,10 @@ export default function FileExplorer({
       if (mode === 'create-file') {
         await FileSystemBridge.createFile(newPath);
         onFileCreate?.(newPath);
-        await refreshContainingDir(targetNode!);
+        if (targetNode) await refreshContainingDir(targetNode); else await refreshTree();
       } else if (mode === 'create-dir') {
         await FileSystemBridge.createDirectory(newPath);
-        await refreshContainingDir(targetNode!);
+        if (targetNode) await refreshContainingDir(targetNode); else await refreshTree();
       } else if (mode === 'rename') {
         const oldPath = targetNode!.path;
         await FileSystemBridge.moveEntry(oldPath, newPath);
@@ -379,6 +401,24 @@ export default function FileExplorer({
     <View style={[styles.container, { backgroundColor: t.bgElevated }]}>
       <View style={[styles.header, { borderBottomColor: t.border }]}>
         <Text style={[styles.headerText, { color: t.textMuted }]}>EXPLORER</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            testID="header-new-file"
+            onPress={handleHeaderNewFile}
+            style={styles.headerBtn}
+            accessibilityLabel="New file"
+          >
+            <Text style={[styles.headerBtnText, { color: t.textMuted }]}>+</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="header-new-folder"
+            onPress={handleHeaderNewFolder}
+            style={styles.headerBtn}
+            accessibilityLabel="New folder"
+          >
+            <Text style={[styles.headerBtnText, { color: t.textMuted }]}>⊞</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <FlatList
         data={nodes}
@@ -536,6 +576,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: 1,
@@ -544,6 +587,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerBtn: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  headerBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   row: {
     flexDirection: 'row',

@@ -97,8 +97,12 @@ describe('useTerminalBridge', () => {
     expect('current' in result.current.webViewRef).toBe(true);
   });
 
-  // 2. sendToWebView calls injectJavaScript with correct JSON
-  it('sendToWebView calls injectJavaScript with window.receiveFromRN(…)', () => {
+  // 2. sendToWebView calls injectJavaScript with a JSON string argument
+  // receiveFromRN(msgJson: string) calls JSON.parse(msgJson) — the injected JS must
+  // pass a quoted string literal, not an object literal. The injection must
+  // double-stringify: JSON.stringify(JSON.stringify(msg)) so the WebView receives
+  // window.receiveFromRN("{\"type\":\"SET_CWD\",...}") — a string that JSON.parse can parse.
+  it('sendToWebView injects a JSON string literal (double-stringified) into receiveFromRN', () => {
     const { result } = renderHook(() => useTerminalBridge());
 
     // Manually set ref.current so we can verify the call.
@@ -112,8 +116,9 @@ describe('useTerminalBridge', () => {
     });
 
     expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
+    // The injected JS must pass a string to receiveFromRN, not an object literal.
     expect(mockInjectJavaScript).toHaveBeenCalledWith(
-      `window.receiveFromRN(${JSON.stringify(msg)})`,
+      `window.receiveFromRN(${JSON.stringify(JSON.stringify(msg))});true;`,
     );
   });
 
@@ -200,7 +205,7 @@ describe('useTerminalBridge', () => {
 
     expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
     expect(mockInjectJavaScript).toHaveBeenCalledWith(
-      `window.receiveFromRN(${JSON.stringify(FILE_RESULT_RESPONSE)})`,
+      `window.receiveFromRN(${JSON.stringify(JSON.stringify(FILE_RESULT_RESPONSE))});true;`,
     );
   });
 

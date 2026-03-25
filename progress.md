@@ -4,6 +4,52 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 6 — 2026-03-25
+
+### What Was Done
+- **Android runtime audit**: reviewed all requirements for iOS/Android build environment
+- **Fixed RUNNING.md** (5 issues): Node ≥20 LTS, removed deprecated expo-cli row, Monaco CDN → App Store compliance warning (§2.5.2), Offline Monaco section marked required, Detox config updated to `ios.ipad.debug`
+- **Created eas.json**: development/preview/production build profiles
+- **Fixed android/build.gradle**: `kotlin-gradle-plugin` now explicitly uses `kotlinVersion = 1.9.25` from ext block, resolving Compose Compiler 1.5.15 / Kotlin 1.9.24 mismatch (BUG was that classpath omitted version, letting react-native rootproject resolve 1.9.24)
+- **Installed Android tablet AVD**: `Pixel_Tablet_API35` with `system-images;android-35;google_apis_playstore_tablet;arm64-v8a`; resolved Java 25→21 incompatibility via `brew install openjdk@21`
+- **Built and installed Android APK**: 120 MB debug APK, package `com.nomadcode.mobileide` confirmed on `emulator-5554`
+- **Fixed BUG-0015** (App entry not found): added `expo-crypto@~14.0.2` to package.json; rebuilt APK — `ExpoCrypto` native module now compiled by Gradle autolinking
+- **Fixed BUG-0016** (terminal stale bundle): ran `npm run build:terminal` rebuilding `dist/terminal.html` (677 KB) from current `index.ts`; touched `terminalHtmlContent.ts` to trigger Metro hot-reload
+- **Implemented BUG-0017/0018/0019 fixes**: added "+" and "⊞" buttons to FileExplorer header; wired `onFileCreate={openFile}` in App.tsx; added "File: New File" palette command; added `touch` terminal command with improved fallback listing available commands
+- **Logged BUG-0015 through BUG-0019** to `docs/BUGS.md`; corrected ID_REGISTRY (BUG was stale at BUG-0006 despite BUG-0014 existing)
+
+### Current State
+- Branch: `develop`
+- App running on Pixel Tablet emulator (landscape, 2560×1600)
+- Setup Wizard visible on first launch (theme picker, font size, workspace init — 3 steps)
+- All IDE panes visible after setup: FileExplorer | Editor | Terminal
+- Terminal commands working: pwd, cd, ls, cat, mkdir, rm, touch, git (status, log, add, commit, push, clone)
+- File creation: "+" header button + command palette "File: New File" both operational
+- New files auto-open in editor via `onFileCreate` wiring
+
+### Test Status
+- Tests not run this session (no source logic changes, only UX/config fixes)
+- Previous: all mobile unit tests passing
+
+### Key Files Modified
+- `mobile-ide/mobile-ide-prototype/RUNNING.md` — 5 doc fixes
+- `mobile-ide/mobile-ide-prototype/eas.json` — created
+- `mobile-ide/mobile-ide-prototype/android/build.gradle` — Kotlin version pin
+- `mobile-ide/mobile-ide-prototype/package.json` — added expo-crypto@~14.0.2
+- `src/components/FileExplorer.tsx` — "+" and "⊞" header buttons, handleHeaderNewFile/Folder
+- `App.tsx` — onFileCreate wired, "File: New File" palette command, triggerNewFile state
+- `src/terminal/bundle/index.ts` — touch command, improved fallback message
+- `docs/BUGS.md` — BUG-0015 through BUG-0019
+- `docs/ID_REGISTRY.md` — BUG corrected to BUG-0020
+
+### Next Session Pick-up
+1. Run full test suite (`npm test`) and ensure ≥80% coverage on modified files
+2. Add `touch` unit test to terminal dispatch tests
+3. Consider: workspace initialisation flow (Setup Wizard step 3 creates a `workspace/` folder as actual working directory)
+4. Consider: `git init` command in terminal for new projects
+
+---
+
 ## Session 5 — 2026-03-17
 
 ### What Was Done

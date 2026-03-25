@@ -14,6 +14,7 @@ import http from 'isomorphic-git/http/web';
 import * as prettierStandalone from 'prettier/standalone';
 import * as prettierBabelPlugin from 'prettier/plugins/babel';
 import * as prettierEstreePlugin from 'prettier/plugins/estree';
+import { buildGitFs } from './gitFsAdapter';
 // eslint (full package) is Node.js-only and cannot be bundled for WebView — deferred to v1.x
 // typescript package is ~10 MB and exceeds the 2 MB bundle ceiling — tsc deferred to v1.x
 
@@ -151,78 +152,27 @@ async function vfsMove(src: string, dest: string): Promise<void> {
   });
 }
 
+async function getToken(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const requestId = generateId();
+    pendingRequests.set(requestId, (result) => {
+      resolve(result); // result is the token string or null
+    });
+    sendToRN({ type: 'GET_TOKEN', requestId });
+  });
+}
+
 /* -------------------------------------------------------------------------- */
 /*  isomorphic-git fs adapter                                                  */
 /* -------------------------------------------------------------------------- */
 
-const gitFs = {
-  promises: {
-    readFile: async (
-      path: string,
-      options?: { encoding?: string },
-    ): Promise<string | Uint8Array> => {
-      const content = await vfsRead(path);
-      if (options?.encoding) return content;
-      return new TextEncoder().encode(content);
-    },
-
-    writeFile: async (
-      path: string,
-      data: string | Uint8Array,
-    ): Promise<void> => {
-      const text =
-        typeof data === 'string' ? data : new TextDecoder().decode(data);
-      await vfsWrite(path, text);
-    },
-
-    unlink: async (path: string): Promise<void> => {
-      await vfsDelete(path);
-    },
-
-    readdir: async (path: string): Promise<string[]> => {
-      const entries = await vfsList(path);
-      return entries.map((e) => e.replace(/\/$/, ''));
-    },
-
-    mkdir: async (path: string): Promise<void> => {
-      await vfsMkdir(path);
-    },
-
-    rmdir: async (path: string): Promise<void> => {
-      await vfsDelete(path);
-    },
-
-    stat: async (path: string) => {
-      const entries = await vfsList(path).catch(() => null);
-      return {
-        isFile: () => entries === null,
-        isDirectory: () => entries !== null,
-        isSymbolicLink: () => false,
-        size: 0,
-        mode: 0o100644,
-        mtimeMs: Date.now(),
-        ctimeMs: Date.now(),
-        uid: 0,
-        gid: 0,
-      };
-    },
-
-    lstat: async (path: string) => {
-      const entries = await vfsList(path).catch(() => null);
-      return {
-        isFile: () => entries === null,
-        isDirectory: () => entries !== null,
-        isSymbolicLink: () => false,
-        size: 0,
-        mode: 0o100644,
-        mtimeMs: Date.now(),
-        ctimeMs: Date.now(),
-        uid: 0,
-        gid: 0,
-      };
-    },
-  },
-};
+const gitFs = buildGitFs({
+  read: vfsRead,
+  write: vfsWrite,
+  list: vfsList,
+  mkdir: vfsMkdir,
+  del: vfsDelete,
+});
 
 /* -------------------------------------------------------------------------- */
 /*  Git handler                                                                 */
@@ -561,6 +511,7 @@ export async function dispatch(
       return runner(args.slice(1), cwd);
     }
 
+
     case 'git':
       return handleGit(args);
 
@@ -621,6 +572,7 @@ window.receiveFromRN = (msgJson: string): void => {
       requestId?: string;
       result?: string | null;
       error?: string;
+      token?: string | null;
       cwd?: string;
       cols?: number;
       rows?: number;
@@ -631,6 +583,12 @@ window.receiveFromRN = (msgJson: string): void => {
       if (resolver) {
         pendingRequests.delete(msg.requestId);
         resolver(msg.result ?? null, msg.error);
+      }
+    } else if (msg.type === 'TOKEN_RESULT' && msg.requestId) {
+      const resolver = pendingRequests.get(msg.requestId);
+      if (resolver) {
+        pendingRequests.delete(msg.requestId);
+        resolver(msg.token ?? null);
       }
     } else if (msg.type === 'SET_CWD' && msg.cwd) {
       cwd = msg.cwd;

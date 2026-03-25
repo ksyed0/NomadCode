@@ -52,8 +52,11 @@ export function useTerminalBridge(
   const webViewRef = useRef<WebView>(null);
 
   const sendToWebView = useCallback((msg: RNToWebView): void => {
+    // receiveFromRN(msgJson: string) calls JSON.parse(msgJson) — the argument must be
+    // a JSON string literal, not an object literal. Double-stringify so the injected JS
+    // is: window.receiveFromRN("{\"type\":\"...\"}") — a quoted string JSON.parse can parse.
     webViewRef.current?.injectJavaScript(
-      `window.receiveFromRN(${JSON.stringify(msg)})`,
+      `window.receiveFromRN(${JSON.stringify(JSON.stringify(msg))});true;`,
     );
   }, []);
 
