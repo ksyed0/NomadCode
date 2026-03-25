@@ -34,6 +34,8 @@ const VALID_FILE_TYPES = new Set([
 
 export interface UseTerminalBridgeOptions {
   onCommandComplete?: (exitCode: number) => void;
+  /** Called when the WebView requests the OAuth token for git push/pull. */
+  onGetToken?: () => string | null;
 }
 
 export interface UseTerminalBridgeResult {
@@ -75,13 +77,19 @@ export function useTerminalBridge(
         return;
       }
 
+      if (msg.type === 'GET_TOKEN') {
+        const token = options?.onGetToken?.() ?? null;
+        sendToWebView({ type: 'TOKEN_RESULT', requestId: msg.requestId, token });
+        return;
+      }
+
       if (!VALID_FILE_TYPES.has(msg.type)) {
         if (__DEV__) console.warn('[useTerminalBridge] Unhandled message type:', msg.type);
         return;
       }
 
       // All FILE_* messages are handled by FileBridge asynchronously.
-      // Type-narrow: after COMMAND_COMPLETE check, msg is guaranteed to be a FileMessage
+      // Type-narrow: after COMMAND_COMPLETE and GET_TOKEN checks, msg is a FileMessage
       void (async () => {
         const response = await FileBridge.handleMessage(
           msg as Extract<typeof msg, { type: 'FILE_READ' | 'FILE_WRITE' | 'FILE_LIST' | 'FILE_MKDIR' | 'FILE_DELETE' }>
@@ -90,7 +98,7 @@ export function useTerminalBridge(
       })();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [options?.onCommandComplete, sendToWebView],
+    [options?.onCommandComplete, options?.onGetToken, sendToWebView],
   );
 
   return { webViewRef, sendToWebView, onMessage };

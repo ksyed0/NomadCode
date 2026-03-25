@@ -26,6 +26,7 @@ import { WebView } from 'react-native-webview';
 import { useTheme } from '../theme/tokens';
 import { useTerminalBridge } from '../hooks/useTerminalBridge';
 import { TERMINAL_HTML } from '../terminal/bundle/terminalHtmlContent';
+import useAuthStore from '../stores/useAuthStore';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -52,6 +53,7 @@ export function TerminalWebView({
   const t = useTheme();
   const { webViewRef, sendToWebView, onMessage } = useTerminalBridge({
     onCommandComplete: onCommand,
+    onGetToken: () => useAuthStore.getState().token,
   });
 
   // Key is bumped on Restart to force a full WebView remount.

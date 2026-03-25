@@ -240,7 +240,30 @@ describe('useTerminalBridge', () => {
     expect(mockHandleMessage).not.toHaveBeenCalled();
   });
 
-  // 13. BUG-0011 — unknown message type is silently dropped (no FileBridge call)
+  // 13 (TC-0335). GET_TOKEN calls onGetToken and sends TOKEN_RESULT via sendToWebView
+  it('onMessage GET_TOKEN calls onGetToken and forwards TOKEN_RESULT via sendToWebView', () => {
+    const onGetToken = jest.fn().mockReturnValue('ghp_mocktoken');
+    const { result } = renderHook(() => useTerminalBridge({ onGetToken }));
+
+    (result.current.webViewRef as React.MutableRefObject<unknown>).current = {
+      injectJavaScript: mockInjectJavaScript,
+    };
+
+    act(() => {
+      result.current.onMessage(
+        makeMessageEvent({ type: 'GET_TOKEN', requestId: 'req-t1' }),
+      );
+    });
+
+    expect(onGetToken).toHaveBeenCalledTimes(1);
+    expect(mockInjectJavaScript).toHaveBeenCalledWith(
+      `window.receiveFromRN(${JSON.stringify(
+        JSON.stringify({ type: 'TOKEN_RESULT', requestId: 'req-t1', token: 'ghp_mocktoken' }),
+      )});true;`,
+    );
+  });
+
+  // 14. BUG-0011 — unknown message type is silently dropped (no FileBridge call)
   it('onMessage with unknown type does not call FileBridge.handleMessage', async () => {
     const { result } = renderHook(() => useTerminalBridge());
 
@@ -254,7 +277,7 @@ describe('useTerminalBridge', () => {
     expect(mockHandleMessage).not.toHaveBeenCalled();
   });
 
-  // 14. BUG-0011 — unknown message type emits a __DEV__ warning
+  // 15. BUG-0011 — unknown message type emits a __DEV__ warning
   it('onMessage with unknown type logs a console.warn in __DEV__ mode', async () => {
     const consoleSpy = jest
       .spyOn(console, 'warn')

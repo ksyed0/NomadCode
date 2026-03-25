@@ -152,6 +152,10 @@ async function vfsMove(src: string, dest: string): Promise<void> {
   });
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Token bridge — requests OAuth token from React Native via postMessage     */
+/* -------------------------------------------------------------------------- */
+
 async function getToken(): Promise<string | null> {
   return new Promise((resolve) => {
     const requestId = generateId();
@@ -235,15 +239,27 @@ async function handleGit(
         return { output: `[${sha.slice(0, 7)}] ${message}`, exitCode: 0 };
       }
 
+      case 'init': {
+        await git.init({ fs: gitFs, dir: cwd });
+        return {
+          output: `Initialized empty Git repository in ${cwd}/.git/`,
+          exitCode: 0,
+        };
+      }
+
       case 'push': {
         const remote = rest[0] || 'origin';
         const branch = rest[1] || 'main';
+        const pushToken = await getToken();
         await git.push({
           fs: gitFs,
           http,
           dir: cwd,
           remote,
           remoteRef: branch,
+          ...(pushToken
+            ? { onAuth: () => ({ username: pushToken, password: 'x-oauth-basic' }) }
+            : {}),
         });
         return {
           output: `Pushed to ${remote}/${branch}`,
@@ -257,11 +273,15 @@ async function handleGit(
         if (!url) {
           return { output: 'usage: git clone <url> [dir]', exitCode: 1 };
         }
+        const cloneToken = await getToken();
         await git.clone({
           fs: gitFs,
           http,
           dir,
           url,
+          ...(cloneToken
+            ? { onAuth: () => ({ username: cloneToken, password: 'x-oauth-basic' }) }
+            : {}),
         });
         return { output: `Cloned ${url} into ${dir}`, exitCode: 0 };
       }
@@ -273,7 +293,16 @@ async function handleGit(
         };
     }
   } catch (e) {
-    return { output: `git: ${(e as Error).message}`, exitCode: 1 };
+    const errMsg = (e as Error).message ?? '';
+    // Detect "not a git repository" — isomorphic-git surfaces Expo FileSystem
+    // ENOENT when the .git directory doesn't exist.
+    if (errMsg.includes('ENOENT') || errMsg.includes('Could not find git repo')) {
+      return {
+        output: `fatal: not a git repository (or any of the parent directories): .git\nRun 'git init' to create one.`,
+        exitCode: 128,
+      };
+    }
+    return { output: `git: ${errMsg}`, exitCode: 1 };
   }
 }
 

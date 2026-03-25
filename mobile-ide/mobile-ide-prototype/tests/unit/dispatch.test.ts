@@ -465,5 +465,47 @@ describe('TC-0344: somethingweird (unknown command)', () => {
 
     expect(result.exitCode).toBe(127);
     expect(result.output).toContain('command not found');
+
+describe('dispatch — git init (AC-0130)', () => {
+  // TC-0345
+  it('git init calls git.init and returns initialized message', async () => {
+    const result = await dispatch('git init');
+
+    expect(mockInit).toHaveBeenCalledTimes(1);
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('Initialized empty Git repository');
+  });
+});
+
+describe('dispatch — git friendly errors (AC-0135)', () => {
+  // TC-0346
+  it('git status ENOENT returns friendly "not a git repository" message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error(
+        "Call to function 'ExponentFileSystem.readFileAsync' has been rejected - Caused by: java.io.FileNotFoundException: /data/user/0/com.example/.git ENOENT",
+      ),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain(
+      'fatal: not a git repository (or any of the parent directories): .git',
+    );
+    expect(result.output).toContain("Run 'git init' to create one.");
+  });
+
+  // TC-0346
+  it('git status "Could not find git repo" returns friendly message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error('Could not find git repo at path /'),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain(
+      'fatal: not a git repository (or any of the parent directories): .git',
+    );
   });
 });
