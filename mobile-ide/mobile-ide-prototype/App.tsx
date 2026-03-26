@@ -37,6 +37,9 @@ import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
 import useSettingsStore from './src/stores/useSettingsStore';
 import useAuthStore from './src/stores/useAuthStore';
 import { useTheme } from './src/theme/tokens';
+import splashImage from './assets/splash.png';
+
+const APP_VERSION = '0.1.0';
 
 // ---------------------------------------------------------------------------
 // Root document directory — all local project files live here
@@ -310,7 +313,7 @@ export default function App() {
       <Modal visible={showAbout} animationType="fade" transparent statusBarTranslucent>
         <View style={styles.aboutOverlay}>
           <Image
-            source={require('./assets/splash.png')}
+            source={splashImage}
             style={styles.aboutSplash}
             resizeMode="contain"
           />
@@ -318,7 +321,7 @@ export default function App() {
             <Text style={styles.aboutCloseText}>✕</Text>
           </TouchableOpacity>
           <View style={styles.aboutFooter}>
-            <Text style={styles.aboutVersion}>NomadCode v{require('./package.json').version}</Text>
+            <Text style={styles.aboutVersion}>NomadCode v{APP_VERSION}</Text>
             <Text style={styles.aboutCopy}>Created by Kamal Syed · FableSoft 2026</Text>
           </View>
         </View>
