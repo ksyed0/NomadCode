@@ -15,7 +15,7 @@ import {
 import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import useSettingsStore from '../stores/useSettingsStore';
-import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, ThemeId } from '../theme/tokens';
+import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, ThemeId, useTheme } from '../theme/tokens';
 
 interface SetupWizardProps {
   visible: boolean;
@@ -27,6 +27,7 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
   const [step, setStep] = useState(1);
   const [selectedMode, setSelectedMode] = useState<Mode>('dark');
 
+  const t = useTheme();
   const theme = useSettingsStore((s) => s.theme);
   const fontSize = useSettingsStore((s) => s.fontSize);
   const workspacePath = useSettingsStore((s) => s.workspacePath);
@@ -69,53 +70,53 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
 
   return (
     <Modal visible={visible} animationType="slide">
-      <View testID="setup-wizard" style={styles.container}>
+      <View testID="setup-wizard" style={[styles.container, { backgroundColor: t.bg }]}>
         {/* Progress */}
-        <Text style={styles.progress}>{step} / 3</Text>
+        <Text style={[styles.progress, { color: t.textMuted }]}>{step} / 3</Text>
 
         {/* ── Step 1: Theme ─────────────────────────────────────────────── */}
         {step === 1 && (
           <ScrollView>
-            <Text style={styles.title}>Choose your theme</Text>
+            <Text style={[styles.title, { color: t.text }]}>Choose your theme</Text>
             <View style={styles.modeRow}>
               <TouchableOpacity
                 testID="mode-dark"
-                style={[styles.modeBtn, selectedMode === 'dark' && styles.modeBtnActive]}
+                style={[styles.modeBtn, { backgroundColor: t.bgElevated }, selectedMode === 'dark' && [styles.modeBtnActive, { borderColor: t.accent }]]}
                 onPress={() => handleModePress('dark')}
               >
-                <Text style={styles.modeBtnText}>Dark</Text>
+                <Text style={[styles.modeBtnText, { color: t.text }]}>Dark</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 testID="mode-light"
-                style={[styles.modeBtn, selectedMode === 'light' && styles.modeBtnActive]}
+                style={[styles.modeBtn, { backgroundColor: t.bgElevated }, selectedMode === 'light' && [styles.modeBtnActive, { borderColor: t.accent }]]}
                 onPress={() => handleModePress('light')}
               >
-                <Text style={styles.modeBtnText}>Light</Text>
+                <Text style={[styles.modeBtnText, { color: t.text }]}>Light</Text>
               </TouchableOpacity>
             </View>
             {swatchIds.map((id) => {
-              const t = THEMES[id];
+              const st = THEMES[id];
               return (
                 <TouchableOpacity
                   key={id}
                   testID={`swatch-${id}`}
                   style={[
                     styles.swatch,
-                    { backgroundColor: t.bg },
-                    theme === id && styles.swatchActive,
+                    { backgroundColor: st.bg },
+                    theme === id && [styles.swatchActive, { borderColor: t.accent }],
                   ]}
                   onPress={() => setTheme(id)}
                 >
-                  <Text style={[styles.swatchName, { color: t.text }]}>{t.name}</Text>
+                  <Text style={[styles.swatchName, { color: st.text }]}>{st.name}</Text>
                   <View style={styles.chipRow}>
-                    {[t.bg, t.text, t.accent, t.keyword].map((c) => (
+                    {[st.bg, st.text, st.accent, st.keyword].map((c) => (
                       <View key={c} style={[styles.chip, { backgroundColor: c }]} />
                     ))}
                   </View>
                 </TouchableOpacity>
               );
             })}
-            <TouchableOpacity testID="btn-next" style={styles.btn} onPress={() => setStep(2)}>
+            <TouchableOpacity testID="btn-next" style={[styles.btn, { backgroundColor: t.accent }]} onPress={() => setStep(2)}>
               <Text style={styles.btnText}>Next</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -124,25 +125,25 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
         {/* ── Step 2: Font Size ─────────────────────────────────────────── */}
         {step === 2 && (
           <View>
-            <Text style={styles.title}>Choose font size</Text>
-            <Text style={[styles.preview, { fontSize }]}>{'const hello = "world";'}</Text>
+            <Text style={[styles.title, { color: t.text }]}>Choose font size</Text>
+            <Text style={[styles.preview, { fontSize, color: t.text }]}>{'const hello = "world";'}</Text>
             <View style={styles.fontRow}>
               <TouchableOpacity testID="btn-font-dec" onPress={() => setFontSize(fontSize - 1)}>
-                <Text style={styles.fontBtn}>A-</Text>
+                <Text style={[styles.fontBtn, { color: t.text }]}>A-</Text>
               </TouchableOpacity>
-              <Text style={styles.fontValue}>{fontSize}</Text>
+              <Text style={[styles.fontValue, { color: t.text }]}>{fontSize}</Text>
               <TouchableOpacity testID="btn-font-inc" onPress={() => setFontSize(fontSize + 1)}>
-                <Text style={styles.fontBtn}>A+</Text>
+                <Text style={[styles.fontBtn, { color: t.text }]}>A+</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity testID="btn-font-reset" onPress={() => setFontSize(14)}>
-              <Text style={styles.resetLink}>Reset to default</Text>
+              <Text style={[styles.resetLink, { color: t.textMuted }]}>Reset to default</Text>
             </TouchableOpacity>
             <View style={styles.navRow}>
               <TouchableOpacity testID="btn-back" onPress={() => setStep(1)}>
-                <Text style={styles.backBtn}>Back</Text>
+                <Text style={[styles.backBtn, { color: t.textMuted }]}>Back</Text>
               </TouchableOpacity>
-              <TouchableOpacity testID="btn-next" style={styles.btn} onPress={() => setStep(3)}>
+              <TouchableOpacity testID="btn-next" style={[styles.btn, { backgroundColor: t.accent }]} onPress={() => setStep(3)}>
                 <Text style={styles.btnText}>Next</Text>
               </TouchableOpacity>
             </View>
@@ -152,33 +153,33 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
         {/* ── Step 3: Workspace ─────────────────────────────────────────── */}
         {step === 3 && (
           <View>
-            <Text style={styles.title}>Set workspace folder</Text>
-            <Text style={styles.hint}>You can change this later in Settings.</Text>
+            <Text style={[styles.title, { color: t.text }]}>Set workspace folder</Text>
+            <Text style={[styles.hint, { color: t.textMuted }]}>You can change this later in Settings.</Text>
             <TextInput
               testID="workspace-input"
-              style={styles.workspaceInput}
+              style={[styles.workspaceInput, { backgroundColor: t.bgElevated, color: t.text, borderColor: t.border }]}
               value={workspacePath || FileSystem.documentDirectory || ''}
               onChangeText={setWorkspacePath}
               placeholder="Workspace path"
-              placeholderTextColor="#64748B"
+              placeholderTextColor={t.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
             />
             <TouchableOpacity
               testID="btn-browse"
-              style={styles.btn}
+              style={[styles.btn, { backgroundColor: t.accent }]}
               onPress={handleBrowse}
             >
               <Text style={styles.btnText}>Browse</Text>
             </TouchableOpacity>
             <View style={styles.navRow}>
               <TouchableOpacity testID="btn-back" onPress={() => setStep(2)}>
-                <Text style={styles.backBtn}>Back</Text>
+                <Text style={[styles.backBtn, { color: t.textMuted }]}>Back</Text>
               </TouchableOpacity>
               <TouchableOpacity testID="btn-skip" onPress={handleGetStarted}>
-                <Text style={styles.skipBtn}>Skip for now</Text>
+                <Text style={[styles.skipBtn, { color: t.textMuted }]}>Skip for now</Text>
               </TouchableOpacity>
-              <TouchableOpacity testID="btn-get-started" style={styles.btn} onPress={handleGetStarted}>
+              <TouchableOpacity testID="btn-get-started" style={[styles.btn, { backgroundColor: t.accent }]} onPress={handleGetStarted}>
                 <Text style={styles.btnText}>Get Started</Text>
               </TouchableOpacity>
             </View>

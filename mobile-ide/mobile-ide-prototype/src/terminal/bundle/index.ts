@@ -14,6 +14,7 @@ import http from 'isomorphic-git/http/web';
 import * as prettierStandalone from 'prettier/standalone';
 import * as prettierBabelPlugin from 'prettier/plugins/babel';
 import * as prettierEstreePlugin from 'prettier/plugins/estree';
+import { buildGitFs } from './gitFsAdapter';
 // eslint (full package) is Node.js-only and cannot be bundled for WebView — deferred to v1.x
 // typescript package is ~10 MB and exceeds the 2 MB bundle ceiling — tsc deferred to v1.x
 
@@ -152,77 +153,30 @@ async function vfsMove(src: string, dest: string): Promise<void> {
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Token bridge — requests OAuth token from React Native via postMessage     */
+/* -------------------------------------------------------------------------- */
+
+async function getToken(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const requestId = generateId();
+    pendingRequests.set(requestId, (result) => {
+      resolve(result); // result is the token string or null
+    });
+    sendToRN({ type: 'GET_TOKEN', requestId });
+  });
+}
+
+/* -------------------------------------------------------------------------- */
 /*  isomorphic-git fs adapter                                                  */
 /* -------------------------------------------------------------------------- */
 
-const gitFs = {
-  promises: {
-    readFile: async (
-      path: string,
-      options?: { encoding?: string },
-    ): Promise<string | Uint8Array> => {
-      const content = await vfsRead(path);
-      if (options?.encoding) return content;
-      return new TextEncoder().encode(content);
-    },
-
-    writeFile: async (
-      path: string,
-      data: string | Uint8Array,
-    ): Promise<void> => {
-      const text =
-        typeof data === 'string' ? data : new TextDecoder().decode(data);
-      await vfsWrite(path, text);
-    },
-
-    unlink: async (path: string): Promise<void> => {
-      await vfsDelete(path);
-    },
-
-    readdir: async (path: string): Promise<string[]> => {
-      const entries = await vfsList(path);
-      return entries.map((e) => e.replace(/\/$/, ''));
-    },
-
-    mkdir: async (path: string): Promise<void> => {
-      await vfsMkdir(path);
-    },
-
-    rmdir: async (path: string): Promise<void> => {
-      await vfsDelete(path);
-    },
-
-    stat: async (path: string) => {
-      const entries = await vfsList(path).catch(() => null);
-      return {
-        isFile: () => entries === null,
-        isDirectory: () => entries !== null,
-        isSymbolicLink: () => false,
-        size: 0,
-        mode: 0o100644,
-        mtimeMs: Date.now(),
-        ctimeMs: Date.now(),
-        uid: 0,
-        gid: 0,
-      };
-    },
-
-    lstat: async (path: string) => {
-      const entries = await vfsList(path).catch(() => null);
-      return {
-        isFile: () => entries === null,
-        isDirectory: () => entries !== null,
-        isSymbolicLink: () => false,
-        size: 0,
-        mode: 0o100644,
-        mtimeMs: Date.now(),
-        ctimeMs: Date.now(),
-        uid: 0,
-        gid: 0,
-      };
-    },
-  },
-};
+const gitFs = buildGitFs({
+  read: vfsRead,
+  write: vfsWrite,
+  list: vfsList,
+  mkdir: vfsMkdir,
+  del: vfsDelete,
+});
 
 /* -------------------------------------------------------------------------- */
 /*  Git handler                                                                 */
@@ -285,15 +239,27 @@ async function handleGit(
         return { output: `[${sha.slice(0, 7)}] ${message}`, exitCode: 0 };
       }
 
+      case 'init': {
+        await git.init({ fs: gitFs, dir: cwd });
+        return {
+          output: `Initialized empty Git repository in ${cwd}/.git/`,
+          exitCode: 0,
+        };
+      }
+
       case 'push': {
         const remote = rest[0] || 'origin';
         const branch = rest[1] || 'main';
+        const pushToken = await getToken();
         await git.push({
           fs: gitFs,
           http,
           dir: cwd,
           remote,
           remoteRef: branch,
+          ...(pushToken
+            ? { onAuth: () => ({ username: pushToken, password: 'x-oauth-basic' }) }
+            : {}),
         });
         return {
           output: `Pushed to ${remote}/${branch}`,
@@ -307,11 +273,15 @@ async function handleGit(
         if (!url) {
           return { output: 'usage: git clone <url> [dir]', exitCode: 1 };
         }
+        const cloneToken = await getToken();
         await git.clone({
           fs: gitFs,
           http,
           dir,
           url,
+          ...(cloneToken
+            ? { onAuth: () => ({ username: cloneToken, password: 'x-oauth-basic' }) }
+            : {}),
         });
         return { output: `Cloned ${url} into ${dir}`, exitCode: 0 };
       }
@@ -323,7 +293,22 @@ async function handleGit(
         };
     }
   } catch (e) {
-    return { output: `git: ${(e as Error).message}`, exitCode: 1 };
+    const errMsg = (e as Error).message ?? '';
+    // Detect "not a git repository" — isomorphic-git surfaces Expo FileSystem
+    // ENOENT when the .git directory doesn't exist.
+    if (
+      errMsg.includes('ENOENT') ||
+      errMsg.includes('Could not find git repo') ||
+      errMsg.includes('is not readable') ||
+      errMsg.includes("'readAsStringAsync'") ||
+      errMsg.includes("'readDirectoryAsync'")
+    ) {
+      return {
+        output: `fatal: not a git repository (or any of the parent directories): .git\nRun 'git init' to create one.`,
+        exitCode: 128,
+      };
+    }
+    return { output: `git: ${errMsg}`, exitCode: 1 };
   }
 }
 
@@ -401,7 +386,18 @@ export async function dispatch(
 
     case 'ls': {
       try {
-        const entries = await vfsList(args[0] || cwd);
+        const flags = args.filter((a) => a.startsWith('-'));
+        const pathArgs = args.filter((a) => !a.startsWith('-'));
+        const target = pathArgs[0] ? resolvePath(pathArgs[0], cwd) : cwd;
+        const entries = await vfsList(target);
+        if (flags.includes('-l') || flags.includes('-la') || flags.includes('-al')) {
+          const lines = entries.map((e) => {
+            const isDir = e.endsWith('/');
+            const name = e.replace(/\/$/, '');
+            return `${isDir ? 'd' : '-'}rw-r--r--  1  user  0  ${name}`;
+          });
+          return { output: lines.join('\n'), exitCode: 0 };
+        }
         return { output: entries.join('\n'), exitCode: 0 };
       } catch (e) {
         return { output: `ls: ${(e as Error).message}`, exitCode: 1 };
@@ -561,6 +557,7 @@ export async function dispatch(
       return runner(args.slice(1), cwd);
     }
 
+
     case 'git':
       return handleGit(args);
 
@@ -621,6 +618,7 @@ window.receiveFromRN = (msgJson: string): void => {
       requestId?: string;
       result?: string | null;
       error?: string;
+      token?: string | null;
       cwd?: string;
       cols?: number;
       rows?: number;
@@ -631,6 +629,12 @@ window.receiveFromRN = (msgJson: string): void => {
       if (resolver) {
         pendingRequests.delete(msg.requestId);
         resolver(msg.result ?? null, msg.error);
+      }
+    } else if (msg.type === 'TOKEN_RESULT' && msg.requestId) {
+      const resolver = pendingRequests.get(msg.requestId);
+      if (resolver) {
+        pendingRequests.delete(msg.requestId);
+        resolver(msg.token ?? null);
       }
     } else if (msg.type === 'SET_CWD' && msg.cwd) {
       cwd = msg.cwd;

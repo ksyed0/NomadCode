@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { Platform } from 'react-native';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import Editor, { EditorTab, buildPreviewHtml, canPreview, getLanguageForFile } from '../../src/components/Editor';
 
 // ---------------------------------------------------------------------------
@@ -401,6 +401,57 @@ describe('Editor — toolbar interactions', () => {
       nativeEvent: { data: JSON.stringify({ type: 'fontSizeChanged', fontSize: 16 }) },
     });
     expect(mockSetFontSize).toHaveBeenCalledWith(16);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Toolbar tooltips — TC-0325 – TC-0329
+// ---------------------------------------------------------------------------
+
+describe('Editor — toolbar tooltips', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  // TC-0325: long-press shows tooltip title
+  it('shows tooltip title on long-press of a toolbar action button', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent(screen.getByLabelText('Undo'), 'longPress');
+    expect(screen.getByTestId('toolbar-tooltip')).toBeTruthy();
+    expect(screen.getByText('Undo')).toBeTruthy();
+  });
+
+  // TC-0326: tooltip auto-dismisses after 1500ms
+  it('tooltip auto-dismisses after 1500ms', () => {
+    jest.useFakeTimers();
+    renderEditor([TAB_A], TAB_A.path);
+    fireEvent(screen.getByLabelText('Undo'), 'longPress');
+    expect(screen.getByTestId('toolbar-tooltip')).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(1500); });
+    expect(screen.queryByTestId('toolbar-tooltip')).toBeNull();
+  });
+
+  // TC-0327: A- long-press shows "Decrease font size"
+  it('shows "Decrease font size" tooltip on long-press of A-', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent(screen.getByLabelText('Decrease font size'), 'longPress');
+    expect(screen.getByText('Decrease font size')).toBeTruthy();
+  });
+
+  // TC-0328: A+ long-press shows "Increase font size"
+  it('shows "Increase font size" tooltip on long-press of A+', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    fireEvent(screen.getByLabelText('Increase font size'), 'longPress');
+    expect(screen.getByText('Increase font size')).toBeTruthy();
+  });
+
+  // TC-0329: tooltip strip absent on initial render
+  it('tooltip strip is not shown initially', () => {
+    renderEditor([TAB_A], TAB_A.path);
+    expect(screen.queryByTestId('toolbar-tooltip')).toBeNull();
   });
 });
 

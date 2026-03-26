@@ -14,6 +14,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Image,
+  Modal,
   Platform,
   SafeAreaView,
   StatusBar,
@@ -35,6 +37,9 @@ import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
 import useSettingsStore from './src/stores/useSettingsStore';
 import useAuthStore from './src/stores/useAuthStore';
 import { useTheme } from './src/theme/tokens';
+import splashImage from './assets/splash.png';
+
+const APP_VERSION = '0.1.0';
 
 // ---------------------------------------------------------------------------
 // Root document directory — all local project files live here
@@ -70,6 +75,8 @@ export default function App() {
   const [showPalette, setShowPalette] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [terminalHeight, setTerminalHeight] = useState(220);
+  const [triggerNewFile, setTriggerNewFile] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   // ── Git status (updated after Git operations) ─────────────────────────────
   const [gitBranch, setGitBranch] = useState('main');
@@ -228,6 +235,13 @@ export default function App() {
 
   const paletteCommands = useMemo<Command[]>(() => [
     {
+      id: 'file-new',
+      label: 'File: New File',
+      description: 'Create a new file in the workspace',
+      shortcut: '⌘N',
+      action: () => { setShowPalette(false); setTriggerNewFile(true); },
+    },
+    {
       id: 'file-save',
       label: 'File: Save',
       description: 'Save the active file to disk',
@@ -262,7 +276,7 @@ export default function App() {
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
-  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath]);
+  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setTriggerNewFile]);
 
   const handlePaletteSelect = useCallback((cmd: Command) => {
     setShowPalette(false);
@@ -289,8 +303,29 @@ export default function App() {
               <Text style={styles.statusDirty}>● Save</Text>
             </TouchableOpacity>
           )}
+          <TouchableOpacity onPress={() => setShowAbout(true)} style={styles.aboutBtn} accessibilityLabel="About NomadCode">
+            <Text style={styles.aboutBtnText}>ⓘ</Text>
+          </TouchableOpacity>
         </View>
       </View>
+
+      {/* ── About / Splash overlay ───────────────────────────────────────── */}
+      <Modal visible={showAbout} animationType="fade" transparent statusBarTranslucent>
+        <View style={styles.aboutOverlay}>
+          <Image
+            source={splashImage}
+            style={styles.aboutSplash}
+            resizeMode="contain"
+          />
+          <TouchableOpacity onPress={() => setShowAbout(false)} style={styles.aboutClose} accessibilityLabel="Close">
+            <Text style={styles.aboutCloseText}>✕</Text>
+          </TouchableOpacity>
+          <View style={styles.aboutFooter}>
+            <Text style={styles.aboutVersion}>NomadCode v{APP_VERSION}</Text>
+            <Text style={styles.aboutCopy}>Created by Kamal Syed · FableSoft 2026</Text>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── Three-pane layout ────────────────────────────────────────────── */}
       <TabletResponsive
@@ -298,7 +333,10 @@ export default function App() {
           <FileExplorer
             rootPath={ROOT_PATH}
             onFileSelect={openFile}
+            onFileCreate={openFile}
             onFileDelete={deleteFile}
+            triggerNewFile={triggerNewFile}
+            onNewFileDismissed={() => setTriggerNewFile(false)}
           />
         }
         main={
@@ -402,6 +440,59 @@ const styles = StyleSheet.create({
   },
   statusDirty: {
     color: '#FBBF24',
+    fontSize: 11,
+  },
+  aboutBtn: {
+    marginLeft: 10,
+    paddingHorizontal: 4,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aboutBtnText: {
+    color: '#94A3B8',
+    fontSize: 14,
+  },
+  aboutOverlay: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aboutSplash: {
+    width: '70%',
+    height: '70%',
+  },
+  aboutClose: {
+    position: 'absolute',
+    top: 48,
+    right: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aboutCloseText: {
+    color: '#E2E8F0',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  aboutFooter: {
+    position: 'absolute',
+    bottom: 48,
+    alignItems: 'center',
+    gap: 4,
+  },
+  aboutVersion: {
+    color: '#64748B',
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  aboutCopy: {
+    color: '#475569',
     fontSize: 11,
   },
   fab: {

@@ -97,8 +97,12 @@ describe('useTerminalBridge', () => {
     expect('current' in result.current.webViewRef).toBe(true);
   });
 
-  // 2. sendToWebView calls injectJavaScript with correct JSON
-  it('sendToWebView calls injectJavaScript with window.receiveFromRN(…)', () => {
+  // 2. sendToWebView calls injectJavaScript with a JSON string argument
+  // receiveFromRN(msgJson: string) calls JSON.parse(msgJson) — the injected JS must
+  // pass a quoted string literal, not an object literal. The injection must
+  // double-stringify: JSON.stringify(JSON.stringify(msg)) so the WebView receives
+  // window.receiveFromRN("{\"type\":\"SET_CWD\",...}") — a string that JSON.parse can parse.
+  it('sendToWebView injects a JSON string literal (double-stringified) into receiveFromRN', () => {
     const { result } = renderHook(() => useTerminalBridge());
 
     // Manually set ref.current so we can verify the call.
@@ -112,8 +116,9 @@ describe('useTerminalBridge', () => {
     });
 
     expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
+    // The injected JS must pass a string to receiveFromRN, not an object literal.
     expect(mockInjectJavaScript).toHaveBeenCalledWith(
-      `window.receiveFromRN(${JSON.stringify(msg)})`,
+      `window.receiveFromRN(${JSON.stringify(JSON.stringify(msg))});true;`,
     );
   });
 
@@ -200,7 +205,7 @@ describe('useTerminalBridge', () => {
 
     expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
     expect(mockInjectJavaScript).toHaveBeenCalledWith(
-      `window.receiveFromRN(${JSON.stringify(FILE_RESULT_RESPONSE)})`,
+      `window.receiveFromRN(${JSON.stringify(JSON.stringify(FILE_RESULT_RESPONSE))});true;`,
     );
   });
 
@@ -235,7 +240,30 @@ describe('useTerminalBridge', () => {
     expect(mockHandleMessage).not.toHaveBeenCalled();
   });
 
-  // 13. BUG-0011 — unknown message type is silently dropped (no FileBridge call)
+  // 13 (TC-0335). GET_TOKEN calls onGetToken and sends TOKEN_RESULT via sendToWebView
+  it('onMessage GET_TOKEN calls onGetToken and forwards TOKEN_RESULT via sendToWebView', () => {
+    const onGetToken = jest.fn().mockReturnValue('ghp_mocktoken');
+    const { result } = renderHook(() => useTerminalBridge({ onGetToken }));
+
+    (result.current.webViewRef as React.MutableRefObject<unknown>).current = {
+      injectJavaScript: mockInjectJavaScript,
+    };
+
+    act(() => {
+      result.current.onMessage(
+        makeMessageEvent({ type: 'GET_TOKEN', requestId: 'req-t1' }),
+      );
+    });
+
+    expect(onGetToken).toHaveBeenCalledTimes(1);
+    expect(mockInjectJavaScript).toHaveBeenCalledWith(
+      `window.receiveFromRN(${JSON.stringify(
+        JSON.stringify({ type: 'TOKEN_RESULT', requestId: 'req-t1', token: 'ghp_mocktoken' }),
+      )});true;`,
+    );
+  });
+
+  // 14. BUG-0011 — unknown message type is silently dropped (no FileBridge call)
   it('onMessage with unknown type does not call FileBridge.handleMessage', async () => {
     const { result } = renderHook(() => useTerminalBridge());
 
@@ -249,7 +277,7 @@ describe('useTerminalBridge', () => {
     expect(mockHandleMessage).not.toHaveBeenCalled();
   });
 
-  // 14. BUG-0011 — unknown message type emits a __DEV__ warning
+  // 15. BUG-0011 — unknown message type emits a __DEV__ warning
   it('onMessage with unknown type logs a console.warn in __DEV__ mode', async () => {
     const consoleSpy = jest
       .spyOn(console, 'warn')

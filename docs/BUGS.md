@@ -187,3 +187,128 @@ Root Cause: Depth guard test case skipped in Task 5 implementation
 Status: Fixed
 Fix Branch: feature/epic-0003-terminal
 Lesson Encoded: No
+
+BUG-0015: expo-crypto missing from package.json causes app entry not found crash on Android (ANDROID-1)
+Severity: Critical
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Build Android APK with expo run:android
+  2. Launch app on device/emulator
+Expected: App loads normally
+Actual: "App entry not found — The app entry point named 'main' was not registered" crash screen; JS bundle crashes before AppRegistry.registerComponent because expo-auth-session's top-level import calls requireNativeModule('ExpoCrypto') which is absent
+Root Cause: expo-auth-session@~6.0.3 peer-depends on expo-crypto but expo-crypto was not in package.json; native module ExpoCrypto was never compiled into the APK by Gradle autolinking
+Status: Fixed
+Fix Branch: develop
+Lesson Encoded: No
+
+BUG-0016: Terminal dist bundle stale — all commands return "command not found" (TERM-6)
+Severity: High
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Open the in-app terminal
+  2. Type any command (ls, pwd, git status, etc.)
+Expected: Command executes
+Actual: All commands return "command not found"; git, ls, pwd are in index.ts but not in dist/terminal.js
+Root Cause: dist/terminal.js was an older build that contained only the command-not-found fallback; npm run build:terminal had not been run after index.ts was updated with the full command dispatcher
+Status: Fixed
+Fix Branch: develop
+Lesson Encoded: No
+
+BUG-0017: No visible "New File" button in FileExplorer header (UX-1)
+Severity: Medium
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Open the app and complete setup
+  2. Look at the file explorer sidebar
+Expected: Visible "+" button or equivalent to create a new file
+Actual: No button in header; "New File" only accessible via long-press on an existing item which opens a context menu — completely undiscoverable on first use
+Status: Fixed
+Fix Branch: develop
+Lesson Encoded: No
+
+BUG-0018: onFileCreate not wired in App.tsx — new files do not auto-open in editor (UX-2)
+Severity: Medium
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Long-press a file/folder in FileExplorer
+  2. Choose "New File" → enter a name → confirm
+Expected: File is created and automatically opens in the editor
+Actual: File is created on disk but the editor does not open it; onFileCreate prop is optional and App.tsx does not pass a handler
+Status: Fixed
+Fix Branch: develop
+Lesson Encoded: No
+
+BUG-0019: "File: New File" command missing from command palette (UX-3)
+Severity: Low
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Open command palette (⌘ FAB)
+  2. Type "new" or "file"
+Expected: "File: New File" command appears
+Actual: "No commands found" — palette only has Save, Close Tab, Toggle Terminal, Git Status, Git Commit
+Status: Fixed
+Fix Branch: develop
+Lesson Encoded: No
+
+BUG-0020: App.tsx wires Terminal.tsx stub instead of TerminalWebView (TERM-7)
+Severity: High
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Open the in-app terminal (>_ FAB)
+  2. Type git status, touch test.ts, or any command not in (help, clear, pwd, ls, cd, echo)
+Expected: Command executes via VFS-backed dispatch (touch, git, cat, mkdir, rm, etc.)
+Actual: bash: [command]: command not found — Terminal.tsx stub hardcoded default fires for all unrecognised commands
+Root Cause: App.tsx imports Terminal from ./src/components/Terminal (deprecated stub, @deprecated since TerminalWebView was written) instead of TerminalWebView; Terminal.tsx has no VFS bridge, no git, no touch support
+Status: Fixed
+Fix Branch: develop
+Lesson Encoded: No
+
+BUG-0021: git status throws "Cannot read properties of undefined (reading 'bind')" in terminal (TERM-8)
+Severity: Medium
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Open the in-app terminal (>_ FAB)
+  2. Type: git status
+Expected: Shows working-tree status or "Could not find git repo" error message
+Actual: git: Cannot read properties of undefined (reading 'bind') — isomorphic-git fails at runtime
+Root Cause: isomorphic-git's bindFs() iterates a hardcoded commands array (readFile, writeFile, mkdir, rmdir, unlink, stat, lstat, readdir, readlink, symlink) and calls .bind() on each during FileSystem construction. gitFs.promises was missing readlink and symlink, so undefined.bind() threw before any git operation ran
+Status: Fixed
+Fix Branch: develop
+Lesson Encoded: No
+
+BUG-0022: Terminal cwd stays at "/" — ls / returns empty, touch creates files at wrong path (TERM-9)
+Severity: Medium
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Open the in-app terminal (>_ FAB)
+  2. Type: touch hello.ts — appears to succeed
+  3. Type: ls — returns empty
+  4. Type: pwd — shows /
+Expected: cwd = Expo documentDirectory; ls shows created files; pwd shows real path
+Actual: cwd remains "/" because SET_CWD is sent via useEffect before webViewRef.current is populated; injectJavaScript silently drops the message via optional chaining
+Root Cause: TerminalWebView sends SET_CWD in useEffect on mount, but WebView bridge is not ready at that point (webViewRef.current is null). The message is silently dropped. Adding onLoadEnd handler guarantees SET_CWD delivery after the WebView has fully loaded.
+Status: Fixed
+Fix Branch: develop
+Lesson Encoded: No
+
+BUG-0023: sendToWebView injects JS object literal; receiveFromRN calls JSON.parse — all messages silently fail (TERM-10)
+Severity: Critical
+Related Story: US-0047
+Related Task:
+Steps to Reproduce:
+  1. Open the in-app terminal
+  2. Run any command requiring VFS (ls, cat, touch, git status)
+Expected: Command executes and returns output
+Actual: All VFS operations hang or return empty; SET_CWD never updates cwd from '/'. Root: sendToWebView calls injectJavaScript(`window.receiveFromRN(${JSON.stringify(msg)})`) which passes a JS object literal — receiveFromRN(msgJson: string) immediately calls JSON.parse(msgJson) which coerces the object to "[object Object]" → SyntaxError → silent catch → message dropped
+Root Cause: sendToWebView must double-stringify: JSON.stringify(JSON.stringify(msg)) so the injected JS is window.receiveFromRN("{\"type\":\"...\"}") — passing a string literal that JSON.parse can parse
+Status: Fixed
+Fix Branch: develop
+Lesson Encoded: No
