@@ -74,7 +74,10 @@ function makeBridge(
 
 jest.mock('isomorphic-git', () => ({
   __esModule: true,
-  default: {},
+  default: {
+    init: jest.fn().mockResolvedValue(undefined),
+    statusMatrix: jest.fn(),
+  },
 }));
 jest.mock('isomorphic-git/http/web', () => ({ __esModule: true, default: {} }));
 
@@ -465,5 +468,158 @@ describe('TC-0344: somethingweird (unknown command)', () => {
 
     expect(result.exitCode).toBe(127);
     expect(result.output).toContain('command not found');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0347 — ls -l (flag must not be treated as a path)                      */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0347: ls -l (long format)', () => {
+  it('calls vfsList with cwd (not "-l") and returns long-format lines', async () => {
+    const mock = setupBridge((msg) => {
+      if (msg.type === 'FILE_LIST') return JSON.stringify(['file.txt', 'dir/']);
+      return null;
+    });
+
+    const result = await dispatch('ls -l');
+
+    expect(result.exitCode).toBe(0);
+    // The FILE_LIST path must be the cwd ("/"), NOT "/-l"
+    const listCall = (mock.mock.calls as string[][]).find((args) => {
+      const m = JSON.parse(args[0]) as Record<string, unknown>;
+      return m.type === 'FILE_LIST';
+    });
+    expect(listCall).toBeDefined();
+    const listMsg = JSON.parse((listCall as string[])[0]) as Record<string, unknown>;
+    expect(listMsg.path).not.toBe('-l');
+    expect(listMsg.path).not.toBe('/-l');
+    // Long format output must include permission string
+    expect(result.output).toContain('file.txt');
+    expect(result.output).toMatch(/^[-d]rw-/m);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0348 — ls with explicit path arg                                        */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0348: ls /src (explicit path)', () => {
+  it('calls vfsList with /src and returns entries', async () => {
+    const mock = setupBridge((msg) => {
+      if (msg.type === 'FILE_LIST') return JSON.stringify(['index.ts']);
+      return null;
+    });
+
+    const result = await dispatch('ls /src');
+
+    expect(result.exitCode).toBe(0);
+    const listCall = (mock.mock.calls as string[][]).find((args) => {
+      const m = JSON.parse(args[0]) as Record<string, unknown>;
+      return m.type === 'FILE_LIST';
+    });
+    const listMsg = JSON.parse((listCall as string[])[0]) as Record<string, unknown>;
+    expect(listMsg.path).toBe('/src');
+    expect(result.output).toContain('index.ts');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0349 — git status iOS "is not readable" → friendly error               */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0349: git status — iOS Expo "is not readable" error → friendly message', () => {
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockStatusMatrix = (jest.requireMock('isomorphic-git') as { default: { statusMatrix: jest.Mock } }).default.statusMatrix;
+    mockStatusMatrix.mockClear();
+  });
+
+  it('maps iOS Expo readAsStringAsync rejection to friendly "not a git repository" message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error(
+        "Calling the 'readAsStringAsync' function has been rejected - Caused by: File '/.git/HEAD' is not readable",
+      ),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain('fatal: not a git repository');
+    expect(result.output).toContain("Run 'git init'");
+  });
+
+  it('maps iOS Expo "is not readable" to friendly message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error("File '/.git' is not readable"),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain('fatal: not a git repository');
+  });
+});
+
+describe('dispatch — git init (AC-0130)', () => {
+  let mockInit: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockInit = (jest.requireMock('isomorphic-git') as { default: { init: jest.Mock } }).default.init;
+    mockInit.mockClear();
+    mockInit.mockResolvedValue(undefined);
+  });
+
+  // TC-0345
+  it('git init calls git.init and returns initialized message', async () => {
+    const result = await dispatch('git init');
+
+    expect(mockInit).toHaveBeenCalledTimes(1);
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('Initialized empty Git repository');
+  });
+});
+
+describe('dispatch — git friendly errors (AC-0135)', () => {
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockStatusMatrix = (jest.requireMock('isomorphic-git') as { default: { statusMatrix: jest.Mock } }).default.statusMatrix;
+    mockStatusMatrix.mockClear();
+  });
+
+  // TC-0346
+  it('git status ENOENT returns friendly "not a git repository" message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error(
+        "Call to function 'ExponentFileSystem.readFileAsync' has been rejected - Caused by: java.io.FileNotFoundException: /data/user/0/com.example/.git ENOENT",
+      ),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain(
+      'fatal: not a git repository (or any of the parent directories): .git',
+    );
+    expect(result.output).toContain("Run 'git init' to create one.");
+  });
+
+  // TC-0346
+  it('git status "Could not find git repo" returns friendly message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error('Could not find git repo at path /'),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain(
+      'fatal: not a git repository (or any of the parent directories): .git',
+    );
   });
 });

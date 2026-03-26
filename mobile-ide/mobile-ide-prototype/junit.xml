@@ -1,364 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="538" failures="0" errors="0" time="5.767">
-  <testsuite name="ExtensionHost" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:23" time="1.111" tests="7">
-    <testcase classname="ExtensionHost renders null with empty manifests" name="ExtensionHost renders null with empty manifests" time="0.489">
+<testsuites name="jest tests" tests="569" failures="0" errors="0" time="5.151">
+  <testsuite name="ExtensionHost" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:17" time="0.989" tests="7">
+    <testcase classname="ExtensionHost renders null with empty manifests" name="ExtensionHost renders null with empty manifests" time="0.426">
     </testcase>
-    <testcase classname="ExtensionHost renders one WebView per manifest" name="ExtensionHost renders one WebView per manifest" time="0.013">
+    <testcase classname="ExtensionHost renders one WebView per manifest" name="ExtensionHost renders one WebView per manifest" time="0.009">
     </testcase>
-    <testcase classname="ExtensionHost calls onShowMessage when showMessage type received" name="ExtensionHost calls onShowMessage when showMessage type received" time="0.007">
+    <testcase classname="ExtensionHost calls onShowMessage when showMessage type received" name="ExtensionHost calls onShowMessage when showMessage type received" time="0.025">
     </testcase>
     <testcase classname="ExtensionHost calls onShowError when showError type received" name="ExtensionHost calls onShowError when showError type received" time="0.001">
     </testcase>
-    <testcase classname="ExtensionHost calls onReplaceEditorContent when replaceEditorContent type received" name="ExtensionHost calls onReplaceEditorContent when replaceEditorContent type received" time="0.001">
+    <testcase classname="ExtensionHost calls onReplaceEditorContent when replaceEditorContent type received" name="ExtensionHost calls onReplaceEditorContent when replaceEditorContent type received" time="0.003">
     </testcase>
-    <testcase classname="ExtensionHost calls onShowError when error type received from extension" name="ExtensionHost calls onShowError when error type received from extension" time="0">
+    <testcase classname="ExtensionHost calls onShowError when error type received from extension" name="ExtensionHost calls onShowError when error type received from extension" time="0.009">
     </testcase>
-    <testcase classname="ExtensionHost ignores malformed JSON from WebView" name="ExtensionHost ignores malformed JSON from WebView" time="0.001">
+    <testcase classname="ExtensionHost ignores malformed JSON from WebView" name="ExtensionHost ignores malformed JSON from WebView" time="0.006">
     </testcase>
   </testsuite>
-  <testsuite name="useIsTablet" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:23" time="1.248" tests="39">
-    <testcase classname="useIsTablet returns true when width &gt; 768" name="useIsTablet returns true when width &gt; 768" time="0.012">
+  <testsuite name="useIsTablet" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:17" time="1.05" tests="39">
+    <testcase classname="useIsTablet returns true when width &gt; 768" name="useIsTablet returns true when width &gt; 768" time="0.01">
     </testcase>
-    <testcase classname="useIsTablet returns false when width === 768" name="useIsTablet returns false when width === 768" time="0.006">
+    <testcase classname="useIsTablet returns false when width === 768" name="useIsTablet returns false when width === 768" time="0.001">
     </testcase>
-    <testcase classname="useIsTablet returns false when width &lt; 768" name="useIsTablet returns false when width &lt; 768" time="0.001">
+    <testcase classname="useIsTablet returns false when width &lt; 768" name="useIsTablet returns false when width &lt; 768" time="0">
     </testcase>
-    <testcase classname="useIsTablet returns true at exactly 769" name="useIsTablet returns true at exactly 769" time="0">
+    <testcase classname="useIsTablet returns true at exactly 769" name="useIsTablet returns true at exactly 769" time="0.001">
     </testcase>
-    <testcase classname="TabletResponsive — tablet layout renders sidebar, main, and terminal" name="TabletResponsive — tablet layout renders sidebar, main, and terminal" time="0.453">
+    <testcase classname="TabletResponsive — tablet layout renders sidebar, main, and terminal" name="TabletResponsive — tablet layout renders sidebar, main, and terminal" time="0.378">
     </testcase>
-    <testcase classname="TabletResponsive — tablet layout renders without terminal when terminal prop is null" name="TabletResponsive — tablet layout renders without terminal when terminal prop is null" time="0.005">
+    <testcase classname="TabletResponsive — tablet layout renders without terminal when terminal prop is null" name="TabletResponsive — tablet layout renders without terminal when terminal prop is null" time="0.003">
     </testcase>
-    <testcase classname="TabletResponsive — tablet layout does not show the phone sidebar toggle button" name="TabletResponsive — tablet layout does not show the phone sidebar toggle button" time="0.016">
+    <testcase classname="TabletResponsive — tablet layout does not show the phone sidebar toggle button" name="TabletResponsive — tablet layout does not show the phone sidebar toggle button" time="0.011">
     </testcase>
-    <testcase classname="TabletResponsive — phone layout renders main content" name="TabletResponsive — phone layout renders main content" time="0.008">
+    <testcase classname="TabletResponsive — phone layout renders main content" name="TabletResponsive — phone layout renders main content" time="0.005">
     </testcase>
-    <testcase classname="TabletResponsive — phone layout shows the hamburger sidebar toggle button" name="TabletResponsive — phone layout shows the hamburger sidebar toggle button" time="0.015">
+    <testcase classname="TabletResponsive — phone layout shows the hamburger sidebar toggle button" name="TabletResponsive — phone layout shows the hamburger sidebar toggle button" time="0.004">
     </testcase>
     <testcase classname="TabletResponsive — phone layout sidebar is hidden by default on phone" name="TabletResponsive — phone layout sidebar is hidden by default on phone" time="0.003">
     </testcase>
-    <testcase classname="TabletResponsive — phone layout shows sidebar drawer when toggle is pressed" name="TabletResponsive — phone layout shows sidebar drawer when toggle is pressed" time="0.01">
+    <testcase classname="TabletResponsive — phone layout shows sidebar drawer when toggle is pressed" name="TabletResponsive — phone layout shows sidebar drawer when toggle is pressed" time="0.013">
     </testcase>
-    <testcase classname="TabletResponsive — phone layout changes toggle icon from ☰ to ✕ when drawer opens" name="TabletResponsive — phone layout changes toggle icon from ☰ to ✕ when drawer opens" time="0.006">
+    <testcase classname="TabletResponsive — phone layout changes toggle icon from ☰ to ✕ when drawer opens" name="TabletResponsive — phone layout changes toggle icon from ☰ to ✕ when drawer opens" time="0.009">
     </testcase>
-    <testcase classname="TabletResponsive — phone layout closes drawer and shows ☰ again when ✕ is pressed" name="TabletResponsive — phone layout closes drawer and shows ☰ again when ✕ is pressed" time="0.019">
+    <testcase classname="TabletResponsive — phone layout closes drawer and shows ☰ again when ✕ is pressed" name="TabletResponsive — phone layout closes drawer and shows ☰ again when ✕ is pressed" time="0.003">
     </testcase>
-    <testcase classname="TabletResponsive — phone layout closes drawer when the scrim (backdrop) is tapped" name="TabletResponsive — phone layout closes drawer when the scrim (backdrop) is tapped" time="0.015">
+    <testcase classname="TabletResponsive — phone layout closes drawer when the scrim (backdrop) is tapped" name="TabletResponsive — phone layout closes drawer when the scrim (backdrop) is tapped" time="0.003">
     </testcase>
     <testcase classname="TabletResponsive — phone layout renders terminal strip when terminal prop is provided" name="TabletResponsive — phone layout renders terminal strip when terminal prop is provided" time="0.002">
     </testcase>
     <testcase classname="TabletResponsive — phone layout does not render terminal when terminal prop is null" name="TabletResponsive — phone layout does not render terminal when terminal prop is null" time="0.001">
     </testcase>
-    <testcase classname="TabletResponsive — custom dimensions accepts custom sidebarWidth prop without crashing" name="TabletResponsive — custom dimensions accepts custom sidebarWidth prop without crashing" time="0.002">
+    <testcase classname="TabletResponsive — custom dimensions accepts custom sidebarWidth prop without crashing" name="TabletResponsive — custom dimensions accepts custom sidebarWidth prop without crashing" time="0.001">
     </testcase>
     <testcase classname="TabletResponsive — custom dimensions accepts custom terminalHeight prop without crashing" name="TabletResponsive — custom dimensions accepts custom terminalHeight prop without crashing" time="0.001">
     </testcase>
-    <testcase classname="TabletResponsive — terminal resize handle renders terminal-resize-handle when terminal is provided" name="TabletResponsive — terminal resize handle renders terminal-resize-handle when terminal is provided" time="0.003">
+    <testcase classname="TabletResponsive — terminal resize handle renders terminal-resize-handle when terminal is provided" name="TabletResponsive — terminal resize handle renders terminal-resize-handle when terminal is provided" time="0.012">
     </testcase>
-    <testcase classname="TabletResponsive — terminal resize handle does not render resize handle when terminal is null" name="TabletResponsive — terminal resize handle does not render resize handle when terminal is null" time="0.002">
+    <testcase classname="TabletResponsive — terminal resize handle does not render resize handle when terminal is null" name="TabletResponsive — terminal resize handle does not render resize handle when terminal is null" time="0.005">
     </testcase>
-    <testcase classname="TabletResponsive — terminal resize handle calls onTerminalHeightChange when PanResponder move fires" name="TabletResponsive — terminal resize handle calls onTerminalHeightChange when PanResponder move fires" time="0.002">
+    <testcase classname="TabletResponsive — terminal resize handle calls onTerminalHeightChange when PanResponder move fires" name="TabletResponsive — terminal resize handle calls onTerminalHeightChange when PanResponder move fires" time="0.004">
     </testcase>
     <testcase classname="clampTerminalHeight reduces height when dragging down (positive dy)" name="clampTerminalHeight reduces height when dragging down (positive dy)" time="0.001">
     </testcase>
     <testcase classname="clampTerminalHeight increases height when dragging up (negative dy)" name="clampTerminalHeight increases height when dragging up (negative dy)" time="0">
     </testcase>
-    <testcase classname="clampTerminalHeight clamps to MIN_TERMINAL_HEIGHT (120) when dragging too far down" name="clampTerminalHeight clamps to MIN_TERMINAL_HEIGHT (120) when dragging too far down" time="0.001">
+    <testcase classname="clampTerminalHeight clamps to MIN_TERMINAL_HEIGHT (120) when dragging too far down" name="clampTerminalHeight clamps to MIN_TERMINAL_HEIGHT (120) when dragging too far down" time="0">
     </testcase>
     <testcase classname="clampTerminalHeight clamps to MAX_TERMINAL_HEIGHT (400) when dragging too far up" name="clampTerminalHeight clamps to MAX_TERMINAL_HEIGHT (400) when dragging too far up" time="0">
     </testcase>
-    <testcase classname="isDownwardSwipe returns true when dy &gt; 40 and vy &gt; 0.3" name="isDownwardSwipe returns true when dy &gt; 40 and vy &gt; 0.3" time="0.001">
+    <testcase classname="isDownwardSwipe returns true when dy &gt; 40 and vy &gt; 0.3" name="isDownwardSwipe returns true when dy &gt; 40 and vy &gt; 0.3" time="0.003">
     </testcase>
-    <testcase classname="isDownwardSwipe returns false when dy is exactly 40 (not strictly greater)" name="isDownwardSwipe returns false when dy is exactly 40 (not strictly greater)" time="0.001">
+    <testcase classname="isDownwardSwipe returns false when dy is exactly 40 (not strictly greater)" name="isDownwardSwipe returns false when dy is exactly 40 (not strictly greater)" time="0">
     </testcase>
     <testcase classname="isDownwardSwipe returns false when vy is exactly 0.3 (not strictly greater)" name="isDownwardSwipe returns false when vy is exactly 0.3 (not strictly greater)" time="0">
     </testcase>
-    <testcase classname="isDownwardSwipe returns false when dy is below threshold" name="isDownwardSwipe returns false when dy is below threshold" time="0">
+    <testcase classname="isDownwardSwipe returns false when dy is below threshold" name="isDownwardSwipe returns false when dy is below threshold" time="0.001">
     </testcase>
-    <testcase classname="isDownwardSwipe returns false when vy is below threshold" name="isDownwardSwipe returns false when vy is below threshold" time="0">
+    <testcase classname="isDownwardSwipe returns false when vy is below threshold" name="isDownwardSwipe returns false when vy is below threshold" time="0.003">
     </testcase>
-    <testcase classname="isDownwardSwipe returns true at minimum passing values (dy=41, vy=0.31)" name="isDownwardSwipe returns true at minimum passing values (dy=41, vy=0.31)" time="0.005">
+    <testcase classname="isDownwardSwipe returns true at minimum passing values (dy=41, vy=0.31)" name="isDownwardSwipe returns true at minimum passing values (dy=41, vy=0.31)" time="0">
     </testcase>
-    <testcase classname="TabletResponsive — swipe gesture zone renders swipe-zone testID in main area (tablet)" name="TabletResponsive — swipe gesture zone renders swipe-zone testID in main area (tablet)" time="0.002">
+    <testcase classname="TabletResponsive — swipe gesture zone renders swipe-zone testID in main area (tablet)" name="TabletResponsive — swipe gesture zone renders swipe-zone testID in main area (tablet)" time="0.003">
     </testcase>
-    <testcase classname="TabletResponsive — swipe gesture zone renders swipe-zone on phone layout too" name="TabletResponsive — swipe gesture zone renders swipe-zone on phone layout too" time="0.002">
+    <testcase classname="TabletResponsive — swipe gesture zone renders swipe-zone on phone layout too" name="TabletResponsive — swipe gesture zone renders swipe-zone on phone layout too" time="0.001">
     </testcase>
-    <testcase classname="TabletResponsive — swipe gesture zone calls onOpenPalette when swipe-down gesture is released" name="TabletResponsive — swipe gesture zone calls onOpenPalette when swipe-down gesture is released" time="0.002">
+    <testcase classname="TabletResponsive — swipe gesture zone calls onOpenPalette when swipe-down gesture is released" name="TabletResponsive — swipe gesture zone calls onOpenPalette when swipe-down gesture is released" time="0.005">
     </testcase>
     <testcase classname="TabletResponsive — swipe gesture zone does not call onOpenPalette for swipes below threshold" name="TabletResponsive — swipe gesture zone does not call onOpenPalette for swipes below threshold" time="0.002">
     </testcase>
-    <testcase classname="TabletResponsive — swipe gesture zone does not crash when onOpenPalette is not provided" name="TabletResponsive — swipe gesture zone does not crash when onOpenPalette is not provided" time="0.003">
+    <testcase classname="TabletResponsive — swipe gesture zone does not crash when onOpenPalette is not provided" name="TabletResponsive — swipe gesture zone does not crash when onOpenPalette is not provided" time="0.001">
     </testcase>
-    <testcase classname="TabletResponsive — settings gear icon renders the gear icon" name="TabletResponsive — settings gear icon renders the gear icon" time="0.002">
+    <testcase classname="TabletResponsive — settings gear icon renders the gear icon" name="TabletResponsive — settings gear icon renders the gear icon" time="0.004">
     </testcase>
-    <testcase classname="TabletResponsive — settings gear icon pressing gear icon calls onOpenSettings" name="TabletResponsive — settings gear icon pressing gear icon calls onOpenSettings" time="0.004">
+    <testcase classname="TabletResponsive — settings gear icon pressing gear icon calls onOpenSettings" name="TabletResponsive — settings gear icon pressing gear icon calls onOpenSettings" time="0.002">
     </testcase>
-    <testcase classname="TabletResponsive — settings gear icon does not crash when onOpenSettings is not provided" name="TabletResponsive — settings gear icon does not crash when onOpenSettings is not provided" time="0.003">
+    <testcase classname="TabletResponsive — settings gear icon does not crash when onOpenSettings is not provided" name="TabletResponsive — settings gear icon does not crash when onOpenSettings is not provided" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="TerminalWebView" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:23" time="1.363" tests="10">
-    <testcase classname="TerminalWebView renders WebView on mount" name="TerminalWebView renders WebView on mount" time="0.608">
+  <testsuite name="TerminalWebView" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:17" time="1.069" tests="12">
+    <testcase classname="TerminalWebView renders WebView on mount" name="TerminalWebView renders WebView on mount" time="0.346">
     </testcase>
-    <testcase classname="TerminalWebView sends SET_CWD on mount with the provided workingDirectory" name="TerminalWebView sends SET_CWD on mount with the provided workingDirectory" time="0.003">
+    <testcase classname="TerminalWebView sends SET_CWD on mount with the provided workingDirectory" name="TerminalWebView sends SET_CWD on mount with the provided workingDirectory" time="0.001">
     </testcase>
     <testcase classname="TerminalWebView sends SET_CWD with &quot;/&quot; when workingDirectory is not provided" name="TerminalWebView sends SET_CWD with &quot;/&quot; when workingDirectory is not provided" time="0.001">
     </testcase>
-    <testcase classname="TerminalWebView calls useTerminalBridge with onCommandComplete matching the onCommand prop" name="TerminalWebView calls useTerminalBridge with onCommandComplete matching the onCommand prop" time="0.001">
+    <testcase classname="TerminalWebView calls useTerminalBridge with onCommandComplete matching the onCommand prop" name="TerminalWebView calls useTerminalBridge with onCommandComplete matching the onCommand prop" time="0">
     </testcase>
-    <testcase classname="TerminalWebView shows error view with Restart button when WebView fires onError" name="TerminalWebView shows error view with Restart button when WebView fires onError" time="0.052">
+    <testcase classname="TerminalWebView shows error view with Restart button when WebView fires onError" name="TerminalWebView shows error view with Restart button when WebView fires onError" time="0.008">
     </testcase>
-    <testcase classname="TerminalWebView Restart button resets the error state and re-renders WebView" name="TerminalWebView Restart button resets the error state and re-renders WebView" time="0.003">
+    <testcase classname="TerminalWebView Restart button resets the error state and re-renders WebView" name="TerminalWebView Restart button resets the error state and re-renders WebView" time="0.031">
     </testcase>
-    <testcase classname="TerminalWebView applies display:none to the container when visible=false" name="TerminalWebView applies display:none to the container when visible=false" time="0.003">
+    <testcase classname="TerminalWebView applies display:none to the container when visible=false" name="TerminalWebView applies display:none to the container when visible=false" time="0.002">
     </testcase>
-    <testcase classname="TerminalWebView does not apply display:none when visible=true" name="TerminalWebView does not apply display:none when visible=true" time="0.006">
+    <testcase classname="TerminalWebView does not apply display:none when visible=true" name="TerminalWebView does not apply display:none when visible=true" time="0.002">
     </testcase>
-    <testcase classname="TerminalWebView renders the TERMINAL header bar" name="TerminalWebView renders the TERMINAL header bar" time="0.003">
+    <testcase classname="TerminalWebView renders the TERMINAL header bar" name="TerminalWebView renders the TERMINAL header bar" time="0.011">
     </testcase>
-    <testcase classname="TerminalWebView sends RESIZE message when the WebView container layout changes" name="TerminalWebView sends RESIZE message when the WebView container layout changes" time="0.013">
+    <testcase classname="TerminalWebView sends SET_CWD when WebView fires onLoadEnd (guaranteed delivery after load)" name="TerminalWebView sends SET_CWD when WebView fires onLoadEnd (guaranteed delivery after load)" time="0.002">
     </testcase>
-  </testsuite>
-  <testsuite name="App — smoke tests" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:23" time="1.542" tests="10">
-    <testcase classname="App — smoke tests renders without crashing" name="App — smoke tests renders without crashing" time="0.651">
+    <testcase classname="TerminalWebView sends SET_CWD with &quot;/&quot; on onLoadEnd when workingDirectory is not provided" name="TerminalWebView sends SET_CWD with &quot;/&quot; on onLoadEnd when workingDirectory is not provided" time="0.003">
     </testcase>
-    <testcase classname="App — smoke tests renders the NomadCode status bar title" name="App — smoke tests renders the NomadCode status bar title" time="0.008">
-    </testcase>
-    <testcase classname="App — SetupWizard integration shows setup wizard when setup not completed" name="App — SetupWizard integration shows setup wizard when setup not completed" time="0.039">
-    </testcase>
-    <testcase classname="App — command palette integration CommandPalette is always in the component tree (visible=false by default)" name="App — command palette integration CommandPalette is always in the component tree (visible=false by default)" time="0.007">
-    </testcase>
-    <testcase classname="App — command palette integration FAB palette button opens the command palette" name="App — command palette integration FAB palette button opens the command palette" time="0.064">
-    </testcase>
-    <testcase classname="App — command palette integration command palette shows the expected commands" name="App — command palette integration command palette shows the expected commands" time="0.016">
-    </testcase>
-    <testcase classname="App — ExtensionHost integration mounts without crashing when installedExtensions is empty" name="App — ExtensionHost integration mounts without crashing when installedExtensions is empty" time="0.012">
-    </testcase>
-    <testcase classname="App — auth hydration calls useAuthStore hydrate on mount" name="App — auth hydration calls useAuthStore hydrate on mount" time="0.013">
-    </testcase>
-    <testcase classname="App — TerminalWebView wiring (EPIC-0003) TC-0345: renders TerminalWebView in the component tree on initial mount" name="App — TerminalWebView wiring (EPIC-0003) TC-0345: renders TerminalWebView in the component tree on initial mount" time="0.008">
-    </testcase>
-    <testcase classname="App — TerminalWebView wiring (EPIC-0003) TC-0346: TerminalWebView receives an onCommand prop that is a function" name="App — TerminalWebView wiring (EPIC-0003) TC-0346: TerminalWebView receives an onCommand prop that is a function" time="0.01">
+    <testcase classname="TerminalWebView sends RESIZE message when the WebView container layout changes" name="TerminalWebView sends RESIZE message when the WebView container layout changes" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="Terminal" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:23" time="1.613" tests="21">
-    <testcase classname="Terminal renders initial welcome lines" name="Terminal renders initial welcome lines" time="0.52">
-    </testcase>
-    <testcase classname="Terminal renders the prompt character" name="Terminal renders the prompt character" time="0.022">
-    </testcase>
-    <testcase classname="Terminal clears input after submitting a command" name="Terminal clears input after submitting a command" time="0.009">
-    </testcase>
-    <testcase classname="Terminal echoes the submitted command in the output" name="Terminal echoes the submitted command in the output" time="0.006">
-    </testcase>
-    <testcase classname="Terminal does nothing when empty input is submitted" name="Terminal does nothing when empty input is submitted" time="0.003">
-    </testcase>
-    <testcase classname="Terminal &quot;help&quot; outputs available commands" name="Terminal &quot;help&quot; outputs available commands" time="0.036">
-    </testcase>
-    <testcase classname="Terminal &quot;pwd&quot; outputs the working directory" name="Terminal &quot;pwd&quot; outputs the working directory" time="0.005">
-    </testcase>
-    <testcase classname="Terminal &quot;echo &lt;text&gt;&quot; outputs the text" name="Terminal &quot;echo &lt;text&gt;&quot; outputs the text" time="0.039">
-    </testcase>
-    <testcase classname="Terminal &quot;clear&quot; removes all output lines" name="Terminal &quot;clear&quot; removes all output lines" time="0.024">
-    </testcase>
-    <testcase classname="Terminal unknown command shows error message" name="Terminal unknown command shows error message" time="0.007">
-    </testcase>
-    <testcase classname="Terminal calls onCommand callback with the submitted command string" name="Terminal calls onCommand callback with the submitted command string" time="0.035">
-    </testcase>
-    <testcase classname="Terminal does not call onCommand for empty submissions" name="Terminal does not call onCommand for empty submissions" time="0.005">
-    </testcase>
-    <testcase classname="visible prop hides terminal content when visible=false" name="visible prop hides terminal content when visible=false" time="0.003">
-    </testcase>
-    <testcase classname="visible prop shows terminal content when visible=true" name="visible prop shows terminal content when visible=true" time="0.005">
-    </testcase>
-    <testcase classname="ls command lists files from FileSystemBridge" name="ls command lists files from FileSystemBridge" time="0.066">
-    </testcase>
-    <testcase classname="ls command shows error if listDirectory fails" name="ls command shows error if listDirectory fails" time="0.062">
-    </testcase>
-    <testcase classname="cd command updates working directory on cd" name="cd command updates working directory on cd" time="0.014">
-    </testcase>
-    <testcase classname="cd command shows error for cd with no argument" name="cd command shows error for cd with no argument" time="0.009">
-    </testcase>
-    <testcase classname="command history pressing history-up recalls previous command" name="command history pressing history-up recalls previous command" time="0.014">
-    </testcase>
-    <testcase classname="command history pressing history-down clears input when past end of history" name="command history pressing history-down clears input when past end of history" time="0.017">
-    </testcase>
-    <testcase classname="long-press copy long-pressing an output line copies its text to clipboard" name="long-press copy long-pressing an output line copies its text to clipboard" time="0.036">
-    </testcase>
-  </testsuite>
-  <testsuite name="CommandPalette — AC-0046 auto-focus" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:23" time="1.621" tests="26">
-    <testcase classname="CommandPalette — AC-0046 auto-focus AC-0046: search TextInput has autoFocus set to true" name="CommandPalette — AC-0046 auto-focus AC-0046: search TextInput has autoFocus set to true" time="0.665">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0047 initial render AC-0047: renders all commands when query is empty" name="CommandPalette — AC-0047 initial render AC-0047: renders all commands when query is empty" time="0.052">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0047 initial render renders descriptions when provided" name="CommandPalette — AC-0047 initial render renders descriptions when provided" time="0.005">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0047 initial render renders the search input with placeholder" name="CommandPalette — AC-0047 initial render renders the search input with placeholder" time="0.01">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0048 backdrop dismiss AC-0048: backdrop press calls onClose" name="CommandPalette — AC-0048 backdrop dismiss AC-0048: backdrop press calls onClose" time="0.005">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0048 backdrop dismiss backdrop press does not call onSelect" name="CommandPalette — AC-0048 backdrop dismiss backdrop press does not call onSelect" time="0.005">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0048 backdrop dismiss onRequestClose calls onClose, not onSelect (Android back button fix)" name="CommandPalette — AC-0048 backdrop dismiss onRequestClose calls onClose, not onSelect (Android back button fix)" time="0.033">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: filters commands by label (case-insensitive)" name="CommandPalette — AC-0049/0050 filtering AC-0049: filters commands by label (case-insensitive)" time="0.04">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: filters commands by description" name="CommandPalette — AC-0049/0050 filtering AC-0049: filters commands by description" time="0.011">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: matches partial substrings" name="CommandPalette — AC-0049/0050 filtering AC-0049: matches partial substrings" time="0.006">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: filters case-insensitively with uppercase query" name="CommandPalette — AC-0049/0050 filtering AC-0049: filters case-insensitively with uppercase query" time="0.008">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: shows all commands when query is cleared" name="CommandPalette — AC-0049/0050 filtering AC-0049: shows all commands when query is cleared" time="0.014">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0050: shows &quot;No commands found&quot; when nothing matches" name="CommandPalette — AC-0049/0050 filtering AC-0050: shows &quot;No commands found&quot; when nothing matches" time="0.011">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0051 Enter to select AC-0051: Enter selects the first result in the filtered list" name="CommandPalette — AC-0051 Enter to select AC-0051: Enter selects the first result in the filtered list" time="0.016">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0051 Enter to select AC-0051: does not call onSelect on Enter when no commands match" name="CommandPalette — AC-0051 Enter to select AC-0051: does not call onSelect on Enter when no commands match" time="0.008">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0052 shortcut badges AC-0052: renders shortcut badge for commands that have a shortcut" name="CommandPalette — AC-0052 shortcut badges AC-0052: renders shortcut badge for commands that have a shortcut" time="0.01">
-    </testcase>
-    <testcase classname="CommandPalette — AC-0053 no empty badge AC-0053: commands without shortcut render no badge" name="CommandPalette — AC-0053 no empty badge AC-0053: commands without shortcut render no badge" time="0.024">
-    </testcase>
-    <testcase classname="CommandPalette — keyboard navigation ArrowDown advances selection: Enter submits second item" name="CommandPalette — keyboard navigation ArrowDown advances selection: Enter submits second item" time="0.016">
-    </testcase>
-    <testcase classname="CommandPalette — keyboard navigation ArrowUp after two ArrowDowns lands on the second item" name="CommandPalette — keyboard navigation ArrowUp after two ArrowDowns lands on the second item" time="0.018">
-    </testcase>
-    <testcase classname="CommandPalette — keyboard navigation ArrowUp on first item stays at index 0" name="CommandPalette — keyboard navigation ArrowUp on first item stays at index 0" time="0.01">
-    </testcase>
-    <testcase classname="CommandPalette — keyboard navigation ArrowDown on last item stays on last item" name="CommandPalette — keyboard navigation ArrowDown on last item stays on last item" time="0.017">
-    </testcase>
-    <testcase classname="CommandPalette — keyboard navigation query change resets selectedIndex to 0" name="CommandPalette — keyboard navigation query change resets selectedIndex to 0" time="0.01">
-    </testcase>
-    <testcase classname="CommandPalette — keyboard navigation item at selectedIndex renders with Nomad Blue highlight style" name="CommandPalette — keyboard navigation item at selectedIndex renders with Nomad Blue highlight style" time="0.008">
-    </testcase>
-    <testcase classname="CommandPalette — onSelect vs onClose tapping a command calls onSelect but NOT onClose" name="CommandPalette — onSelect vs onClose tapping a command calls onSelect but NOT onClose" time="0.006">
-    </testcase>
-    <testcase classname="CommandPalette — edge cases renders with empty command list without crashing" name="CommandPalette — edge cases renders with empty command list without crashing" time="0.003">
-    </testcase>
-    <testcase classname="CommandPalette — edge cases does not render content when visible is false" name="CommandPalette — edge cases does not render content when visible is false" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="THEMES map" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.346" tests="59">
-    <testcase classname="THEMES map has exactly 11 themes" name="THEMES map has exactly 11 themes" time="0">
-    </testcase>
-    <testcase classname="THEMES map nomad-dark has all required token keys" name="THEMES map nomad-dark has all required token keys" time="0.024">
-    </testcase>
-    <testcase classname="THEMES map one-dark-pro has all required token keys" name="THEMES map one-dark-pro has all required token keys" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map dracula has all required token keys" name="THEMES map dracula has all required token keys" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map monokai has all required token keys" name="THEMES map monokai has all required token keys" time="0.004">
-    </testcase>
-    <testcase classname="THEMES map nord has all required token keys" name="THEMES map nord has all required token keys" time="0.004">
-    </testcase>
-    <testcase classname="THEMES map tokyo-night has all required token keys" name="THEMES map tokyo-night has all required token keys" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map nomad-light has all required token keys" name="THEMES map nomad-light has all required token keys" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map github-light has all required token keys" name="THEMES map github-light has all required token keys" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map solarized-light has all required token keys" name="THEMES map solarized-light has all required token keys" time="0.004">
-    </testcase>
-    <testcase classname="THEMES map catppuccin-latte has all required token keys" name="THEMES map catppuccin-latte has all required token keys" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map night-owl-light has all required token keys" name="THEMES map night-owl-light has all required token keys" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map nomad-dark has mode === dark" name="THEMES map nomad-dark has mode === dark" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map one-dark-pro has mode === dark" name="THEMES map one-dark-pro has mode === dark" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map dracula has mode === dark" name="THEMES map dracula has mode === dark" time="0">
-    </testcase>
-    <testcase classname="THEMES map monokai has mode === dark" name="THEMES map monokai has mode === dark" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map nord has mode === dark" name="THEMES map nord has mode === dark" time="0.003">
-    </testcase>
-    <testcase classname="THEMES map tokyo-night has mode === dark" name="THEMES map tokyo-night has mode === dark" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map nomad-light has mode === light" name="THEMES map nomad-light has mode === light" time="0.003">
-    </testcase>
-    <testcase classname="THEMES map github-light has mode === light" name="THEMES map github-light has mode === light" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map solarized-light has mode === light" name="THEMES map solarized-light has mode === light" time="0">
-    </testcase>
-    <testcase classname="THEMES map catppuccin-latte has mode === light" name="THEMES map catppuccin-latte has mode === light" time="0">
-    </testcase>
-    <testcase classname="THEMES map night-owl-light has mode === light" name="THEMES map night-owl-light has mode === light" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map nomad-dark error token is always #EF4444" name="THEMES map nomad-dark error token is always #EF4444" time="0.003">
-    </testcase>
-    <testcase classname="THEMES map one-dark-pro error token is always #EF4444" name="THEMES map one-dark-pro error token is always #EF4444" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map dracula error token is always #EF4444" name="THEMES map dracula error token is always #EF4444" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map monokai error token is always #EF4444" name="THEMES map monokai error token is always #EF4444" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map nord error token is always #EF4444" name="THEMES map nord error token is always #EF4444" time="0.004">
-    </testcase>
-    <testcase classname="THEMES map tokyo-night error token is always #EF4444" name="THEMES map tokyo-night error token is always #EF4444" time="0.003">
-    </testcase>
-    <testcase classname="THEMES map nomad-light error token is always #EF4444" name="THEMES map nomad-light error token is always #EF4444" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map github-light error token is always #EF4444" name="THEMES map github-light error token is always #EF4444" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map solarized-light error token is always #EF4444" name="THEMES map solarized-light error token is always #EF4444" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map catppuccin-latte error token is always #EF4444" name="THEMES map catppuccin-latte error token is always #EF4444" time="0.002">
-    </testcase>
-    <testcase classname="THEMES map night-owl-light error token is always #EF4444" name="THEMES map night-owl-light error token is always #EF4444" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map nomad-dark success token is always #22C55E" name="THEMES map nomad-dark success token is always #22C55E" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map one-dark-pro success token is always #22C55E" name="THEMES map one-dark-pro success token is always #22C55E" time="0.005">
-    </testcase>
-    <testcase classname="THEMES map dracula success token is always #22C55E" name="THEMES map dracula success token is always #22C55E" time="0.005">
-    </testcase>
-    <testcase classname="THEMES map monokai success token is always #22C55E" name="THEMES map monokai success token is always #22C55E" time="0.006">
-    </testcase>
-    <testcase classname="THEMES map nord success token is always #22C55E" name="THEMES map nord success token is always #22C55E" time="0">
-    </testcase>
-    <testcase classname="THEMES map tokyo-night success token is always #22C55E" name="THEMES map tokyo-night success token is always #22C55E" time="0.003">
-    </testcase>
-    <testcase classname="THEMES map nomad-light success token is always #22C55E" name="THEMES map nomad-light success token is always #22C55E" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map github-light success token is always #22C55E" name="THEMES map github-light success token is always #22C55E" time="0.001">
-    </testcase>
-    <testcase classname="THEMES map solarized-light success token is always #22C55E" name="THEMES map solarized-light success token is always #22C55E" time="0">
-    </testcase>
-    <testcase classname="THEMES map catppuccin-latte success token is always #22C55E" name="THEMES map catppuccin-latte success token is always #22C55E" time="0.01">
-    </testcase>
-    <testcase classname="THEMES map night-owl-light success token is always #22C55E" name="THEMES map night-owl-light success token is always #22C55E" time="0.005">
-    </testcase>
-    <testcase classname="useTheme returns nomad-dark tokens when store theme is nomad-dark" name="useTheme returns nomad-dark tokens when store theme is nomad-dark" time="0.007">
-    </testcase>
-    <testcase classname="useTheme returns dracula tokens when store theme is dracula" name="useTheme returns dracula tokens when store theme is dracula" time="0.002">
-    </testcase>
-    <testcase classname="useTheme returns nomad-light tokens when store theme is nomad-light" name="useTheme returns nomad-light tokens when store theme is nomad-light" time="0.002">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs-dark for dark theme nomad-dark" name="getMonacoTheme returns vs-dark for dark theme nomad-dark" time="0.002">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs-dark for dark theme one-dark-pro" name="getMonacoTheme returns vs-dark for dark theme one-dark-pro" time="0.001">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs-dark for dark theme dracula" name="getMonacoTheme returns vs-dark for dark theme dracula" time="0">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs-dark for dark theme monokai" name="getMonacoTheme returns vs-dark for dark theme monokai" time="0">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs-dark for dark theme nord" name="getMonacoTheme returns vs-dark for dark theme nord" time="0.001">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs-dark for dark theme tokyo-night" name="getMonacoTheme returns vs-dark for dark theme tokyo-night" time="0">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs for light theme nomad-light" name="getMonacoTheme returns vs for light theme nomad-light" time="0">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs for light theme github-light" name="getMonacoTheme returns vs for light theme github-light" time="0">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs for light theme solarized-light" name="getMonacoTheme returns vs for light theme solarized-light" time="0.001">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs for light theme catppuccin-latte" name="getMonacoTheme returns vs for light theme catppuccin-latte" time="0.001">
-    </testcase>
-    <testcase classname="getMonacoTheme returns vs for light theme night-owl-light" name="getMonacoTheme returns vs for light theme night-owl-light" time="0">
-    </testcase>
-  </testsuite>
-  <testsuite name="getLanguageForFile" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.325" tests="18">
+  <testsuite name="getLanguageForFile" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.103" tests="18">
     <testcase classname="getLanguageForFile maps App.tsx → typescript" name="getLanguageForFile maps App.tsx → typescript" time="0.001">
     </testcase>
     <testcase classname="getLanguageForFile maps index.ts → typescript" name="getLanguageForFile maps index.ts → typescript" time="0">
@@ -367,7 +131,7 @@
     </testcase>
     <testcase classname="getLanguageForFile maps component.jsx → javascript" name="getLanguageForFile maps component.jsx → javascript" time="0">
     </testcase>
-    <testcase classname="getLanguageForFile maps package.json → json" name="getLanguageForFile maps package.json → json" time="0.001">
+    <testcase classname="getLanguageForFile maps package.json → json" name="getLanguageForFile maps package.json → json" time="0">
     </testcase>
     <testcase classname="getLanguageForFile maps README.md → markdown" name="getLanguageForFile maps README.md → markdown" time="0">
     </testcase>
@@ -385,41 +149,429 @@
     </testcase>
     <testcase classname="getLanguageForFile maps docker-compose.yml → yaml" name="getLanguageForFile maps docker-compose.yml → yaml" time="0">
     </testcase>
-    <testcase classname="getLanguageForFile maps Dockerfile → dockerfile" name="getLanguageForFile maps Dockerfile → dockerfile" time="0.005">
+    <testcase classname="getLanguageForFile maps Dockerfile → dockerfile" name="getLanguageForFile maps Dockerfile → dockerfile" time="0">
     </testcase>
-    <testcase classname="getLanguageForFile maps dockerfile.prod → dockerfile" name="getLanguageForFile maps dockerfile.prod → dockerfile" time="0">
+    <testcase classname="getLanguageForFile maps dockerfile.prod → dockerfile" name="getLanguageForFile maps dockerfile.prod → dockerfile" time="0.001">
     </testcase>
     <testcase classname="getLanguageForFile maps unknown.xyz → plaintext" name="getLanguageForFile maps unknown.xyz → plaintext" time="0">
     </testcase>
-    <testcase classname="getLanguageForFile maps no-extension → plaintext" name="getLanguageForFile maps no-extension → plaintext" time="0.002">
+    <testcase classname="getLanguageForFile maps no-extension → plaintext" name="getLanguageForFile maps no-extension → plaintext" time="0.001">
     </testcase>
     <testcase classname="getLanguageForFile is case-insensitive for extensions" name="getLanguageForFile is case-insensitive for extensions" time="0">
     </testcase>
   </testsuite>
-  <testsuite name="useSettingsStore — default state" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.2" tests="15">
+  <testsuite name="SetupWizard — visibility" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:17" time="1.177" tests="25">
+    <testcase classname="SetupWizard — visibility renders when visible is true" name="SetupWizard — visibility renders when visible is true" time="0.388">
+    </testcase>
+    <testcase classname="SetupWizard — visibility does not render content when visible is false" name="SetupWizard — visibility does not render content when visible is false" time="0.002">
+    </testcase>
+    <testcase classname="SetupWizard — Step 1 (Theme) shows step 1 of 3 indicator" name="SetupWizard — Step 1 (Theme) shows step 1 of 3 indicator" time="0.01">
+    </testcase>
+    <testcase classname="SetupWizard — Step 1 (Theme) shows Dark and Light mode buttons" name="SetupWizard — Step 1 (Theme) shows Dark and Light mode buttons" time="0.009">
+    </testcase>
+    <testcase classname="SetupWizard — Step 1 (Theme) pressing Dark mode button shows dark theme swatches" name="SetupWizard — Step 1 (Theme) pressing Dark mode button shows dark theme swatches" time="0.026">
+    </testcase>
+    <testcase classname="SetupWizard — Step 1 (Theme) pressing Light mode button shows light theme swatches" name="SetupWizard — Step 1 (Theme) pressing Light mode button shows light theme swatches" time="0.022">
+    </testcase>
+    <testcase classname="SetupWizard — Step 1 (Theme) pressing a theme swatch calls setTheme with that id" name="SetupWizard — Step 1 (Theme) pressing a theme swatch calls setTheme with that id" time="0.005">
+    </testcase>
+    <testcase classname="SetupWizard — Step 1 (Theme) Next button advances to step 2" name="SetupWizard — Step 1 (Theme) Next button advances to step 2" time="0.004">
+    </testcase>
+    <testcase classname="SetupWizard — Step 2 (Font Size) shows step 2 of 3 indicator" name="SetupWizard — Step 2 (Font Size) shows step 2 of 3 indicator" time="0.007">
+    </testcase>
+    <testcase classname="SetupWizard — Step 2 (Font Size) A+ button calls setFontSize with fontSize + 1" name="SetupWizard — Step 2 (Font Size) A+ button calls setFontSize with fontSize + 1" time="0.004">
+    </testcase>
+    <testcase classname="SetupWizard — Step 2 (Font Size) A- button calls setFontSize with fontSize - 1" name="SetupWizard — Step 2 (Font Size) A- button calls setFontSize with fontSize - 1" time="0.005">
+    </testcase>
+    <testcase classname="SetupWizard — Step 2 (Font Size) Reset button calls setFontSize with 14" name="SetupWizard — Step 2 (Font Size) Reset button calls setFontSize with 14" time="0.004">
+    </testcase>
+    <testcase classname="SetupWizard — Step 2 (Font Size) Back button returns to step 1" name="SetupWizard — Step 2 (Font Size) Back button returns to step 1" time="0.008">
+    </testcase>
+    <testcase classname="SetupWizard — Step 2 (Font Size) Next button advances to step 3" name="SetupWizard — Step 2 (Font Size) Next button advances to step 3" time="0.012">
+    </testcase>
+    <testcase classname="SetupWizard — Step 2 (Font Size) does not go below fontSize 8 — A- calls setFontSize(7) (store clamps to 8)" name="SetupWizard — Step 2 (Font Size) does not go below fontSize 8 — A- calls setFontSize(7) (store clamps to 8)" time="0.005">
+    </testcase>
+    <testcase classname="SetupWizard — Step 2 (Font Size) does not go above fontSize 32 — A+ calls setFontSize(33) (store clamps to 32)" name="SetupWizard — Step 2 (Font Size) does not go above fontSize 32 — A+ calls setFontSize(33) (store clamps to 32)" time="0.005">
+    </testcase>
+    <testcase classname="SetupWizard — Step 3 (Workspace) shows step 3 of 3 indicator" name="SetupWizard — Step 3 (Workspace) shows step 3 of 3 indicator" time="0.005">
+    </testcase>
+    <testcase classname="SetupWizard — Step 3 (Workspace) Get Started calls completeSetup" name="SetupWizard — Step 3 (Workspace) Get Started calls completeSetup" time="0.01">
+    </testcase>
+    <testcase classname="SetupWizard — Step 3 (Workspace) Skip calls completeSetup" name="SetupWizard — Step 3 (Workspace) Skip calls completeSetup" time="0.005">
+    </testcase>
+    <testcase classname="SetupWizard — Step 3 (Workspace) Back button returns to step 2" name="SetupWizard — Step 3 (Workspace) Back button returns to step 2" time="0.008">
+    </testcase>
+    <testcase classname="SetupWizard — Step 3 (Workspace) shows workspace TextInput pre-filled with documentDirectory when workspacePath is empty" name="SetupWizard — Step 3 (Workspace) shows workspace TextInput pre-filled with documentDirectory when workspacePath is empty" time="0.006">
+    </testcase>
+    <testcase classname="SetupWizard — Step 3 (Workspace) shows workspace TextInput pre-filled with stored workspacePath when set" name="SetupWizard — Step 3 (Workspace) shows workspace TextInput pre-filled with stored workspacePath when set" time="0.017">
+    </testcase>
+    <testcase classname="SetupWizard — Step 3 (Workspace) Browse button renders in step 3" name="SetupWizard — Step 3 (Workspace) Browse button renders in step 3" time="0.02">
+    </testcase>
+    <testcase classname="SetupWizard — Step 3 (Workspace) Browse button calls DocumentPicker.getDocumentAsync" name="SetupWizard — Step 3 (Workspace) Browse button calls DocumentPicker.getDocumentAsync" time="0.027">
+    </testcase>
+    <testcase classname="SetupWizard — Step 3 (Workspace) Browse button calls setWorkspacePath with picked URI" name="SetupWizard — Step 3 (Workspace) Browse button calls setWorkspacePath with picked URI" time="0.005">
+    </testcase>
+  </testsuite>
+  <testsuite name="THEMES map" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.113" tests="59">
+    <testcase classname="THEMES map has exactly 11 themes" name="THEMES map has exactly 11 themes" time="0">
+    </testcase>
+    <testcase classname="THEMES map nomad-dark has all required token keys" name="THEMES map nomad-dark has all required token keys" time="0.002">
+    </testcase>
+    <testcase classname="THEMES map one-dark-pro has all required token keys" name="THEMES map one-dark-pro has all required token keys" time="0">
+    </testcase>
+    <testcase classname="THEMES map dracula has all required token keys" name="THEMES map dracula has all required token keys" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map monokai has all required token keys" name="THEMES map monokai has all required token keys" time="0">
+    </testcase>
+    <testcase classname="THEMES map nord has all required token keys" name="THEMES map nord has all required token keys" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map tokyo-night has all required token keys" name="THEMES map tokyo-night has all required token keys" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map nomad-light has all required token keys" name="THEMES map nomad-light has all required token keys" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map github-light has all required token keys" name="THEMES map github-light has all required token keys" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map solarized-light has all required token keys" name="THEMES map solarized-light has all required token keys" time="0">
+    </testcase>
+    <testcase classname="THEMES map catppuccin-latte has all required token keys" name="THEMES map catppuccin-latte has all required token keys" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map night-owl-light has all required token keys" name="THEMES map night-owl-light has all required token keys" time="0">
+    </testcase>
+    <testcase classname="THEMES map nomad-dark has mode === dark" name="THEMES map nomad-dark has mode === dark" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map one-dark-pro has mode === dark" name="THEMES map one-dark-pro has mode === dark" time="0">
+    </testcase>
+    <testcase classname="THEMES map dracula has mode === dark" name="THEMES map dracula has mode === dark" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map monokai has mode === dark" name="THEMES map monokai has mode === dark" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map nord has mode === dark" name="THEMES map nord has mode === dark" time="0">
+    </testcase>
+    <testcase classname="THEMES map tokyo-night has mode === dark" name="THEMES map tokyo-night has mode === dark" time="0">
+    </testcase>
+    <testcase classname="THEMES map nomad-light has mode === light" name="THEMES map nomad-light has mode === light" time="0">
+    </testcase>
+    <testcase classname="THEMES map github-light has mode === light" name="THEMES map github-light has mode === light" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map solarized-light has mode === light" name="THEMES map solarized-light has mode === light" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map catppuccin-latte has mode === light" name="THEMES map catppuccin-latte has mode === light" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map night-owl-light has mode === light" name="THEMES map night-owl-light has mode === light" time="0">
+    </testcase>
+    <testcase classname="THEMES map nomad-dark error token is always #EF4444" name="THEMES map nomad-dark error token is always #EF4444" time="0">
+    </testcase>
+    <testcase classname="THEMES map one-dark-pro error token is always #EF4444" name="THEMES map one-dark-pro error token is always #EF4444" time="0">
+    </testcase>
+    <testcase classname="THEMES map dracula error token is always #EF4444" name="THEMES map dracula error token is always #EF4444" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map monokai error token is always #EF4444" name="THEMES map monokai error token is always #EF4444" time="0">
+    </testcase>
+    <testcase classname="THEMES map nord error token is always #EF4444" name="THEMES map nord error token is always #EF4444" time="0">
+    </testcase>
+    <testcase classname="THEMES map tokyo-night error token is always #EF4444" name="THEMES map tokyo-night error token is always #EF4444" time="0">
+    </testcase>
+    <testcase classname="THEMES map nomad-light error token is always #EF4444" name="THEMES map nomad-light error token is always #EF4444" time="0">
+    </testcase>
+    <testcase classname="THEMES map github-light error token is always #EF4444" name="THEMES map github-light error token is always #EF4444" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map solarized-light error token is always #EF4444" name="THEMES map solarized-light error token is always #EF4444" time="0">
+    </testcase>
+    <testcase classname="THEMES map catppuccin-latte error token is always #EF4444" name="THEMES map catppuccin-latte error token is always #EF4444" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map night-owl-light error token is always #EF4444" name="THEMES map night-owl-light error token is always #EF4444" time="0">
+    </testcase>
+    <testcase classname="THEMES map nomad-dark success token is always #22C55E" name="THEMES map nomad-dark success token is always #22C55E" time="0">
+    </testcase>
+    <testcase classname="THEMES map one-dark-pro success token is always #22C55E" name="THEMES map one-dark-pro success token is always #22C55E" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map dracula success token is always #22C55E" name="THEMES map dracula success token is always #22C55E" time="0">
+    </testcase>
+    <testcase classname="THEMES map monokai success token is always #22C55E" name="THEMES map monokai success token is always #22C55E" time="0">
+    </testcase>
+    <testcase classname="THEMES map nord success token is always #22C55E" name="THEMES map nord success token is always #22C55E" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map tokyo-night success token is always #22C55E" name="THEMES map tokyo-night success token is always #22C55E" time="0">
+    </testcase>
+    <testcase classname="THEMES map nomad-light success token is always #22C55E" name="THEMES map nomad-light success token is always #22C55E" time="0">
+    </testcase>
+    <testcase classname="THEMES map github-light success token is always #22C55E" name="THEMES map github-light success token is always #22C55E" time="0.001">
+    </testcase>
+    <testcase classname="THEMES map solarized-light success token is always #22C55E" name="THEMES map solarized-light success token is always #22C55E" time="0">
+    </testcase>
+    <testcase classname="THEMES map catppuccin-latte success token is always #22C55E" name="THEMES map catppuccin-latte success token is always #22C55E" time="0">
+    </testcase>
+    <testcase classname="THEMES map night-owl-light success token is always #22C55E" name="THEMES map night-owl-light success token is always #22C55E" time="0">
+    </testcase>
+    <testcase classname="useTheme returns nomad-dark tokens when store theme is nomad-dark" name="useTheme returns nomad-dark tokens when store theme is nomad-dark" time="0.002">
+    </testcase>
+    <testcase classname="useTheme returns dracula tokens when store theme is dracula" name="useTheme returns dracula tokens when store theme is dracula" time="0.001">
+    </testcase>
+    <testcase classname="useTheme returns nomad-light tokens when store theme is nomad-light" name="useTheme returns nomad-light tokens when store theme is nomad-light" time="0.002">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs-dark for dark theme nomad-dark" name="getMonacoTheme returns vs-dark for dark theme nomad-dark" time="0">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs-dark for dark theme one-dark-pro" name="getMonacoTheme returns vs-dark for dark theme one-dark-pro" time="0.001">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs-dark for dark theme dracula" name="getMonacoTheme returns vs-dark for dark theme dracula" time="0">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs-dark for dark theme monokai" name="getMonacoTheme returns vs-dark for dark theme monokai" time="0.001">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs-dark for dark theme nord" name="getMonacoTheme returns vs-dark for dark theme nord" time="0">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs-dark for dark theme tokyo-night" name="getMonacoTheme returns vs-dark for dark theme tokyo-night" time="0.008">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs for light theme nomad-light" name="getMonacoTheme returns vs for light theme nomad-light" time="0.001">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs for light theme github-light" name="getMonacoTheme returns vs for light theme github-light" time="0">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs for light theme solarized-light" name="getMonacoTheme returns vs for light theme solarized-light" time="0.001">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs for light theme catppuccin-latte" name="getMonacoTheme returns vs for light theme catppuccin-latte" time="0.001">
+    </testcase>
+    <testcase classname="getMonacoTheme returns vs for light theme night-owl-light" name="getMonacoTheme returns vs for light theme night-owl-light" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="CommandPalette — AC-0046 auto-focus" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:17" time="1.224" tests="26">
+    <testcase classname="CommandPalette — AC-0046 auto-focus AC-0046: search TextInput has autoFocus set to true" name="CommandPalette — AC-0046 auto-focus AC-0046: search TextInput has autoFocus set to true" time="0.507">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0047 initial render AC-0047: renders all commands when query is empty" name="CommandPalette — AC-0047 initial render AC-0047: renders all commands when query is empty" time="0.005">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0047 initial render renders descriptions when provided" name="CommandPalette — AC-0047 initial render renders descriptions when provided" time="0.007">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0047 initial render renders the search input with placeholder" name="CommandPalette — AC-0047 initial render renders the search input with placeholder" time="0.006">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0048 backdrop dismiss AC-0048: backdrop press calls onClose" name="CommandPalette — AC-0048 backdrop dismiss AC-0048: backdrop press calls onClose" time="0.004">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0048 backdrop dismiss backdrop press does not call onSelect" name="CommandPalette — AC-0048 backdrop dismiss backdrop press does not call onSelect" time="0.005">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0048 backdrop dismiss onRequestClose calls onClose, not onSelect (Android back button fix)" name="CommandPalette — AC-0048 backdrop dismiss onRequestClose calls onClose, not onSelect (Android back button fix)" time="0.005">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: filters commands by label (case-insensitive)" name="CommandPalette — AC-0049/0050 filtering AC-0049: filters commands by label (case-insensitive)" time="0.01">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: filters commands by description" name="CommandPalette — AC-0049/0050 filtering AC-0049: filters commands by description" time="0.014">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: matches partial substrings" name="CommandPalette — AC-0049/0050 filtering AC-0049: matches partial substrings" time="0.006">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: filters case-insensitively with uppercase query" name="CommandPalette — AC-0049/0050 filtering AC-0049: filters case-insensitively with uppercase query" time="0.017">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0049: shows all commands when query is cleared" name="CommandPalette — AC-0049/0050 filtering AC-0049: shows all commands when query is cleared" time="0.008">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0049/0050 filtering AC-0050: shows &quot;No commands found&quot; when nothing matches" name="CommandPalette — AC-0049/0050 filtering AC-0050: shows &quot;No commands found&quot; when nothing matches" time="0.008">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0051 Enter to select AC-0051: Enter selects the first result in the filtered list" name="CommandPalette — AC-0051 Enter to select AC-0051: Enter selects the first result in the filtered list" time="0.006">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0051 Enter to select AC-0051: does not call onSelect on Enter when no commands match" name="CommandPalette — AC-0051 Enter to select AC-0051: does not call onSelect on Enter when no commands match" time="0.005">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0052 shortcut badges AC-0052: renders shortcut badge for commands that have a shortcut" name="CommandPalette — AC-0052 shortcut badges AC-0052: renders shortcut badge for commands that have a shortcut" time="0.004">
+    </testcase>
+    <testcase classname="CommandPalette — AC-0053 no empty badge AC-0053: commands without shortcut render no badge" name="CommandPalette — AC-0053 no empty badge AC-0053: commands without shortcut render no badge" time="0.005">
+    </testcase>
+    <testcase classname="CommandPalette — keyboard navigation ArrowDown advances selection: Enter submits second item" name="CommandPalette — keyboard navigation ArrowDown advances selection: Enter submits second item" time="0.006">
+    </testcase>
+    <testcase classname="CommandPalette — keyboard navigation ArrowUp after two ArrowDowns lands on the second item" name="CommandPalette — keyboard navigation ArrowUp after two ArrowDowns lands on the second item" time="0.015">
+    </testcase>
+    <testcase classname="CommandPalette — keyboard navigation ArrowUp on first item stays at index 0" name="CommandPalette — keyboard navigation ArrowUp on first item stays at index 0" time="0.007">
+    </testcase>
+    <testcase classname="CommandPalette — keyboard navigation ArrowDown on last item stays on last item" name="CommandPalette — keyboard navigation ArrowDown on last item stays on last item" time="0.049">
+    </testcase>
+    <testcase classname="CommandPalette — keyboard navigation query change resets selectedIndex to 0" name="CommandPalette — keyboard navigation query change resets selectedIndex to 0" time="0.005">
+    </testcase>
+    <testcase classname="CommandPalette — keyboard navigation item at selectedIndex renders with Nomad Blue highlight style" name="CommandPalette — keyboard navigation item at selectedIndex renders with Nomad Blue highlight style" time="0.006">
+    </testcase>
+    <testcase classname="CommandPalette — onSelect vs onClose tapping a command calls onSelect but NOT onClose" name="CommandPalette — onSelect vs onClose tapping a command calls onSelect but NOT onClose" time="0.004">
+    </testcase>
+    <testcase classname="CommandPalette — edge cases renders with empty command list without crashing" name="CommandPalette — edge cases renders with empty command list without crashing" time="0.004">
+    </testcase>
+    <testcase classname="CommandPalette — edge cases does not render content when visible is false" name="CommandPalette — edge cases does not render content when visible is false" time="0.004">
+    </testcase>
+  </testsuite>
+  <testsuite name="useTerminalBridge" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.09" tests="17">
+    <testcase classname="useTerminalBridge returns a React ref object (webViewRef)" name="useTerminalBridge returns a React ref object (webViewRef)" time="0.002">
+    </testcase>
+    <testcase classname="useTerminalBridge sendToWebView injects a JSON string literal (double-stringified) into receiveFromRN" name="useTerminalBridge sendToWebView injects a JSON string literal (double-stringified) into receiveFromRN" time="0.008">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage COMMAND_COMPLETE calls onCommandComplete with exitCode" name="useTerminalBridge onMessage COMMAND_COMPLETE calls onCommandComplete with exitCode" time="0.001">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage COMMAND_COMPLETE does not call FileBridge.handleMessage" name="useTerminalBridge onMessage COMMAND_COMPLETE does not call FileBridge.handleMessage" time="0">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage FILE_READ calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_READ calls FileBridge.handleMessage" time="0.002">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage FILE_WRITE calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_WRITE calls FileBridge.handleMessage" time="0">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage FILE_LIST calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_LIST calls FileBridge.handleMessage" time="0.001">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage FILE_MKDIR calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_MKDIR calls FileBridge.handleMessage" time="0">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage FILE_DELETE calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_DELETE calls FileBridge.handleMessage" time="0.001">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage FILE_COPY calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_COPY calls FileBridge.handleMessage" time="0">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage FILE_MOVE calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_MOVE calls FileBridge.handleMessage" time="0.001">
+    </testcase>
+    <testcase classname="useTerminalBridge after FILE_READ FileBridge response is forwarded via sendToWebView" name="useTerminalBridge after FILE_READ FileBridge response is forwarded via sendToWebView" time="0.001">
+    </testcase>
+    <testcase classname="useTerminalBridge handles malformed JSON in onMessage without throwing" name="useTerminalBridge handles malformed JSON in onMessage without throwing" time="0.001">
+    </testcase>
+    <testcase classname="useTerminalBridge works when no onCommandComplete option is provided (no-op)" name="useTerminalBridge works when no onCommandComplete option is provided (no-op)" time="0">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage GET_TOKEN calls onGetToken and forwards TOKEN_RESULT via sendToWebView" name="useTerminalBridge onMessage GET_TOKEN calls onGetToken and forwards TOKEN_RESULT via sendToWebView" time="0.001">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage with unknown type does not call FileBridge.handleMessage" name="useTerminalBridge onMessage with unknown type does not call FileBridge.handleMessage" time="0.008">
+    </testcase>
+    <testcase classname="useTerminalBridge onMessage with unknown type logs a console.warn in __DEV__ mode" name="useTerminalBridge onMessage with unknown type logs a console.warn in __DEV__ mode" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Terminal" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:17" time="1.247" tests="21">
+    <testcase classname="Terminal renders initial welcome lines" name="Terminal renders initial welcome lines" time="0.416">
+    </testcase>
+    <testcase classname="Terminal renders the prompt character" name="Terminal renders the prompt character" time="0.006">
+    </testcase>
+    <testcase classname="Terminal clears input after submitting a command" name="Terminal clears input after submitting a command" time="0.012">
+    </testcase>
+    <testcase classname="Terminal echoes the submitted command in the output" name="Terminal echoes the submitted command in the output" time="0.018">
+    </testcase>
+    <testcase classname="Terminal does nothing when empty input is submitted" name="Terminal does nothing when empty input is submitted" time="0.019">
+    </testcase>
+    <testcase classname="Terminal &quot;help&quot; outputs available commands" name="Terminal &quot;help&quot; outputs available commands" time="0.005">
+    </testcase>
+    <testcase classname="Terminal &quot;pwd&quot; outputs the working directory" name="Terminal &quot;pwd&quot; outputs the working directory" time="0.022">
+    </testcase>
+    <testcase classname="Terminal &quot;echo &lt;text&gt;&quot; outputs the text" name="Terminal &quot;echo &lt;text&gt;&quot; outputs the text" time="0.017">
+    </testcase>
+    <testcase classname="Terminal &quot;clear&quot; removes all output lines" name="Terminal &quot;clear&quot; removes all output lines" time="0.007">
+    </testcase>
+    <testcase classname="Terminal unknown command shows error message" name="Terminal unknown command shows error message" time="0.005">
+    </testcase>
+    <testcase classname="Terminal calls onCommand callback with the submitted command string" name="Terminal calls onCommand callback with the submitted command string" time="0.022">
+    </testcase>
+    <testcase classname="Terminal does not call onCommand for empty submissions" name="Terminal does not call onCommand for empty submissions" time="0.002">
+    </testcase>
+    <testcase classname="visible prop hides terminal content when visible=false" name="visible prop hides terminal content when visible=false" time="0.003">
+    </testcase>
+    <testcase classname="visible prop shows terminal content when visible=true" name="visible prop shows terminal content when visible=true" time="0.002">
+    </testcase>
+    <testcase classname="ls command lists files from FileSystemBridge" name="ls command lists files from FileSystemBridge" time="0.058">
+    </testcase>
+    <testcase classname="ls command shows error if listDirectory fails" name="ls command shows error if listDirectory fails" time="0.055">
+    </testcase>
+    <testcase classname="cd command updates working directory on cd" name="cd command updates working directory on cd" time="0.017">
+    </testcase>
+    <testcase classname="cd command shows error for cd with no argument" name="cd command shows error for cd with no argument" time="0.006">
+    </testcase>
+    <testcase classname="command history pressing history-up recalls previous command" name="command history pressing history-up recalls previous command" time="0.005">
+    </testcase>
+    <testcase classname="command history pressing history-down clears input when past end of history" name="command history pressing history-down clears input when past end of history" time="0.009">
+    </testcase>
+    <testcase classname="long-press copy long-pressing an output line copies its text to clipboard" name="long-press copy long-pressing an output line copies its text to clipboard" time="0.011">
+    </testcase>
+  </testsuite>
+  <testsuite name="useAuthStore — initial state" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.084" tests="14">
+    <testcase classname="useAuthStore — initial state starts with no token" name="useAuthStore — initial state starts with no token" time="0.001">
+    </testcase>
+    <testcase classname="useAuthStore — initial state starts with no username" name="useAuthStore — initial state starts with no username" time="0.001">
+    </testcase>
+    <testcase classname="useAuthStore — initial state starts with no error" name="useAuthStore — initial state starts with no error" time="0.001">
+    </testcase>
+    <testcase classname="useAuthStore — signInWithToken (PAT) stores token and populates username on valid token" name="useAuthStore — signInWithToken (PAT) stores token and populates username on valid token" time="0.005">
+    </testcase>
+    <testcase classname="useAuthStore — signInWithToken (PAT) persists token to SecureStore" name="useAuthStore — signInWithToken (PAT) persists token to SecureStore" time="0.008">
+    </testcase>
+    <testcase classname="useAuthStore — signInWithToken (PAT) sets error and does not store token on invalid token" name="useAuthStore — signInWithToken (PAT) sets error and does not store token on invalid token" time="0.001">
+    </testcase>
+    <testcase classname="useAuthStore — signInWithToken (PAT) sets error on network failure" name="useAuthStore — signInWithToken (PAT) sets error on network failure" time="0.001">
+    </testcase>
+    <testcase classname="useAuthStore — signInWithToken (PAT) shows auth error message on 401" name="useAuthStore — signInWithToken (PAT) shows auth error message on 401" time="0.002">
+    </testcase>
+    <testcase classname="useAuthStore — signOut clears token, username, and avatarUrl" name="useAuthStore — signOut clears token, username, and avatarUrl" time="0.004">
+    </testcase>
+    <testcase classname="useAuthStore — signOut deletes token from SecureStore on sign out" name="useAuthStore — signOut deletes token from SecureStore on sign out" time="0.001">
+    </testcase>
+    <testcase classname="useAuthStore — hydrate restores session from SecureStore on hydrate" name="useAuthStore — hydrate restores session from SecureStore on hydrate" time="0">
+    </testcase>
+    <testcase classname="useAuthStore — hydrate leaves signed-out state when no token in SecureStore" name="useAuthStore — hydrate leaves signed-out state when no token in SecureStore" time="0.001">
+    </testcase>
+    <testcase classname="useAuthStore — hydrate preserves token but leaves username null when GitHub API fails during hydrate" name="useAuthStore — hydrate preserves token but leaves username null when GitHub API fails during hydrate" time="0.001">
+    </testcase>
+    <testcase classname="useAuthStore — hydrate clears token from state and SecureStore when stored token returns 401 during hydrate" name="useAuthStore — hydrate clears token from state and SecureStore when stored token returns 401 during hydrate" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="FileSystemBridge.listDirectory" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.086" tests="25">
+    <testcase classname="FileSystemBridge.listDirectory returns sorted entries (dirs first, then files)" name="FileSystemBridge.listDirectory returns sorted entries (dirs first, then files)" time="0.01">
+    </testcase>
+    <testcase classname="FileSystemBridge.listDirectory returns empty array when directory does not exist" name="FileSystemBridge.listDirectory returns empty array when directory does not exist" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.listDirectory returns empty array when path is a file, not a directory" name="FileSystemBridge.listDirectory returns empty array when path is a file, not a directory" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.listDirectory normalizes paths that already end with /" name="FileSystemBridge.listDirectory normalizes paths that already end with /" time="0.001">
+    </testcase>
+    <testcase classname="FileSystemBridge.listDirectory appends missing trailing slash before calling getInfoAsync" name="FileSystemBridge.listDirectory appends missing trailing slash before calling getInfoAsync" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.readFile returns file content as string" name="FileSystemBridge.readFile returns file content as string" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.readFile propagates errors from expo-file-system" name="FileSystemBridge.readFile propagates errors from expo-file-system" time="0.006">
+    </testcase>
+    <testcase classname="FileSystemBridge.writeFile writes content with UTF-8 encoding" name="FileSystemBridge.writeFile writes content with UTF-8 encoding" time="0.001">
+    </testcase>
+    <testcase classname="FileSystemBridge.writeFile propagates write errors" name="FileSystemBridge.writeFile propagates write errors" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.createFile creates file with empty string by default" name="FileSystemBridge.createFile creates file with empty string by default" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.createFile creates file with provided initial content" name="FileSystemBridge.createFile creates file with provided initial content" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.deleteEntry calls deleteAsync with idempotent flag" name="FileSystemBridge.deleteEntry calls deleteAsync with idempotent flag" time="0.001">
+    </testcase>
+    <testcase classname="FileSystemBridge.createDirectory calls makeDirectoryAsync with intermediates flag" name="FileSystemBridge.createDirectory calls makeDirectoryAsync with intermediates flag" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.moveEntry calls moveAsync with from/to" name="FileSystemBridge.moveEntry calls moveAsync with from/to" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.copyEntry calls copyAsync with from/to" name="FileSystemBridge.copyEntry calls copyAsync with from/to" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.exists returns true when file exists" name="FileSystemBridge.exists returns true when file exists" time="0.001">
+    </testcase>
+    <testcase classname="FileSystemBridge.exists returns false when file does not exist" name="FileSystemBridge.exists returns false when file does not exist" time="0">
+    </testcase>
+    <testcase classname="FileSystemBridge.documentDirectory returns the expo document directory" name="FileSystemBridge.documentDirectory returns the expo document directory" time="0">
+    </testcase>
+    <testcase classname="GitBridge clone throws not-implemented" name="GitBridge clone throws not-implemented" time="0.003">
+    </testcase>
+    <testcase classname="GitBridge commit throws not-implemented" name="GitBridge commit throws not-implemented" time="0.001">
+    </testcase>
+    <testcase classname="GitBridge push throws not-implemented" name="GitBridge push throws not-implemented" time="0">
+    </testcase>
+    <testcase classname="GitBridge pull throws not-implemented" name="GitBridge pull throws not-implemented" time="0.001">
+    </testcase>
+    <testcase classname="GitBridge checkout throws not-implemented" name="GitBridge checkout throws not-implemented" time="0">
+    </testcase>
+    <testcase classname="GitBridge status returns a default status object" name="GitBridge status returns a default status object" time="0">
+    </testcase>
+    <testcase classname="GitBridge branches returns [&quot;main&quot;]" name="GitBridge branches returns [&quot;main&quot;]" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="useSettingsStore — default state" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.073" tests="15">
     <testcase classname="useSettingsStore — default state defaults theme to nomad-dark" name="useSettingsStore — default state defaults theme to nomad-dark" time="0.002">
     </testcase>
     <testcase classname="useSettingsStore — default state defaults fontSize to 14" name="useSettingsStore — default state defaults fontSize to 14" time="0.001">
     </testcase>
     <testcase classname="useSettingsStore — default state defaults workspacePath to empty string" name="useSettingsStore — default state defaults workspacePath to empty string" time="0.001">
     </testcase>
-    <testcase classname="useSettingsStore — default state defaults hasCompletedSetup to false" name="useSettingsStore — default state defaults hasCompletedSetup to false" time="0.001">
+    <testcase classname="useSettingsStore — default state defaults hasCompletedSetup to false" name="useSettingsStore — default state defaults hasCompletedSetup to false" time="0">
     </testcase>
     <testcase classname="useSettingsStore — default state defaults installedExtensions to empty array" name="useSettingsStore — default state defaults installedExtensions to empty array" time="0.001">
     </testcase>
     <testcase classname="useSettingsStore — actions setTheme updates the theme id" name="useSettingsStore — actions setTheme updates the theme id" time="0.001">
     </testcase>
-    <testcase classname="useSettingsStore — actions setFontSize updates fontSize" name="useSettingsStore — actions setFontSize updates fontSize" time="0.002">
+    <testcase classname="useSettingsStore — actions setFontSize updates fontSize" name="useSettingsStore — actions setFontSize updates fontSize" time="0.001">
     </testcase>
-    <testcase classname="useSettingsStore — actions setFontSize clamps to minimum 8" name="useSettingsStore — actions setFontSize clamps to minimum 8" time="0.001">
+    <testcase classname="useSettingsStore — actions setFontSize clamps to minimum 8" name="useSettingsStore — actions setFontSize clamps to minimum 8" time="0">
     </testcase>
-    <testcase classname="useSettingsStore — actions setFontSize clamps to maximum 32" name="useSettingsStore — actions setFontSize clamps to maximum 32" time="0">
+    <testcase classname="useSettingsStore — actions setFontSize clamps to maximum 32" name="useSettingsStore — actions setFontSize clamps to maximum 32" time="0.001">
     </testcase>
     <testcase classname="useSettingsStore — actions setWorkspacePath updates workspacePath" name="useSettingsStore — actions setWorkspacePath updates workspacePath" time="0.001">
     </testcase>
-    <testcase classname="useSettingsStore — actions completeSetup sets hasCompletedSetup to true" name="useSettingsStore — actions completeSetup sets hasCompletedSetup to true" time="0.001">
+    <testcase classname="useSettingsStore — actions completeSetup sets hasCompletedSetup to true" name="useSettingsStore — actions completeSetup sets hasCompletedSetup to true" time="0">
     </testcase>
-    <testcase classname="useSettingsStore — actions addExtension appends a manifest" name="useSettingsStore — actions addExtension appends a manifest" time="0.001">
+    <testcase classname="useSettingsStore — actions addExtension appends a manifest" name="useSettingsStore — actions addExtension appends a manifest" time="0.002">
     </testcase>
     <testcase classname="useSettingsStore — actions addExtension replaces manifest with same id" name="useSettingsStore — actions addExtension replaces manifest with same id" time="0.001">
     </testcase>
@@ -428,272 +580,80 @@
     <testcase classname="useSettingsStore — actions removeExtension is a no-op for unknown id" name="useSettingsStore — actions removeExtension is a no-op for unknown id" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="SettingsScreen" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:23" time="1.867" tests="31">
-    <testcase classname="SettingsScreen renders when visible" name="SettingsScreen renders when visible" time="0.557">
+  <testsuite name="App — smoke tests" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.318" tests="10">
+    <testcase classname="App — smoke tests renders without crashing" name="App — smoke tests renders without crashing" time="0.129">
     </testcase>
-    <testcase classname="SettingsScreen does not render when not visible" name="SettingsScreen does not render when not visible" time="0.001">
+    <testcase classname="App — smoke tests renders the NomadCode status bar title" name="App — smoke tests renders the NomadCode status bar title" time="0.014">
     </testcase>
-    <testcase classname="SettingsScreen close button calls onClose" name="SettingsScreen close button calls onClose" time="0.029">
+    <testcase classname="App — SetupWizard integration shows setup wizard when setup not completed" name="App — SetupWizard integration shows setup wizard when setup not completed" time="0.007">
     </testcase>
-    <testcase classname="SettingsScreen Dark mode button press shows dark theme swatches" name="SettingsScreen Dark mode button press shows dark theme swatches" time="0.008">
+    <testcase classname="App — command palette integration CommandPalette is always in the component tree (visible=false by default)" name="App — command palette integration CommandPalette is always in the component tree (visible=false by default)" time="0.007">
     </testcase>
-    <testcase classname="SettingsScreen Light mode button press shows light theme swatches" name="SettingsScreen Light mode button press shows light theme swatches" time="0.052">
+    <testcase classname="App — command palette integration FAB palette button opens the command palette" name="App — command palette integration FAB palette button opens the command palette" time="0.03">
     </testcase>
-    <testcase classname="SettingsScreen pressing a theme swatch calls setTheme" name="SettingsScreen pressing a theme swatch calls setTheme" time="0.023">
+    <testcase classname="App — command palette integration command palette shows the expected commands" name="App — command palette integration command palette shows the expected commands" time="0.014">
     </testcase>
-    <testcase classname="SettingsScreen A+ button calls setFontSize with fontSize + 1" name="SettingsScreen A+ button calls setFontSize with fontSize + 1" time="0.01">
+    <testcase classname="App — ExtensionHost integration mounts without crashing when installedExtensions is empty" name="App — ExtensionHost integration mounts without crashing when installedExtensions is empty" time="0.006">
     </testcase>
-    <testcase classname="SettingsScreen A- button calls setFontSize with fontSize - 1" name="SettingsScreen A- button calls setFontSize with fontSize - 1" time="0.005">
+    <testcase classname="App — auth hydration calls useAuthStore hydrate on mount" name="App — auth hydration calls useAuthStore hydrate on mount" time="0.006">
     </testcase>
-    <testcase classname="SettingsScreen — Extensions section renders EXTENSIONS section label" name="SettingsScreen — Extensions section renders EXTENSIONS section label" time="0.005">
+    <testcase classname="App — TerminalWebView wiring (EPIC-0003) TC-0345: renders TerminalWebView in the component tree on initial mount" name="App — TerminalWebView wiring (EPIC-0003) TC-0345: renders TerminalWebView in the component tree on initial mount" time="0.006">
     </testcase>
-    <testcase classname="SettingsScreen — Extensions section renders install form with name input, source input, and install button" name="SettingsScreen — Extensions section renders install form with name input, source input, and install button" time="0.006">
-    </testcase>
-    <testcase classname="SettingsScreen — Extensions section install button is disabled when name is empty" name="SettingsScreen — Extensions section install button is disabled when name is empty" time="0.015">
-    </testcase>
-    <testcase classname="SettingsScreen — Extensions section install button is enabled when name and source are both filled" name="SettingsScreen — Extensions section install button is enabled when name and source are both filled" time="0.012">
-    </testcase>
-    <testcase classname="SettingsScreen — Extensions section tapping Install calls addExtension and clears the form" name="SettingsScreen — Extensions section tapping Install calls addExtension and clears the form" time="0.088">
-    </testcase>
-    <testcase classname="SettingsScreen — Extensions section renders installed extension cards" name="SettingsScreen — Extensions section renders installed extension cards" time="0.008">
-    </testcase>
-    <testcase classname="SettingsScreen — Extensions section tapping Deactivate calls removeExtension with the extension id" name="SettingsScreen — Extensions section tapping Deactivate calls removeExtension with the extension id" time="0.01">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) renders GITHUB ACCOUNT section label" name="SettingsScreen — GitHub Account section (signed out) renders GITHUB ACCOUNT section label" time="0.005">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) shows Sign in with GitHub button when signed out" name="SettingsScreen — GitHub Account section (signed out) shows Sign in with GitHub button when signed out" time="0.008">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) shows PAT toggle link when signed out" name="SettingsScreen — GitHub Account section (signed out) shows PAT toggle link when signed out" time="0.007">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) reveals PAT input after tapping toggle" name="SettingsScreen — GitHub Account section (signed out) reveals PAT input after tapping toggle" time="0.01">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) calls signInWithToken with entered PAT on Connect" name="SettingsScreen — GitHub Account section (signed out) calls signInWithToken with entered PAT on Connect" time="0.028">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) shows error message when auth error is set" name="SettingsScreen — GitHub Account section (signed out) shows error message when auth error is set" time="0.02">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) does not call signInWithToken when Connect is pressed with empty PAT" name="SettingsScreen — GitHub Account section (signed out) does not call signInWithToken when Connect is pressed with empty PAT" time="0.017">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) calls promptOAuth when Sign in with GitHub is pressed and request is ready" name="SettingsScreen — GitHub Account section (signed out) calls promptOAuth when Sign in with GitHub is pressed and request is ready" time="0.011">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) does not call promptOAuth when request is not ready" name="SettingsScreen — GitHub Account section (signed out) does not call promptOAuth when request is not ready" time="0.01">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) calls setError when OAuth code exchange fetch throws a network error" name="SettingsScreen — GitHub Account section (signed out) calls setError when OAuth code exchange fetch throws a network error" time="0.087">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed out) calls setError when OAuth token exchange returns no access_token" name="SettingsScreen — GitHub Account section (signed out) calls setError when OAuth token exchange returns no access_token" time="0.064">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed in) shows username when signed in" name="SettingsScreen — GitHub Account section (signed in) shows username when signed in" time="0.008">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed in) shows Sign out button when signed in" name="SettingsScreen — GitHub Account section (signed in) shows Sign out button when signed in" time="0.008">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed in) calls signOut when Sign out button is pressed" name="SettingsScreen — GitHub Account section (signed in) calls signOut when Sign out button is pressed" time="0.01">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed in) does not show OAuth button when signed in" name="SettingsScreen — GitHub Account section (signed in) does not show OAuth button when signed in" time="0.008">
-    </testcase>
-    <testcase classname="SettingsScreen — GitHub Account section (signed in) does not show PAT input when signed in" name="SettingsScreen — GitHub Account section (signed in) does not show PAT input when signed in" time="0.031">
+    <testcase classname="App — TerminalWebView wiring (EPIC-0003) TC-0346: TerminalWebView receives an onCommand prop that is a function" name="App — TerminalWebView wiring (EPIC-0003) TC-0346: TerminalWebView receives an onCommand prop that is a function" time="0.006">
     </testcase>
   </testsuite>
-  <testsuite name="useAuthStore — initial state" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.236" tests="14">
-    <testcase classname="useAuthStore — initial state starts with no token" name="useAuthStore — initial state starts with no token" time="0.002">
+  <testsuite name="FileBridge.readFile" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.058" tests="24">
+    <testcase classname="FileBridge.readFile AC-0126: reads file and returns content" name="FileBridge.readFile AC-0126: reads file and returns content" time="0.001">
     </testcase>
-    <testcase classname="useAuthStore — initial state starts with no username" name="useAuthStore — initial state starts with no username" time="0.021">
+    <testcase classname="FileBridge.readFile returns error when read fails" name="FileBridge.readFile returns error when read fails" time="0">
     </testcase>
-    <testcase classname="useAuthStore — initial state starts with no error" name="useAuthStore — initial state starts with no error" time="0.001">
+    <testcase classname="FileBridge.writeFile AC-0127: writes content and returns ok" name="FileBridge.writeFile AC-0127: writes content and returns ok" time="0.001">
     </testcase>
-    <testcase classname="useAuthStore — signInWithToken (PAT) stores token and populates username on valid token" name="useAuthStore — signInWithToken (PAT) stores token and populates username on valid token" time="0.014">
+    <testcase classname="FileBridge.writeFile returns error when write fails" name="FileBridge.writeFile returns error when write fails" time="0">
     </testcase>
-    <testcase classname="useAuthStore — signInWithToken (PAT) persists token to SecureStore" name="useAuthStore — signInWithToken (PAT) persists token to SecureStore" time="0.004">
+    <testcase classname="FileBridge.listDirectory AC-0128: returns JSON array of names with &quot;/&quot; suffix for directories" name="FileBridge.listDirectory AC-0128: returns JSON array of names with &quot;/&quot; suffix for directories" time="0">
     </testcase>
-    <testcase classname="useAuthStore — signInWithToken (PAT) sets error and does not store token on invalid token" name="useAuthStore — signInWithToken (PAT) sets error and does not store token on invalid token" time="0.002">
+    <testcase classname="FileBridge.listDirectory appends &quot;/&quot; to path when joining names without trailing slash" name="FileBridge.listDirectory appends &quot;/&quot; to path when joining names without trailing slash" time="0">
     </testcase>
-    <testcase classname="useAuthStore — signInWithToken (PAT) sets error on network failure" name="useAuthStore — signInWithToken (PAT) sets error on network failure" time="0.006">
+    <testcase classname="FileBridge.listDirectory does not double-add &quot;/&quot; when path already ends with &quot;/&quot;" name="FileBridge.listDirectory does not double-add &quot;/&quot; when path already ends with &quot;/&quot;" time="0">
     </testcase>
-    <testcase classname="useAuthStore — signInWithToken (PAT) shows auth error message on 401" name="useAuthStore — signInWithToken (PAT) shows auth error message on 401" time="0.002">
+    <testcase classname="FileBridge.listDirectory returns error when listing fails" name="FileBridge.listDirectory returns error when listing fails" time="0">
     </testcase>
-    <testcase classname="useAuthStore — signOut clears token, username, and avatarUrl" name="useAuthStore — signOut clears token, username, and avatarUrl" time="0.002">
+    <testcase classname="FileBridge.makeDirectory creates directory and returns ok" name="FileBridge.makeDirectory creates directory and returns ok" time="0">
     </testcase>
-    <testcase classname="useAuthStore — signOut deletes token from SecureStore on sign out" name="useAuthStore — signOut deletes token from SecureStore on sign out" time="0.003">
+    <testcase classname="FileBridge.makeDirectory returns error when creation fails" name="FileBridge.makeDirectory returns error when creation fails" time="0.001">
     </testcase>
-    <testcase classname="useAuthStore — hydrate restores session from SecureStore on hydrate" name="useAuthStore — hydrate restores session from SecureStore on hydrate" time="0.01">
+    <testcase classname="FileBridge.deleteEntry deletes entry and returns ok" name="FileBridge.deleteEntry deletes entry and returns ok" time="0.001">
     </testcase>
-    <testcase classname="useAuthStore — hydrate leaves signed-out state when no token in SecureStore" name="useAuthStore — hydrate leaves signed-out state when no token in SecureStore" time="0.004">
+    <testcase classname="FileBridge.deleteEntry returns error when deletion fails" name="FileBridge.deleteEntry returns error when deletion fails" time="0.001">
     </testcase>
-    <testcase classname="useAuthStore — hydrate preserves token but leaves username null when GitHub API fails during hydrate" name="useAuthStore — hydrate preserves token but leaves username null when GitHub API fails during hydrate" time="0.001">
+    <testcase classname="FileBridge.handleMessage routes FILE_READ to readFile" name="FileBridge.handleMessage routes FILE_READ to readFile" time="0">
     </testcase>
-    <testcase classname="useAuthStore — hydrate clears token from state and SecureStore when stored token returns 401 during hydrate" name="useAuthStore — hydrate clears token from state and SecureStore when stored token returns 401 during hydrate" time="0.01">
+    <testcase classname="FileBridge.handleMessage routes FILE_WRITE to writeFile" name="FileBridge.handleMessage routes FILE_WRITE to writeFile" time="0">
     </testcase>
-  </testsuite>
-  <testsuite name="SetupWizard — visibility" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:24" time="0.643" tests="25">
-    <testcase classname="SetupWizard — visibility renders when visible is true" name="SetupWizard — visibility renders when visible is true" time="0.094">
+    <testcase classname="FileBridge.handleMessage routes FILE_LIST to listDirectory" name="FileBridge.handleMessage routes FILE_LIST to listDirectory" time="0">
     </testcase>
-    <testcase classname="SetupWizard — visibility does not render content when visible is false" name="SetupWizard — visibility does not render content when visible is false" time="0.003">
+    <testcase classname="FileBridge.handleMessage routes FILE_MKDIR to makeDirectory" name="FileBridge.handleMessage routes FILE_MKDIR to makeDirectory" time="0">
     </testcase>
-    <testcase classname="SetupWizard — Step 1 (Theme) shows step 1 of 3 indicator" name="SetupWizard — Step 1 (Theme) shows step 1 of 3 indicator" time="0.011">
+    <testcase classname="FileBridge.handleMessage routes FILE_DELETE to deleteEntry" name="FileBridge.handleMessage routes FILE_DELETE to deleteEntry" time="0">
     </testcase>
-    <testcase classname="SetupWizard — Step 1 (Theme) shows Dark and Light mode buttons" name="SetupWizard — Step 1 (Theme) shows Dark and Light mode buttons" time="0.018">
+    <testcase classname="FileBridge.handleMessage returned message has correct type FILE_RESULT and preserves requestId" name="FileBridge.handleMessage returned message has correct type FILE_RESULT and preserves requestId" time="0">
     </testcase>
-    <testcase classname="SetupWizard — Step 1 (Theme) pressing Dark mode button shows dark theme swatches" name="SetupWizard — Step 1 (Theme) pressing Dark mode button shows dark theme swatches" time="0.01">
+    <testcase classname="FileBridge.handleMessage AC-0139: routes FILE_COPY to copyEntry" name="FileBridge.handleMessage AC-0139: routes FILE_COPY to copyEntry" time="0">
     </testcase>
-    <testcase classname="SetupWizard — Step 1 (Theme) pressing Light mode button shows light theme swatches" name="SetupWizard — Step 1 (Theme) pressing Light mode button shows light theme swatches" time="0.022">
+    <testcase classname="FileBridge.handleMessage AC-0140: routes FILE_MOVE to moveEntry" name="FileBridge.handleMessage AC-0140: routes FILE_MOVE to moveEntry" time="0">
     </testcase>
-    <testcase classname="SetupWizard — Step 1 (Theme) pressing a theme swatch calls setTheme with that id" name="SetupWizard — Step 1 (Theme) pressing a theme swatch calls setTheme with that id" time="0.013">
+    <testcase classname="FileBridge.copyEntry AC-0137: copies file and returns ok" name="FileBridge.copyEntry AC-0137: copies file and returns ok" time="0.001">
     </testcase>
-    <testcase classname="SetupWizard — Step 1 (Theme) Next button advances to step 2" name="SetupWizard — Step 1 (Theme) Next button advances to step 2" time="0.019">
+    <testcase classname="FileBridge.copyEntry returns error when copy fails" name="FileBridge.copyEntry returns error when copy fails" time="0">
     </testcase>
-    <testcase classname="SetupWizard — Step 2 (Font Size) shows step 2 of 3 indicator" name="SetupWizard — Step 2 (Font Size) shows step 2 of 3 indicator" time="0.012">
+    <testcase classname="FileBridge.moveEntry AC-0138: moves file and returns ok" name="FileBridge.moveEntry AC-0138: moves file and returns ok" time="0">
     </testcase>
-    <testcase classname="SetupWizard — Step 2 (Font Size) A+ button calls setFontSize with fontSize + 1" name="SetupWizard — Step 2 (Font Size) A+ button calls setFontSize with fontSize + 1" time="0.024">
-    </testcase>
-    <testcase classname="SetupWizard — Step 2 (Font Size) A- button calls setFontSize with fontSize - 1" name="SetupWizard — Step 2 (Font Size) A- button calls setFontSize with fontSize - 1" time="0.019">
-    </testcase>
-    <testcase classname="SetupWizard — Step 2 (Font Size) Reset button calls setFontSize with 14" name="SetupWizard — Step 2 (Font Size) Reset button calls setFontSize with 14" time="0.005">
-    </testcase>
-    <testcase classname="SetupWizard — Step 2 (Font Size) Back button returns to step 1" name="SetupWizard — Step 2 (Font Size) Back button returns to step 1" time="0.02">
-    </testcase>
-    <testcase classname="SetupWizard — Step 2 (Font Size) Next button advances to step 3" name="SetupWizard — Step 2 (Font Size) Next button advances to step 3" time="0.009">
-    </testcase>
-    <testcase classname="SetupWizard — Step 2 (Font Size) does not go below fontSize 8 — A- calls setFontSize(7) (store clamps to 8)" name="SetupWizard — Step 2 (Font Size) does not go below fontSize 8 — A- calls setFontSize(7) (store clamps to 8)" time="0.01">
-    </testcase>
-    <testcase classname="SetupWizard — Step 2 (Font Size) does not go above fontSize 32 — A+ calls setFontSize(33) (store clamps to 32)" name="SetupWizard — Step 2 (Font Size) does not go above fontSize 32 — A+ calls setFontSize(33) (store clamps to 32)" time="0.009">
-    </testcase>
-    <testcase classname="SetupWizard — Step 3 (Workspace) shows step 3 of 3 indicator" name="SetupWizard — Step 3 (Workspace) shows step 3 of 3 indicator" time="0.008">
-    </testcase>
-    <testcase classname="SetupWizard — Step 3 (Workspace) Get Started calls completeSetup" name="SetupWizard — Step 3 (Workspace) Get Started calls completeSetup" time="0.012">
-    </testcase>
-    <testcase classname="SetupWizard — Step 3 (Workspace) Skip calls completeSetup" name="SetupWizard — Step 3 (Workspace) Skip calls completeSetup" time="0.012">
-    </testcase>
-    <testcase classname="SetupWizard — Step 3 (Workspace) Back button returns to step 2" name="SetupWizard — Step 3 (Workspace) Back button returns to step 2" time="0.012">
-    </testcase>
-    <testcase classname="SetupWizard — Step 3 (Workspace) shows workspace TextInput pre-filled with documentDirectory when workspacePath is empty" name="SetupWizard — Step 3 (Workspace) shows workspace TextInput pre-filled with documentDirectory when workspacePath is empty" time="0.042">
-    </testcase>
-    <testcase classname="SetupWizard — Step 3 (Workspace) shows workspace TextInput pre-filled with stored workspacePath when set" name="SetupWizard — Step 3 (Workspace) shows workspace TextInput pre-filled with stored workspacePath when set" time="0.051">
-    </testcase>
-    <testcase classname="SetupWizard — Step 3 (Workspace) Browse button renders in step 3" name="SetupWizard — Step 3 (Workspace) Browse button renders in step 3" time="0.011">
-    </testcase>
-    <testcase classname="SetupWizard — Step 3 (Workspace) Browse button calls DocumentPicker.getDocumentAsync" name="SetupWizard — Step 3 (Workspace) Browse button calls DocumentPicker.getDocumentAsync" time="0.008">
-    </testcase>
-    <testcase classname="SetupWizard — Step 3 (Workspace) Browse button calls setWorkspacePath with picked URI" name="SetupWizard — Step 3 (Workspace) Browse button calls setWorkspacePath with picked URI" time="0.017">
+    <testcase classname="FileBridge.moveEntry returns error when move fails" name="FileBridge.moveEntry returns error when move fails" time="0">
     </testcase>
   </testsuite>
-  <testsuite name="FileSystemBridge.listDirectory" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.18" tests="25">
-    <testcase classname="FileSystemBridge.listDirectory returns sorted entries (dirs first, then files)" name="FileSystemBridge.listDirectory returns sorted entries (dirs first, then files)" time="0.02">
-    </testcase>
-    <testcase classname="FileSystemBridge.listDirectory returns empty array when directory does not exist" name="FileSystemBridge.listDirectory returns empty array when directory does not exist" time="0.001">
-    </testcase>
-    <testcase classname="FileSystemBridge.listDirectory returns empty array when path is a file, not a directory" name="FileSystemBridge.listDirectory returns empty array when path is a file, not a directory" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.listDirectory normalizes paths that already end with /" name="FileSystemBridge.listDirectory normalizes paths that already end with /" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.listDirectory appends missing trailing slash before calling getInfoAsync" name="FileSystemBridge.listDirectory appends missing trailing slash before calling getInfoAsync" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.readFile returns file content as string" name="FileSystemBridge.readFile returns file content as string" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.readFile propagates errors from expo-file-system" name="FileSystemBridge.readFile propagates errors from expo-file-system" time="0.009">
-    </testcase>
-    <testcase classname="FileSystemBridge.writeFile writes content with UTF-8 encoding" name="FileSystemBridge.writeFile writes content with UTF-8 encoding" time="0.001">
-    </testcase>
-    <testcase classname="FileSystemBridge.writeFile propagates write errors" name="FileSystemBridge.writeFile propagates write errors" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.createFile creates file with empty string by default" name="FileSystemBridge.createFile creates file with empty string by default" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.createFile creates file with provided initial content" name="FileSystemBridge.createFile creates file with provided initial content" time="0.001">
-    </testcase>
-    <testcase classname="FileSystemBridge.deleteEntry calls deleteAsync with idempotent flag" name="FileSystemBridge.deleteEntry calls deleteAsync with idempotent flag" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.createDirectory calls makeDirectoryAsync with intermediates flag" name="FileSystemBridge.createDirectory calls makeDirectoryAsync with intermediates flag" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.moveEntry calls moveAsync with from/to" name="FileSystemBridge.moveEntry calls moveAsync with from/to" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.copyEntry calls copyAsync with from/to" name="FileSystemBridge.copyEntry calls copyAsync with from/to" time="0.001">
-    </testcase>
-    <testcase classname="FileSystemBridge.exists returns true when file exists" name="FileSystemBridge.exists returns true when file exists" time="0.001">
-    </testcase>
-    <testcase classname="FileSystemBridge.exists returns false when file does not exist" name="FileSystemBridge.exists returns false when file does not exist" time="0">
-    </testcase>
-    <testcase classname="FileSystemBridge.documentDirectory returns the expo document directory" name="FileSystemBridge.documentDirectory returns the expo document directory" time="0">
-    </testcase>
-    <testcase classname="GitBridge clone throws not-implemented" name="GitBridge clone throws not-implemented" time="0.011">
-    </testcase>
-    <testcase classname="GitBridge commit throws not-implemented" name="GitBridge commit throws not-implemented" time="0.018">
-    </testcase>
-    <testcase classname="GitBridge push throws not-implemented" name="GitBridge push throws not-implemented" time="0.001">
-    </testcase>
-    <testcase classname="GitBridge pull throws not-implemented" name="GitBridge pull throws not-implemented" time="0.013">
-    </testcase>
-    <testcase classname="GitBridge checkout throws not-implemented" name="GitBridge checkout throws not-implemented" time="0.001">
-    </testcase>
-    <testcase classname="GitBridge status returns a default status object" name="GitBridge status returns a default status object" time="0">
-    </testcase>
-    <testcase classname="GitBridge branches returns [&quot;main&quot;]" name="GitBridge branches returns [&quot;main&quot;]" time="0">
-    </testcase>
-  </testsuite>
-  <testsuite name="useTerminalBridge" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.23" tests="14">
-    <testcase classname="useTerminalBridge returns a React ref object (webViewRef)" name="useTerminalBridge returns a React ref object (webViewRef)" time="0.002">
-    </testcase>
-    <testcase classname="useTerminalBridge sendToWebView calls injectJavaScript with window.receiveFromRN(…)" name="useTerminalBridge sendToWebView calls injectJavaScript with window.receiveFromRN(…)" time="0">
-    </testcase>
-    <testcase classname="useTerminalBridge onMessage COMMAND_COMPLETE calls onCommandComplete with exitCode" name="useTerminalBridge onMessage COMMAND_COMPLETE calls onCommandComplete with exitCode" time="0.003">
-    </testcase>
-    <testcase classname="useTerminalBridge onMessage COMMAND_COMPLETE does not call FileBridge.handleMessage" name="useTerminalBridge onMessage COMMAND_COMPLETE does not call FileBridge.handleMessage" time="0.002">
-    </testcase>
-    <testcase classname="useTerminalBridge onMessage FILE_READ calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_READ calls FileBridge.handleMessage" time="0.001">
-    </testcase>
-    <testcase classname="useTerminalBridge onMessage FILE_WRITE calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_WRITE calls FileBridge.handleMessage" time="0">
-    </testcase>
-    <testcase classname="useTerminalBridge onMessage FILE_LIST calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_LIST calls FileBridge.handleMessage" time="0.001">
-    </testcase>
-    <testcase classname="useTerminalBridge onMessage FILE_MKDIR calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_MKDIR calls FileBridge.handleMessage" time="0.002">
-    </testcase>
-    <testcase classname="useTerminalBridge onMessage FILE_DELETE calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_DELETE calls FileBridge.handleMessage" time="0.001">
-    </testcase>
-    <testcase classname="useTerminalBridge onMessage FILE_COPY calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_COPY calls FileBridge.handleMessage" time="0.001">
-    </testcase>
-    <testcase classname="useTerminalBridge onMessage FILE_MOVE calls FileBridge.handleMessage" name="useTerminalBridge onMessage FILE_MOVE calls FileBridge.handleMessage" time="0.001">
-    </testcase>
-    <testcase classname="useTerminalBridge after FILE_READ FileBridge response is forwarded via sendToWebView" name="useTerminalBridge after FILE_READ FileBridge response is forwarded via sendToWebView" time="0">
-    </testcase>
-    <testcase classname="useTerminalBridge handles malformed JSON in onMessage without throwing" name="useTerminalBridge handles malformed JSON in onMessage without throwing" time="0.002">
-    </testcase>
-    <testcase classname="useTerminalBridge works when no onCommandComplete option is provided (no-op)" name="useTerminalBridge works when no onCommandComplete option is provided (no-op)" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="buildSandboxHtml" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.052" tests="17">
-    <testcase classname="buildSandboxHtml returns a string containing valid HTML boilerplate" name="buildSandboxHtml returns a string containing valid HTML boilerplate" time="0.001">
-    </testcase>
-    <testcase classname="buildSandboxHtml embeds the extension id in the HTML" name="buildSandboxHtml embeds the extension id in the HTML" time="0">
-    </testcase>
-    <testcase classname="buildSandboxHtml embeds the extension source code in the HTML" name="buildSandboxHtml embeds the extension source code in the HTML" time="0">
-    </testcase>
-    <testcase classname="buildSandboxHtml includes the vscode API shim" name="buildSandboxHtml includes the vscode API shim" time="0">
-    </testcase>
-    <testcase classname="buildSandboxHtml wraps extension source in a try/catch" name="buildSandboxHtml wraps extension source in a try/catch" time="0.001">
-    </testcase>
-    <testcase classname="buildSandboxHtml properly escapes extension id containing quotes" name="buildSandboxHtml properly escapes extension id containing quotes" time="0">
-    </testcase>
-    <testcase classname="ExtensionRegistry registers and retrieves an extension" name="ExtensionRegistry registers and retrieves an extension" time="0">
-    </testcase>
-    <testcase classname="ExtensionRegistry lists all registered extensions" name="ExtensionRegistry lists all registered extensions" time="0">
-    </testcase>
-    <testcase classname="ExtensionRegistry unregisters an extension" name="ExtensionRegistry unregisters an extension" time="0">
-    </testcase>
-    <testcase classname="ExtensionRegistry returns undefined for unknown extension id" name="ExtensionRegistry returns undefined for unknown extension id" time="0">
-    </testcase>
-    <testcase classname="ExtensionRegistry dispatches messages to subscribed handlers" name="ExtensionRegistry dispatches messages to subscribed handlers" time="0.001">
-    </testcase>
-    <testcase classname="ExtensionRegistry does not call handler after unsubscribe" name="ExtensionRegistry does not call handler after unsubscribe" time="0">
-    </testcase>
-    <testcase classname="ExtensionRegistry supports multiple handlers" name="ExtensionRegistry supports multiple handlers" time="0">
-    </testcase>
-    <testcase classname="activateExtension registers the extension and returns sandbox HTML" name="activateExtension registers the extension and returns sandbox HTML" time="0">
-    </testcase>
-    <testcase classname="deactivateExtension removes the extension from the registry" name="deactivateExtension removes the extension from the registry" time="0.001">
-    </testcase>
-    <testcase classname="EXAMPLE_EXTENSION has required manifest fields" name="EXAMPLE_EXTENSION has required manifest fields" time="0">
-    </testcase>
-    <testcase classname="EXAMPLE_EXTENSION produces valid sandbox HTML" name="EXAMPLE_EXTENSION produces valid sandbox HTML" time="0">
-    </testcase>
-  </testsuite>
-  <testsuite name="MonacoAssetManager.resolve()" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.084" tests="21">
-    <testcase classname="MonacoAssetManager.resolve() returns local baseUrl and isOffline=true when both core files are cached" name="MonacoAssetManager.resolve() returns local baseUrl and isOffline=true when both core files are cached" time="0.001">
+  <testsuite name="MonacoAssetManager.resolve()" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.049" tests="21">
+    <testcase classname="MonacoAssetManager.resolve() returns local baseUrl and isOffline=true when both core files are cached" name="MonacoAssetManager.resolve() returns local baseUrl and isOffline=true when both core files are cached" time="0">
     </testcase>
     <testcase classname="MonacoAssetManager.resolve() falls back to CDN when loader.js is not cached" name="MonacoAssetManager.resolve() falls back to CDN when loader.js is not cached" time="0">
     </testcase>
@@ -705,7 +665,7 @@
     </testcase>
     <testcase classname="MonacoAssetManager.isOfflineAvailable() returns false when any core file is missing" name="MonacoAssetManager.isOfflineAvailable() returns false when any core file is missing" time="0">
     </testcase>
-    <testcase classname="MonacoAssetManager.isOfflineAvailable() returns false when getInfoAsync throws" name="MonacoAssetManager.isOfflineAvailable() returns false when getInfoAsync throws" time="0">
+    <testcase classname="MonacoAssetManager.isOfflineAvailable() returns false when getInfoAsync throws" name="MonacoAssetManager.isOfflineAvailable() returns false when getInfoAsync throws" time="0.001">
     </testcase>
     <testcase classname="MonacoAssetManager.downloadForOffline() creates directories and downloads each core file" name="MonacoAssetManager.downloadForOffline() creates directories and downloads each core file" time="0">
     </testcase>
@@ -713,11 +673,11 @@
     </testcase>
     <testcase classname="MonacoAssetManager.downloadForOffline() works without an onProgress callback" name="MonacoAssetManager.downloadForOffline() works without an onProgress callback" time="0">
     </testcase>
-    <testcase classname="MonacoAssetManager.clearCache() calls deleteAsync on the monaco base directory" name="MonacoAssetManager.clearCache() calls deleteAsync on the monaco base directory" time="0.001">
+    <testcase classname="MonacoAssetManager.clearCache() calls deleteAsync on the monaco base directory" name="MonacoAssetManager.clearCache() calls deleteAsync on the monaco base directory" time="0">
     </testcase>
     <testcase classname="MonacoAssetManager.cacheDir returns a string containing the monaco version" name="MonacoAssetManager.cacheDir returns a string containing the monaco version" time="0">
     </testcase>
-    <testcase classname="buildMonacoHtml() returns a non-empty HTML string" name="buildMonacoHtml() returns a non-empty HTML string" time="0">
+    <testcase classname="buildMonacoHtml() returns a non-empty HTML string" name="buildMonacoHtml() returns a non-empty HTML string" time="0.001">
     </testcase>
     <testcase classname="buildMonacoHtml() contains HTML5 doctype and body tags" name="buildMonacoHtml() contains HTML5 doctype and body tags" time="0">
     </testcase>
@@ -731,65 +691,141 @@
     </testcase>
     <testcase classname="buildMonacoHtml() includes multi-cursor overlay element" name="buildMonacoHtml() includes multi-cursor overlay element" time="0">
     </testcase>
-    <testcase classname="buildMonacoHtml() includes ReactNativeWebView.postMessage" name="buildMonacoHtml() includes ReactNativeWebView.postMessage" time="0">
+    <testcase classname="buildMonacoHtml() includes ReactNativeWebView.postMessage" name="buildMonacoHtml() includes ReactNativeWebView.postMessage" time="0.001">
     </testcase>
     <testcase classname="buildMonacoHtml() handles CDN fallback loader error" name="buildMonacoHtml() handles CDN fallback loader error" time="0">
     </testcase>
   </testsuite>
-  <testsuite name="FileBridge.readFile" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.103" tests="24">
-    <testcase classname="FileBridge.readFile AC-0126: reads file and returns content" name="FileBridge.readFile AC-0126: reads file and returns content" time="0.001">
+  <testsuite name="buildGitFs" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.06" tests="12">
+    <testcase classname="buildGitFs gitFs.promises contract exposes all methods required by isomorphic-git bindFs" name="buildGitFs gitFs.promises contract exposes all methods required by isomorphic-git bindFs" time="0.001">
     </testcase>
-    <testcase classname="FileBridge.readFile returns error when read fails" name="FileBridge.readFile returns error when read fails" time="0">
+    <testcase classname="buildGitFs gitFs.promises contract readlink rejects with ENOSYS (symlinks not supported in VFS)" name="buildGitFs gitFs.promises contract readlink rejects with ENOSYS (symlinks not supported in VFS)" time="0.008">
     </testcase>
-    <testcase classname="FileBridge.writeFile AC-0127: writes content and returns ok" name="FileBridge.writeFile AC-0127: writes content and returns ok" time="0">
+    <testcase classname="buildGitFs gitFs.promises contract symlink rejects with ENOSYS (symlinks not supported in VFS)" name="buildGitFs gitFs.promises contract symlink rejects with ENOSYS (symlinks not supported in VFS)" time="0.001">
     </testcase>
-    <testcase classname="FileBridge.writeFile returns error when write fails" name="FileBridge.writeFile returns error when write fails" time="0.001">
+    <testcase classname="buildGitFs existing I/O delegates readFile delegates to vfs.read" name="buildGitFs existing I/O delegates readFile delegates to vfs.read" time="0">
     </testcase>
-    <testcase classname="FileBridge.listDirectory AC-0128: returns JSON array of names with &quot;/&quot; suffix for directories" name="FileBridge.listDirectory AC-0128: returns JSON array of names with &quot;/&quot; suffix for directories" time="0">
+    <testcase classname="buildGitFs existing I/O delegates writeFile delegates to vfs.write" name="buildGitFs existing I/O delegates writeFile delegates to vfs.write" time="0">
     </testcase>
-    <testcase classname="FileBridge.listDirectory appends &quot;/&quot; to path when joining names without trailing slash" name="FileBridge.listDirectory appends &quot;/&quot; to path when joining names without trailing slash" time="0">
+    <testcase classname="buildGitFs existing I/O delegates readdir delegates to vfs.list and strips trailing slashes" name="buildGitFs existing I/O delegates readdir delegates to vfs.list and strips trailing slashes" time="0.001">
     </testcase>
-    <testcase classname="FileBridge.listDirectory does not double-add &quot;/&quot; when path already ends with &quot;/&quot;" name="FileBridge.listDirectory does not double-add &quot;/&quot; when path already ends with &quot;/&quot;" time="0">
+    <testcase classname="buildGitFs existing I/O delegates unlink delegates to vfs.del" name="buildGitFs existing I/O delegates unlink delegates to vfs.del" time="0">
     </testcase>
-    <testcase classname="FileBridge.listDirectory returns error when listing fails" name="FileBridge.listDirectory returns error when listing fails" time="0.001">
+    <testcase classname="buildGitFs existing I/O delegates mkdir delegates to vfs.mkdir" name="buildGitFs existing I/O delegates mkdir delegates to vfs.mkdir" time="0">
     </testcase>
-    <testcase classname="FileBridge.makeDirectory creates directory and returns ok" name="FileBridge.makeDirectory creates directory and returns ok" time="0">
+    <testcase classname="buildGitFs existing I/O delegates rmdir delegates to vfs.del" name="buildGitFs existing I/O delegates rmdir delegates to vfs.del" time="0">
     </testcase>
-    <testcase classname="FileBridge.makeDirectory returns error when creation fails" name="FileBridge.makeDirectory returns error when creation fails" time="0">
+    <testcase classname="buildGitFs stat / lstat stat returns directory shape when vfs.list succeeds" name="buildGitFs stat / lstat stat returns directory shape when vfs.list succeeds" time="0.001">
     </testcase>
-    <testcase classname="FileBridge.deleteEntry deletes entry and returns ok" name="FileBridge.deleteEntry deletes entry and returns ok" time="0.001">
+    <testcase classname="buildGitFs stat / lstat stat returns file shape when vfs.list throws" name="buildGitFs stat / lstat stat returns file shape when vfs.list throws" time="0">
     </testcase>
-    <testcase classname="FileBridge.deleteEntry returns error when deletion fails" name="FileBridge.deleteEntry returns error when deletion fails" time="0">
-    </testcase>
-    <testcase classname="FileBridge.handleMessage routes FILE_READ to readFile" name="FileBridge.handleMessage routes FILE_READ to readFile" time="0.001">
-    </testcase>
-    <testcase classname="FileBridge.handleMessage routes FILE_WRITE to writeFile" name="FileBridge.handleMessage routes FILE_WRITE to writeFile" time="0">
-    </testcase>
-    <testcase classname="FileBridge.handleMessage routes FILE_LIST to listDirectory" name="FileBridge.handleMessage routes FILE_LIST to listDirectory" time="0">
-    </testcase>
-    <testcase classname="FileBridge.handleMessage routes FILE_MKDIR to makeDirectory" name="FileBridge.handleMessage routes FILE_MKDIR to makeDirectory" time="0">
-    </testcase>
-    <testcase classname="FileBridge.handleMessage routes FILE_DELETE to deleteEntry" name="FileBridge.handleMessage routes FILE_DELETE to deleteEntry" time="0.001">
-    </testcase>
-    <testcase classname="FileBridge.handleMessage returned message has correct type FILE_RESULT and preserves requestId" name="FileBridge.handleMessage returned message has correct type FILE_RESULT and preserves requestId" time="0.006">
-    </testcase>
-    <testcase classname="FileBridge.handleMessage AC-0139: routes FILE_COPY to copyEntry" name="FileBridge.handleMessage AC-0139: routes FILE_COPY to copyEntry" time="0">
-    </testcase>
-    <testcase classname="FileBridge.handleMessage AC-0140: routes FILE_MOVE to moveEntry" name="FileBridge.handleMessage AC-0140: routes FILE_MOVE to moveEntry" time="0.001">
-    </testcase>
-    <testcase classname="FileBridge.copyEntry AC-0137: copies file and returns ok" name="FileBridge.copyEntry AC-0137: copies file and returns ok" time="0">
-    </testcase>
-    <testcase classname="FileBridge.copyEntry returns error when copy fails" name="FileBridge.copyEntry returns error when copy fails" time="0">
-    </testcase>
-    <testcase classname="FileBridge.moveEntry AC-0138: moves file and returns ok" name="FileBridge.moveEntry AC-0138: moves file and returns ok" time="0">
-    </testcase>
-    <testcase classname="FileBridge.moveEntry returns error when move fails" name="FileBridge.moveEntry returns error when move fails" time="0">
+    <testcase classname="buildGitFs stat / lstat lstat matches stat (VFS has no symlinks)" name="buildGitFs stat / lstat lstat matches stat (VFS has no symlinks)" time="0">
     </testcase>
   </testsuite>
-  <testsuite name="TC-0325: touch /tmp/a.txt (new file)" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:25" time="0.06" tests="16">
-    <testcase classname="TC-0325: touch /tmp/a.txt (new file) calls vfsWrite with empty string and returns exitCode 0" name="TC-0325: touch /tmp/a.txt (new file) calls vfsWrite with empty string and returns exitCode 0" time="0.002">
+  <testsuite name="buildSandboxHtml" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:18" time="0.038" tests="17">
+    <testcase classname="buildSandboxHtml returns a string containing valid HTML boilerplate" name="buildSandboxHtml returns a string containing valid HTML boilerplate" time="0">
     </testcase>
-    <testcase classname="TC-0326: touch /tmp/existing.txt (file exists) does NOT call vfsWrite and returns exitCode 0" name="TC-0326: touch /tmp/existing.txt (file exists) does NOT call vfsWrite and returns exitCode 0" time="0">
+    <testcase classname="buildSandboxHtml embeds the extension id in the HTML" name="buildSandboxHtml embeds the extension id in the HTML" time="0">
+    </testcase>
+    <testcase classname="buildSandboxHtml embeds the extension source code in the HTML" name="buildSandboxHtml embeds the extension source code in the HTML" time="0.001">
+    </testcase>
+    <testcase classname="buildSandboxHtml includes the vscode API shim" name="buildSandboxHtml includes the vscode API shim" time="0">
+    </testcase>
+    <testcase classname="buildSandboxHtml wraps extension source in a try/catch" name="buildSandboxHtml wraps extension source in a try/catch" time="0">
+    </testcase>
+    <testcase classname="buildSandboxHtml properly escapes extension id containing quotes" name="buildSandboxHtml properly escapes extension id containing quotes" time="0">
+    </testcase>
+    <testcase classname="ExtensionRegistry registers and retrieves an extension" name="ExtensionRegistry registers and retrieves an extension" time="0">
+    </testcase>
+    <testcase classname="ExtensionRegistry lists all registered extensions" name="ExtensionRegistry lists all registered extensions" time="0">
+    </testcase>
+    <testcase classname="ExtensionRegistry unregisters an extension" name="ExtensionRegistry unregisters an extension" time="0.001">
+    </testcase>
+    <testcase classname="ExtensionRegistry returns undefined for unknown extension id" name="ExtensionRegistry returns undefined for unknown extension id" time="0">
+    </testcase>
+    <testcase classname="ExtensionRegistry dispatches messages to subscribed handlers" name="ExtensionRegistry dispatches messages to subscribed handlers" time="0">
+    </testcase>
+    <testcase classname="ExtensionRegistry does not call handler after unsubscribe" name="ExtensionRegistry does not call handler after unsubscribe" time="0">
+    </testcase>
+    <testcase classname="ExtensionRegistry supports multiple handlers" name="ExtensionRegistry supports multiple handlers" time="0">
+    </testcase>
+    <testcase classname="activateExtension registers the extension and returns sandbox HTML" name="activateExtension registers the extension and returns sandbox HTML" time="0">
+    </testcase>
+    <testcase classname="deactivateExtension removes the extension from the registry" name="deactivateExtension removes the extension from the registry" time="0">
+    </testcase>
+    <testcase classname="EXAMPLE_EXTENSION has required manifest fields" name="EXAMPLE_EXTENSION has required manifest fields" time="0.001">
+    </testcase>
+    <testcase classname="EXAMPLE_EXTENSION produces valid sandbox HTML" name="EXAMPLE_EXTENSION produces valid sandbox HTML" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="SettingsScreen" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:17" time="1.382" tests="31">
+    <testcase classname="SettingsScreen renders when visible" name="SettingsScreen renders when visible" time="0.368">
+    </testcase>
+    <testcase classname="SettingsScreen does not render when not visible" name="SettingsScreen does not render when not visible" time="0">
+    </testcase>
+    <testcase classname="SettingsScreen close button calls onClose" name="SettingsScreen close button calls onClose" time="0.008">
+    </testcase>
+    <testcase classname="SettingsScreen Dark mode button press shows dark theme swatches" name="SettingsScreen Dark mode button press shows dark theme swatches" time="0.039">
+    </testcase>
+    <testcase classname="SettingsScreen Light mode button press shows light theme swatches" name="SettingsScreen Light mode button press shows light theme swatches" time="0.024">
+    </testcase>
+    <testcase classname="SettingsScreen pressing a theme swatch calls setTheme" name="SettingsScreen pressing a theme swatch calls setTheme" time="0.011">
+    </testcase>
+    <testcase classname="SettingsScreen A+ button calls setFontSize with fontSize + 1" name="SettingsScreen A+ button calls setFontSize with fontSize + 1" time="0.004">
+    </testcase>
+    <testcase classname="SettingsScreen A- button calls setFontSize with fontSize - 1" name="SettingsScreen A- button calls setFontSize with fontSize - 1" time="0.007">
+    </testcase>
+    <testcase classname="SettingsScreen — Extensions section renders EXTENSIONS section label" name="SettingsScreen — Extensions section renders EXTENSIONS section label" time="0.006">
+    </testcase>
+    <testcase classname="SettingsScreen — Extensions section renders install form with name input, source input, and install button" name="SettingsScreen — Extensions section renders install form with name input, source input, and install button" time="0.005">
+    </testcase>
+    <testcase classname="SettingsScreen — Extensions section install button is disabled when name is empty" name="SettingsScreen — Extensions section install button is disabled when name is empty" time="0.014">
+    </testcase>
+    <testcase classname="SettingsScreen — Extensions section install button is enabled when name and source are both filled" name="SettingsScreen — Extensions section install button is enabled when name and source are both filled" time="0.013">
+    </testcase>
+    <testcase classname="SettingsScreen — Extensions section tapping Install calls addExtension and clears the form" name="SettingsScreen — Extensions section tapping Install calls addExtension and clears the form" time="0.062">
+    </testcase>
+    <testcase classname="SettingsScreen — Extensions section renders installed extension cards" name="SettingsScreen — Extensions section renders installed extension cards" time="0.007">
+    </testcase>
+    <testcase classname="SettingsScreen — Extensions section tapping Deactivate calls removeExtension with the extension id" name="SettingsScreen — Extensions section tapping Deactivate calls removeExtension with the extension id" time="0.004">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) renders GITHUB ACCOUNT section label" name="SettingsScreen — GitHub Account section (signed out) renders GITHUB ACCOUNT section label" time="0.004">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) shows Sign in with GitHub button when signed out" name="SettingsScreen — GitHub Account section (signed out) shows Sign in with GitHub button when signed out" time="0.005">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) shows PAT toggle link when signed out" name="SettingsScreen — GitHub Account section (signed out) shows PAT toggle link when signed out" time="0.011">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) reveals PAT input after tapping toggle" name="SettingsScreen — GitHub Account section (signed out) reveals PAT input after tapping toggle" time="0.01">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) calls signInWithToken with entered PAT on Connect" name="SettingsScreen — GitHub Account section (signed out) calls signInWithToken with entered PAT on Connect" time="0.017">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) shows error message when auth error is set" name="SettingsScreen — GitHub Account section (signed out) shows error message when auth error is set" time="0.005">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) does not call signInWithToken when Connect is pressed with empty PAT" name="SettingsScreen — GitHub Account section (signed out) does not call signInWithToken when Connect is pressed with empty PAT" time="0.021">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) calls promptOAuth when Sign in with GitHub is pressed and request is ready" name="SettingsScreen — GitHub Account section (signed out) calls promptOAuth when Sign in with GitHub is pressed and request is ready" time="0.019">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) does not call promptOAuth when request is not ready" name="SettingsScreen — GitHub Account section (signed out) does not call promptOAuth when request is not ready" time="0.005">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) calls setError when OAuth code exchange fetch throws a network error" name="SettingsScreen — GitHub Account section (signed out) calls setError when OAuth code exchange fetch throws a network error" time="0.056">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed out) calls setError when OAuth token exchange returns no access_token" name="SettingsScreen — GitHub Account section (signed out) calls setError when OAuth token exchange returns no access_token" time="0.055">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed in) shows username when signed in" name="SettingsScreen — GitHub Account section (signed in) shows username when signed in" time="0.004">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed in) shows Sign out button when signed in" name="SettingsScreen — GitHub Account section (signed in) shows Sign out button when signed in" time="0.005">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed in) calls signOut when Sign out button is pressed" name="SettingsScreen — GitHub Account section (signed in) calls signOut when Sign out button is pressed" time="0.005">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed in) does not show OAuth button when signed in" name="SettingsScreen — GitHub Account section (signed in) does not show OAuth button when signed in" time="0.003">
+    </testcase>
+    <testcase classname="SettingsScreen — GitHub Account section (signed in) does not show PAT input when signed in" name="SettingsScreen — GitHub Account section (signed in) does not show PAT input when signed in" time="0.004">
+    </testcase>
+  </testsuite>
+  <testsuite name="TC-0325: touch /tmp/a.txt (new file)" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:19" time="0.065" tests="25">
+    <testcase classname="TC-0325: touch /tmp/a.txt (new file) calls vfsWrite with empty string and returns exitCode 0" name="TC-0325: touch /tmp/a.txt (new file) calls vfsWrite with empty string and returns exitCode 0" time="0.001">
+    </testcase>
+    <testcase classname="TC-0326: touch /tmp/existing.txt (file exists) does NOT call vfsWrite and returns exitCode 0" name="TC-0326: touch /tmp/existing.txt (file exists) does NOT call vfsWrite and returns exitCode 0" time="0.007">
     </testcase>
     <testcase classname="TC-0327: cp src.txt dest.txt calls vfsCopy and returns exitCode 0" name="TC-0327: cp src.txt dest.txt calls vfsCopy and returns exitCode 0" time="0.001">
     </testcase>
@@ -799,9 +835,9 @@
     </testcase>
     <testcase classname="TC-0330: mv (no args) returns exitCode 1" name="TC-0330: mv (no args) returns exitCode 1" time="0">
     </testcase>
-    <testcase classname="TC-0333: clear returns exitCode 0 and clearScreen: true" name="TC-0333: clear returns exitCode 0 and clearScreen: true" time="0">
+    <testcase classname="TC-0333: clear returns exitCode 0 and clearScreen: true" name="TC-0333: clear returns exitCode 0 and clearScreen: true" time="0.001">
     </testcase>
-    <testcase classname="TC-0334: node file.js with console.log(&quot;hi&quot;) returns output &quot;hi&quot; and exitCode 0" name="TC-0334: node file.js with console.log(&quot;hi&quot;) returns output &quot;hi&quot; and exitCode 0" time="0.001">
+    <testcase classname="TC-0334: node file.js with console.log(&quot;hi&quot;) returns output &quot;hi&quot; and exitCode 0" name="TC-0334: node file.js with console.log(&quot;hi&quot;) returns output &quot;hi&quot; and exitCode 0" time="0">
     </testcase>
     <testcase classname="TC-0335: node file.js with require(&quot;fs&quot;) returns output containing &quot;require() is not available&quot; and exitCode 1" name="TC-0335: node file.js with require(&quot;fs&quot;) returns output containing &quot;require() is not available&quot; and exitCode 1" time="0">
     </testcase>
@@ -811,51 +847,69 @@
     </testcase>
     <testcase classname="TC-0338: npm install returns exact error string &quot;npm install is not supported&quot; and exitCode 1" name="TC-0338: npm install returns exact error string &quot;npm install is not supported&quot; and exitCode 1" time="0">
     </testcase>
-    <testcase classname="TC-0339: npm i returns the same install-blocked error and exitCode 1" name="TC-0339: npm i returns the same install-blocked error and exitCode 1" time="0">
+    <testcase classname="TC-0339: npm i returns the same install-blocked error and exitCode 1" name="TC-0339: npm i returns the same install-blocked error and exitCode 1" time="0.001">
     </testcase>
     <testcase classname="TC-0340: npx prettier index.js calls vfsWrite with formatted result and returns exitCode 0" name="TC-0340: npx prettier index.js calls vfsWrite with formatted result and returns exitCode 0" time="0">
     </testcase>
     <testcase classname="TC-0341: npx unknown-tool returns exitCode 1, contains &quot;not available&quot;, lists &quot;prettier&quot; but not &quot;eslint&quot; or &quot;tsc&quot;" name="TC-0341: npx unknown-tool returns exitCode 1, contains &quot;not available&quot;, lists &quot;prettier&quot; but not &quot;eslint&quot; or &quot;tsc&quot;" time="0">
     </testcase>
+    <testcase classname="TC-0342: npm run with script that recurses &gt; 5 levels returns exitCode 1 and output contains &quot;maximum script recursion depth&quot;" name="TC-0342: npm run with script that recurses &gt; 5 levels returns exitCode 1 and output contains &quot;maximum script recursion depth&quot;" time="0">
+    </testcase>
+    <testcase classname="TC-0343: npm run chain that terminates at depth 4 (a→b→c→d→echo ok) returns exitCode 0 and output &quot;ok&quot;" name="TC-0343: npm run chain that terminates at depth 4 (a→b→c→d→echo ok) returns exitCode 0 and output &quot;ok&quot;" time="0">
+    </testcase>
     <testcase classname="TC-0344: somethingweird (unknown command) returns output containing &quot;command not found&quot; and exitCode 127" name="TC-0344: somethingweird (unknown command) returns output containing &quot;command not found&quot; and exitCode 127" time="0.001">
     </testcase>
+    <testcase classname="TC-0347: ls -l (long format) calls vfsList with cwd (not &quot;-l&quot;) and returns long-format lines" name="TC-0347: ls -l (long format) calls vfsList with cwd (not &quot;-l&quot;) and returns long-format lines" time="0">
+    </testcase>
+    <testcase classname="TC-0348: ls /src (explicit path) calls vfsList with /src and returns entries" name="TC-0348: ls /src (explicit path) calls vfsList with /src and returns entries" time="0">
+    </testcase>
+    <testcase classname="TC-0349: git status — iOS Expo &quot;is not readable&quot; error → friendly message maps iOS Expo readAsStringAsync rejection to friendly &quot;not a git repository&quot; message" name="TC-0349: git status — iOS Expo &quot;is not readable&quot; error → friendly message maps iOS Expo readAsStringAsync rejection to friendly &quot;not a git repository&quot; message" time="0">
+    </testcase>
+    <testcase classname="TC-0349: git status — iOS Expo &quot;is not readable&quot; error → friendly message maps iOS Expo &quot;is not readable&quot; to friendly message" name="TC-0349: git status — iOS Expo &quot;is not readable&quot; error → friendly message maps iOS Expo &quot;is not readable&quot; to friendly message" time="0.001">
+    </testcase>
+    <testcase classname="dispatch — git init (AC-0130) git init calls git.init and returns initialized message" name="dispatch — git init (AC-0130) git init calls git.init and returns initialized message" time="0">
+    </testcase>
+    <testcase classname="dispatch — git friendly errors (AC-0135) git status ENOENT returns friendly &quot;not a git repository&quot; message" name="dispatch — git friendly errors (AC-0135) git status ENOENT returns friendly &quot;not a git repository&quot; message" time="0">
+    </testcase>
+    <testcase classname="dispatch — git friendly errors (AC-0135) git status &quot;Could not find git repo&quot; returns friendly message" name="dispatch — git friendly errors (AC-0135) git status &quot;Could not find git repo&quot; returns friendly message" time="0">
+    </testcase>
   </testsuite>
-  <testsuite name="Editor — empty state" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:23" time="2.343" tests="84">
-    <testcase classname="Editor — empty state shows &quot;No files open&quot; when tabs array is empty" name="Editor — empty state shows &quot;No files open&quot; when tabs array is empty" time="0.662">
+  <testsuite name="Editor — empty state" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:17" time="2.03" tests="89">
+    <testcase classname="Editor — empty state shows &quot;No files open&quot; when tabs array is empty" name="Editor — empty state shows &quot;No files open&quot; when tabs array is empty" time="0.469">
     </testcase>
-    <testcase classname="Editor — empty state shows hint text when tabs array is empty" name="Editor — empty state shows hint text when tabs array is empty" time="0.015">
+    <testcase classname="Editor — empty state shows hint text when tabs array is empty" name="Editor — empty state shows hint text when tabs array is empty" time="0.001">
     </testcase>
-    <testcase classname="Editor — empty state does not render the WebView when tabs are empty" name="Editor — empty state does not render the WebView when tabs are empty" time="0.005">
+    <testcase classname="Editor — empty state does not render the WebView when tabs are empty" name="Editor — empty state does not render the WebView when tabs are empty" time="0.002">
     </testcase>
-    <testcase classname="Editor — tab bar renders tab labels for all open tabs" name="Editor — tab bar renders tab labels for all open tabs" time="0.067">
+    <testcase classname="Editor — tab bar renders tab labels for all open tabs" name="Editor — tab bar renders tab labels for all open tabs" time="0.061">
     </testcase>
-    <testcase classname="Editor — tab bar renders the WebView when at least one tab is open" name="Editor — tab bar renders the WebView when at least one tab is open" time="0.076">
+    <testcase classname="Editor — tab bar renders the WebView when at least one tab is open" name="Editor — tab bar renders the WebView when at least one tab is open" time="0.077">
     </testcase>
-    <testcase classname="Editor — tab bar renders a close button for each tab" name="Editor — tab bar renders a close button for each tab" time="0.017">
+    <testcase classname="Editor — tab bar renders a close button for each tab" name="Editor — tab bar renders a close button for each tab" time="0.025">
     </testcase>
     <testcase classname="Editor — tab bar shows a dirty indicator (●) prefix on dirty tabs" name="Editor — tab bar shows a dirty indicator (●) prefix on dirty tabs" time="0.009">
     </testcase>
-    <testcase classname="Editor — tab bar does not show dirty indicator on clean tabs" name="Editor — tab bar does not show dirty indicator on clean tabs" time="0.017">
+    <testcase classname="Editor — tab bar does not show dirty indicator on clean tabs" name="Editor — tab bar does not show dirty indicator on clean tabs" time="0.009">
     </testcase>
-    <testcase classname="Editor — tab interactions calls onTabChange with the path when a tab is pressed" name="Editor — tab interactions calls onTabChange with the path when a tab is pressed" time="0.046">
+    <testcase classname="Editor — tab interactions calls onTabChange with the path when a tab is pressed" name="Editor — tab interactions calls onTabChange with the path when a tab is pressed" time="0.014">
     </testcase>
-    <testcase classname="Editor — tab interactions calls onTabClose with the path when the × button is pressed" name="Editor — tab interactions calls onTabClose with the path when the × button is pressed" time="0.026">
+    <testcase classname="Editor — tab interactions calls onTabClose with the path when the × button is pressed" name="Editor — tab interactions calls onTabClose with the path when the × button is pressed" time="0.008">
     </testcase>
-    <testcase classname="Editor — tab interactions calls onTabClose for the correct tab when multiple tabs are open" name="Editor — tab interactions calls onTabClose for the correct tab when multiple tabs are open" time="0.02">
+    <testcase classname="Editor — tab interactions calls onTabClose for the correct tab when multiple tabs are open" name="Editor — tab interactions calls onTabClose for the correct tab when multiple tabs are open" time="0.009">
     </testcase>
-    <testcase classname="Editor — multiple tabs renders correctly with many tabs" name="Editor — multiple tabs renders correctly with many tabs" time="0.033">
+    <testcase classname="Editor — multiple tabs renders correctly with many tabs" name="Editor — multiple tabs renders correctly with many tabs" time="0.019">
     </testcase>
-    <testcase classname="Editor — multiple tabs renders with null activeTabPath without crashing" name="Editor — multiple tabs renders with null activeTabPath without crashing" time="0.026">
+    <testcase classname="Editor — multiple tabs renders with null activeTabPath without crashing" name="Editor — multiple tabs renders with null activeTabPath without crashing" time="0.007">
     </testcase>
-    <testcase classname="Editor — path breadcrumb shows the active file path below the tab bar" name="Editor — path breadcrumb shows the active file path below the tab bar" time="0.036">
+    <testcase classname="Editor — path breadcrumb shows the active file path below the tab bar" name="Editor — path breadcrumb shows the active file path below the tab bar" time="0.007">
     </testcase>
-    <testcase classname="Editor — path breadcrumb updates path when a different tab is active" name="Editor — path breadcrumb updates path when a different tab is active" time="0.015">
+    <testcase classname="Editor — path breadcrumb updates path when a different tab is active" name="Editor — path breadcrumb updates path when a different tab is active" time="0.012">
     </testcase>
-    <testcase classname="Editor — path breadcrumb does not render path bar in empty state" name="Editor — path breadcrumb does not render path bar in empty state" time="0.004">
+    <testcase classname="Editor — path breadcrumb does not render path bar in empty state" name="Editor — path breadcrumb does not render path bar in empty state" time="0.003">
     </testcase>
-    <testcase classname="canPreview markdown → true" name="canPreview markdown → true" time="0.007">
+    <testcase classname="canPreview markdown → true" name="canPreview markdown → true" time="0.001">
     </testcase>
-    <testcase classname="canPreview html → true" name="canPreview html → true" time="0.001">
+    <testcase classname="canPreview html → true" name="canPreview html → true" time="0">
     </testcase>
     <testcase classname="canPreview json → true" name="canPreview json → true" time="0.001">
     </testcase>
@@ -865,37 +919,47 @@
     </testcase>
     <testcase classname="canPreview plaintext → false" name="canPreview plaintext → false" time="0.001">
     </testcase>
-    <testcase classname="buildPreviewHtml returns markdown preview HTML for markdown language" name="buildPreviewHtml returns markdown preview HTML for markdown language" time="0.003">
+    <testcase classname="buildPreviewHtml returns markdown preview HTML for markdown language" name="buildPreviewHtml returns markdown preview HTML for markdown language" time="0.002">
     </testcase>
-    <testcase classname="buildPreviewHtml returns HTML preview HTML for html language" name="buildPreviewHtml returns HTML preview HTML for html language" time="0.001">
+    <testcase classname="buildPreviewHtml returns HTML preview HTML for html language" name="buildPreviewHtml returns HTML preview HTML for html language" time="0.003">
     </testcase>
-    <testcase classname="buildPreviewHtml returns JSON tree preview HTML for json language" name="buildPreviewHtml returns JSON tree preview HTML for json language" time="0">
+    <testcase classname="buildPreviewHtml returns JSON tree preview HTML for json language" name="buildPreviewHtml returns JSON tree preview HTML for json language" time="0.001">
     </testcase>
-    <testcase classname="buildPreviewHtml returns JSON error preview when json is invalid" name="buildPreviewHtml returns JSON error preview when json is invalid" time="0.001">
+    <testcase classname="buildPreviewHtml returns JSON error preview when json is invalid" name="buildPreviewHtml returns JSON error preview when json is invalid" time="0.002">
     </testcase>
-    <testcase classname="buildPreviewHtml returns no-preview message for unsupported language" name="buildPreviewHtml returns no-preview message for unsupported language" time="0">
+    <testcase classname="buildPreviewHtml returns no-preview message for unsupported language" name="buildPreviewHtml returns no-preview message for unsupported language" time="0.001">
     </testcase>
-    <testcase classname="Editor — toolbar interactions displays font size from the settings store" name="Editor — toolbar interactions displays font size from the settings store" time="0.065">
+    <testcase classname="Editor — toolbar interactions displays font size from the settings store" name="Editor — toolbar interactions displays font size from the settings store" time="0.056">
     </testcase>
-    <testcase classname="Editor — toolbar interactions calls store setFontSize when A- is pressed" name="Editor — toolbar interactions calls store setFontSize when A- is pressed" time="0.087">
+    <testcase classname="Editor — toolbar interactions calls store setFontSize when A- is pressed" name="Editor — toolbar interactions calls store setFontSize when A- is pressed" time="0.054">
     </testcase>
-    <testcase classname="Editor — toolbar interactions calls store setFontSize when A+ is pressed" name="Editor — toolbar interactions calls store setFontSize when A+ is pressed" time="0.059">
+    <testcase classname="Editor — toolbar interactions calls store setFontSize when A+ is pressed" name="Editor — toolbar interactions calls store setFontSize when A+ is pressed" time="0.055">
     </testcase>
-    <testcase classname="Editor — toolbar interactions does not go below fontSize 8 — A- calls setFontSize(8) (clamped locally)" name="Editor — toolbar interactions does not go below fontSize 8 — A- calls setFontSize(8) (clamped locally)" time="0.057">
+    <testcase classname="Editor — toolbar interactions does not go below fontSize 8 — A- calls setFontSize(8) (clamped locally)" name="Editor — toolbar interactions does not go below fontSize 8 — A- calls setFontSize(8) (clamped locally)" time="0.054">
     </testcase>
-    <testcase classname="Editor — toolbar interactions does not go above fontSize 32 — A+ calls setFontSize(32) (clamped locally)" name="Editor — toolbar interactions does not go above fontSize 32 — A+ calls setFontSize(32) (clamped locally)" time="0.056">
+    <testcase classname="Editor — toolbar interactions does not go above fontSize 32 — A+ calls setFontSize(32) (clamped locally)" name="Editor — toolbar interactions does not go above fontSize 32 — A+ calls setFontSize(32) (clamped locally)" time="0.053">
     </testcase>
-    <testcase classname="Editor — toolbar interactions sends a command when a toolbar action button is pressed" name="Editor — toolbar interactions sends a command when a toolbar action button is pressed" time="0.056">
+    <testcase classname="Editor — toolbar interactions sends a command when a toolbar action button is pressed" name="Editor — toolbar interactions sends a command when a toolbar action button is pressed" time="0.054">
     </testcase>
-    <testcase classname="Editor — toolbar interactions toggles multicursor mode on and shows the badge" name="Editor — toolbar interactions toggles multicursor mode on and shows the badge" time="0.059">
+    <testcase classname="Editor — toolbar interactions toggles multicursor mode on and shows the badge" name="Editor — toolbar interactions toggles multicursor mode on and shows the badge" time="0.055">
     </testcase>
-    <testcase classname="Editor — toolbar interactions dismisses multicursor badge when its close button is pressed" name="Editor — toolbar interactions dismisses multicursor badge when its close button is pressed" time="0.068">
+    <testcase classname="Editor — toolbar interactions dismisses multicursor badge when its close button is pressed" name="Editor — toolbar interactions dismisses multicursor badge when its close button is pressed" time="0.059">
     </testcase>
-    <testcase classname="Editor — toolbar interactions preview button is disabled for non-previewable language" name="Editor — toolbar interactions preview button is disabled for non-previewable language" time="0.055">
+    <testcase classname="Editor — toolbar interactions preview button is disabled for non-previewable language" name="Editor — toolbar interactions preview button is disabled for non-previewable language" time="0.054">
     </testcase>
-    <testcase classname="Editor — toolbar interactions shows preview pane when preview is toggled for a markdown file" name="Editor — toolbar interactions shows preview pane when preview is toggled for a markdown file" time="0.058">
+    <testcase classname="Editor — toolbar interactions shows preview pane when preview is toggled for a markdown file" name="Editor — toolbar interactions shows preview pane when preview is toggled for a markdown file" time="0.055">
     </testcase>
     <testcase classname="Editor — toolbar interactions handles fontSizeChanged WebView message by calling setFontSize" name="Editor — toolbar interactions handles fontSizeChanged WebView message by calling setFontSize" time="0.053">
+    </testcase>
+    <testcase classname="Editor — toolbar tooltips shows tooltip title on long-press of a toolbar action button" name="Editor — toolbar tooltips shows tooltip title on long-press of a toolbar action button" time="0.055">
+    </testcase>
+    <testcase classname="Editor — toolbar tooltips tooltip auto-dismisses after 1500ms" name="Editor — toolbar tooltips tooltip auto-dismisses after 1500ms" time="0.008">
+    </testcase>
+    <testcase classname="Editor — toolbar tooltips shows &quot;Decrease font size&quot; tooltip on long-press of A-" name="Editor — toolbar tooltips shows &quot;Decrease font size&quot; tooltip on long-press of A-" time="0.055">
+    </testcase>
+    <testcase classname="Editor — toolbar tooltips shows &quot;Increase font size&quot; tooltip on long-press of A+" name="Editor — toolbar tooltips shows &quot;Increase font size&quot; tooltip on long-press of A+" time="0.055">
+    </testcase>
+    <testcase classname="Editor — toolbar tooltips tooltip strip is not shown initially" name="Editor — toolbar tooltips tooltip strip is not shown initially" time="0.004">
     </testcase>
     <testcase classname="getLanguageForFile App.tsx → typescript" name="getLanguageForFile App.tsx → typescript" time="0.001">
     </testcase>
@@ -941,7 +1005,7 @@
     </testcase>
     <testcase classname="getLanguageForFile query.graphql → graphql" name="getLanguageForFile query.graphql → graphql" time="0">
     </testcase>
-    <testcase classname="getLanguageForFile main.rs → rust" name="getLanguageForFile main.rs → rust" time="0.001">
+    <testcase classname="getLanguageForFile main.rs → rust" name="getLanguageForFile main.rs → rust" time="0">
     </testcase>
     <testcase classname="getLanguageForFile main.go → go" name="getLanguageForFile main.go → go" time="0">
     </testcase>
@@ -957,11 +1021,11 @@
     </testcase>
     <testcase classname="getLanguageForFile Main.java → java" name="getLanguageForFile Main.java → java" time="0">
     </testcase>
-    <testcase classname="getLanguageForFile Main.kt → kotlin" name="getLanguageForFile Main.kt → kotlin" time="0">
+    <testcase classname="getLanguageForFile Main.kt → kotlin" name="getLanguageForFile Main.kt → kotlin" time="0.001">
     </testcase>
     <testcase classname="getLanguageForFile script.py → python" name="getLanguageForFile script.py → python" time="0">
     </testcase>
-    <testcase classname="getLanguageForFile app.rb → ruby" name="getLanguageForFile app.rb → ruby" time="0.001">
+    <testcase classname="getLanguageForFile app.rb → ruby" name="getLanguageForFile app.rb → ruby" time="0">
     </testcase>
     <testcase classname="getLanguageForFile index.php → php" name="getLanguageForFile index.php → php" time="0">
     </testcase>
@@ -975,55 +1039,55 @@
     </testcase>
     <testcase classname="getLanguageForFile Dockerfile.dev → dockerfile" name="getLanguageForFile Dockerfile.dev → dockerfile" time="0">
     </testcase>
-    <testcase classname="getLanguageForFile notes.txt → plaintext" name="getLanguageForFile notes.txt → plaintext" time="0">
+    <testcase classname="getLanguageForFile notes.txt → plaintext" name="getLanguageForFile notes.txt → plaintext" time="0.001">
     </testcase>
     <testcase classname="getLanguageForFile binary.bin → plaintext" name="getLanguageForFile binary.bin → plaintext" time="0">
     </testcase>
     <testcase classname="getLanguageForFile no-extension → plaintext" name="getLanguageForFile no-extension → plaintext" time="0">
     </testcase>
-    <testcase classname="getLanguageForFile is case-insensitive for extensions" name="getLanguageForFile is case-insensitive for extensions" time="0.001">
+    <testcase classname="getLanguageForFile is case-insensitive for extensions" name="getLanguageForFile is case-insensitive for extensions" time="0">
     </testcase>
     <testcase classname="getLanguageForFile handles files with multiple dots correctly" name="getLanguageForFile handles files with multiple dots correctly" time="0">
     </testcase>
-    <testcase classname="Editor — keyboard avoidance wraps the editor in a KeyboardAvoidingView with correct behavior and offset" name="Editor — keyboard avoidance wraps the editor in a KeyboardAvoidingView with correct behavior and offset" time="0.007">
+    <testcase classname="Editor — keyboard avoidance wraps the editor in a KeyboardAvoidingView with correct behavior and offset" name="Editor — keyboard avoidance wraps the editor in a KeyboardAvoidingView with correct behavior and offset" time="0.004">
     </testcase>
     <testcase classname="Editor — keyboard avoidance wraps the empty state in a KeyboardAvoidingView with correct behavior" name="Editor — keyboard avoidance wraps the empty state in a KeyboardAvoidingView with correct behavior" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="FileExplorer — loading" errors="0" failures="0" skipped="0" timestamp="2026-03-23T23:25:23" time="5.146" tests="62">
-    <testcase classname="FileExplorer — loading shows a loading indicator while the directory is being fetched" name="FileExplorer — loading shows a loading indicator while the directory is being fetched" time="0.522">
+  <testsuite name="FileExplorer — loading" errors="0" failures="0" skipped="0" timestamp="2026-03-25T23:34:17" time="4.508" tests="62">
+    <testcase classname="FileExplorer — loading shows a loading indicator while the directory is being fetched" name="FileExplorer — loading shows a loading indicator while the directory is being fetched" time="0.397">
     </testcase>
-    <testcase classname="FileExplorer — loading hides the loading indicator once data arrives" name="FileExplorer — loading hides the loading indicator once data arrives" time="0.148">
+    <testcase classname="FileExplorer — loading hides the loading indicator once data arrives" name="FileExplorer — loading hides the loading indicator once data arrives" time="0.106">
     </testcase>
-    <testcase classname="FileExplorer — rendering renders the EXPLORER header" name="FileExplorer — rendering renders the EXPLORER header" time="0.071">
+    <testcase classname="FileExplorer — rendering renders the EXPLORER header" name="FileExplorer — rendering renders the EXPLORER header" time="0.073">
     </testcase>
-    <testcase classname="FileExplorer — rendering renders files returned by FileSystemBridge" name="FileExplorer — rendering renders files returned by FileSystemBridge" time="0.053">
+    <testcase classname="FileExplorer — rendering renders files returned by FileSystemBridge" name="FileExplorer — rendering renders files returned by FileSystemBridge" time="0.059">
     </testcase>
     <testcase classname="FileExplorer — rendering renders an empty list without crashing when directory is empty" name="FileExplorer — rendering renders an empty list without crashing when directory is empty" time="0.054">
     </testcase>
-    <testcase classname="FileExplorer — rendering renders directory entries with the expand icon ▸" name="FileExplorer — rendering renders directory entries with the expand icon ▸" time="0.059">
+    <testcase classname="FileExplorer — rendering renders directory entries with the expand icon ▸" name="FileExplorer — rendering renders directory entries with the expand icon ▸" time="0.055">
     </testcase>
-    <testcase classname="FileExplorer — rendering renders file entries with the bullet icon ·" name="FileExplorer — rendering renders file entries with the bullet icon ·" time="0.057">
+    <testcase classname="FileExplorer — rendering renders file entries with the bullet icon ·" name="FileExplorer — rendering renders file entries with the bullet icon ·" time="0.051">
     </testcase>
-    <testcase classname="FileExplorer — file selection calls onFileSelect with the file path when a file is tapped" name="FileExplorer — file selection calls onFileSelect with the file path when a file is tapped" time="0.059">
+    <testcase classname="FileExplorer — file selection calls onFileSelect with the file path when a file is tapped" name="FileExplorer — file selection calls onFileSelect with the file path when a file is tapped" time="0.055">
     </testcase>
-    <testcase classname="FileExplorer — file selection does not call onFileSelect when a directory is tapped" name="FileExplorer — file selection does not call onFileSelect when a directory is tapped" time="0.078">
+    <testcase classname="FileExplorer — file selection does not call onFileSelect when a directory is tapped" name="FileExplorer — file selection does not call onFileSelect when a directory is tapped" time="0.065">
     </testcase>
-    <testcase classname="FileExplorer — expand/collapse expands a directory and shows children on tap" name="FileExplorer — expand/collapse expands a directory and shows children on tap" time="0.069">
+    <testcase classname="FileExplorer — expand/collapse expands a directory and shows children on tap" name="FileExplorer — expand/collapse expands a directory and shows children on tap" time="0.054">
     </testcase>
-    <testcase classname="FileExplorer — expand/collapse changes directory icon from ▸ to ▾ when expanded" name="FileExplorer — expand/collapse changes directory icon from ▸ to ▾ when expanded" time="0.062">
+    <testcase classname="FileExplorer — expand/collapse changes directory icon from ▸ to ▾ when expanded" name="FileExplorer — expand/collapse changes directory icon from ▸ to ▾ when expanded" time="0.054">
     </testcase>
-    <testcase classname="FileExplorer — expand/collapse collapses a directory and hides children on second tap" name="FileExplorer — expand/collapse collapses a directory and hides children on second tap" time="0.06">
+    <testcase classname="FileExplorer — expand/collapse collapses a directory and hides children on second tap" name="FileExplorer — expand/collapse collapses a directory and hides children on second tap" time="0.054">
     </testcase>
-    <testcase classname="FileExplorer — expand/collapse restores ▸ icon after collapse" name="FileExplorer — expand/collapse restores ▸ icon after collapse" time="0.056">
+    <testcase classname="FileExplorer — expand/collapse restores ▸ icon after collapse" name="FileExplorer — expand/collapse restores ▸ icon after collapse" time="0.055">
     </testcase>
-    <testcase classname="FileExplorer — deletion long-press opens context menu instead of calling onFileDelete directly" name="FileExplorer — deletion long-press opens context menu instead of calling onFileDelete directly" time="0.055">
+    <testcase classname="FileExplorer — deletion long-press opens context menu instead of calling onFileDelete directly" name="FileExplorer — deletion long-press opens context menu instead of calling onFileDelete directly" time="0.053">
     </testcase>
-    <testcase classname="FileExplorer — deletion does not crash if onFileDelete is not provided and long-pressed" name="FileExplorer — deletion does not crash if onFileDelete is not provided and long-pressed" time="0.053">
+    <testcase classname="FileExplorer — deletion does not crash if onFileDelete is not provided and long-pressed" name="FileExplorer — deletion does not crash if onFileDelete is not provided and long-pressed" time="0.052">
     </testcase>
     <testcase classname="FileExplorer — error handling does not crash when listDirectory rejects" name="FileExplorer — error handling does not crash when listDirectory rejects" time="0.051">
     </testcase>
-    <testcase classname="FileExplorer — context menu (TC-0035..TC-0040) TC-0035: long-press on a file opens the context menu" name="FileExplorer — context menu (TC-0035..TC-0040) TC-0035: long-press on a file opens the context menu" time="0.055">
+    <testcase classname="FileExplorer — context menu (TC-0035..TC-0040) TC-0035: long-press on a file opens the context menu" name="FileExplorer — context menu (TC-0035..TC-0040) TC-0035: long-press on a file opens the context menu" time="0.054">
     </testcase>
     <testcase classname="FileExplorer — context menu (TC-0035..TC-0040) TC-0036: context menu title shows the long-pressed node name" name="FileExplorer — context menu (TC-0035..TC-0040) TC-0036: context menu title shows the long-pressed node name" time="0.055">
     </testcase>
@@ -1031,89 +1095,89 @@
     </testcase>
     <testcase classname="FileExplorer — context menu (TC-0035..TC-0040) TC-0038: tapping the backdrop dismisses the context menu" name="FileExplorer — context menu (TC-0035..TC-0040) TC-0038: tapping the backdrop dismisses the context menu" time="0.055">
     </testcase>
-    <testcase classname="FileExplorer — context menu (TC-0035..TC-0040) TC-0039: long-press on a directory opens the context menu" name="FileExplorer — context menu (TC-0035..TC-0040) TC-0039: long-press on a directory opens the context menu" time="0.055">
+    <testcase classname="FileExplorer — context menu (TC-0035..TC-0040) TC-0039: long-press on a directory opens the context menu" name="FileExplorer — context menu (TC-0035..TC-0040) TC-0039: long-press on a directory opens the context menu" time="0.054">
     </testcase>
     <testcase classname="FileExplorer — context menu (TC-0035..TC-0040) TC-0040: context menu closes when an option is selected" name="FileExplorer — context menu (TC-0035..TC-0040) TC-0040: context menu closes when an option is selected" time="0.056">
     </testcase>
-    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0041: tapping New File opens the name input modal" name="FileExplorer — create file (TC-0041..TC-0048) TC-0041: tapping New File opens the name input modal" time="0.057">
+    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0041: tapping New File opens the name input modal" name="FileExplorer — create file (TC-0041..TC-0048) TC-0041: tapping New File opens the name input modal" time="0.056">
     </testcase>
-    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0042: confirm button is disabled when name input is empty" name="FileExplorer — create file (TC-0041..TC-0048) TC-0042: confirm button is disabled when name input is empty" time="0.059">
+    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0042: confirm button is disabled when name input is empty" name="FileExplorer — create file (TC-0041..TC-0048) TC-0042: confirm button is disabled when name input is empty" time="0.056">
     </testcase>
     <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0043: confirm button enabled when name is non-empty" name="FileExplorer — create file (TC-0041..TC-0048) TC-0043: confirm button enabled when name is non-empty" time="0.057">
     </testcase>
-    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0044: confirm calls createFile with path in the parent directory" name="FileExplorer — create file (TC-0041..TC-0048) TC-0044: confirm calls createFile with path in the parent directory" time="0.069">
+    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0044: confirm calls createFile with path in the parent directory" name="FileExplorer — create file (TC-0041..TC-0048) TC-0044: confirm calls createFile with path in the parent directory" time="0.059">
     </testcase>
-    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0045: fires onFileCreate with the new file path after creation" name="FileExplorer — create file (TC-0041..TC-0048) TC-0045: fires onFileCreate with the new file path after creation" time="0.065">
+    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0045: fires onFileCreate with the new file path after creation" name="FileExplorer — create file (TC-0041..TC-0048) TC-0045: fires onFileCreate with the new file path after creation" time="0.059">
     </testcase>
-    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0046: tree refreshes after file creation" name="FileExplorer — create file (TC-0041..TC-0048) TC-0046: tree refreshes after file creation" time="0.072">
+    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0046: tree refreshes after file creation" name="FileExplorer — create file (TC-0041..TC-0048) TC-0046: tree refreshes after file creation" time="0.061">
     </testcase>
-    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0047: shows error alert when createFile fails" name="FileExplorer — create file (TC-0041..TC-0048) TC-0047: shows error alert when createFile fails" time="0.065">
+    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0047: shows error alert when createFile fails" name="FileExplorer — create file (TC-0041..TC-0048) TC-0047: shows error alert when createFile fails" time="0.064">
     </testcase>
-    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0048: Cancel button closes name input modal without creating" name="FileExplorer — create file (TC-0041..TC-0048) TC-0048: Cancel button closes name input modal without creating" time="0.065">
+    <testcase classname="FileExplorer — create file (TC-0041..TC-0048) TC-0048: Cancel button closes name input modal without creating" name="FileExplorer — create file (TC-0041..TC-0048) TC-0048: Cancel button closes name input modal without creating" time="0.063">
     </testcase>
-    <testcase classname="FileExplorer — create folder (TC-0049..TC-0052) TC-0049: tapping New Folder opens the name input modal" name="FileExplorer — create folder (TC-0049..TC-0052) TC-0049: tapping New Folder opens the name input modal" time="0.061">
+    <testcase classname="FileExplorer — create folder (TC-0049..TC-0052) TC-0049: tapping New Folder opens the name input modal" name="FileExplorer — create folder (TC-0049..TC-0052) TC-0049: tapping New Folder opens the name input modal" time="0.055">
     </testcase>
-    <testcase classname="FileExplorer — create folder (TC-0049..TC-0052) TC-0050: confirm calls createDirectory with path in the parent directory" name="FileExplorer — create folder (TC-0049..TC-0052) TC-0050: confirm calls createDirectory with path in the parent directory" time="0.07">
+    <testcase classname="FileExplorer — create folder (TC-0049..TC-0052) TC-0050: confirm calls createDirectory with path in the parent directory" name="FileExplorer — create folder (TC-0049..TC-0052) TC-0050: confirm calls createDirectory with path in the parent directory" time="0.058">
     </testcase>
-    <testcase classname="FileExplorer — create folder (TC-0049..TC-0052) TC-0051: tree refreshes after folder creation" name="FileExplorer — create folder (TC-0049..TC-0052) TC-0051: tree refreshes after folder creation" time="0.068">
+    <testcase classname="FileExplorer — create folder (TC-0049..TC-0052) TC-0051: tree refreshes after folder creation" name="FileExplorer — create folder (TC-0049..TC-0052) TC-0051: tree refreshes after folder creation" time="0.058">
     </testcase>
-    <testcase classname="FileExplorer — create folder (TC-0049..TC-0052) TC-0052: shows error alert when createDirectory fails" name="FileExplorer — create folder (TC-0049..TC-0052) TC-0052: shows error alert when createDirectory fails" time="0.06">
+    <testcase classname="FileExplorer — create folder (TC-0049..TC-0052) TC-0052: shows error alert when createDirectory fails" name="FileExplorer — create folder (TC-0049..TC-0052) TC-0052: shows error alert when createDirectory fails" time="0.057">
     </testcase>
-    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0053: Rename opens name modal pre-filled with current node name" name="FileExplorer — rename (TC-0053..TC-0058) TC-0053: Rename opens name modal pre-filled with current node name" time="0.064">
+    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0053: Rename opens name modal pre-filled with current node name" name="FileExplorer — rename (TC-0053..TC-0058) TC-0053: Rename opens name modal pre-filled with current node name" time="0.055">
     </testcase>
-    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0054: confirm calls moveEntry with old and new paths" name="FileExplorer — rename (TC-0053..TC-0058) TC-0054: confirm calls moveEntry with old and new paths" time="0.07">
+    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0054: confirm calls moveEntry with old and new paths" name="FileExplorer — rename (TC-0053..TC-0058) TC-0054: confirm calls moveEntry with old and new paths" time="0.057">
     </testcase>
-    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0055: fires onFileRename with old and new paths" name="FileExplorer — rename (TC-0053..TC-0058) TC-0055: fires onFileRename with old and new paths" time="0.066">
+    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0055: fires onFileRename with old and new paths" name="FileExplorer — rename (TC-0053..TC-0058) TC-0055: fires onFileRename with old and new paths" time="0.057">
     </testcase>
-    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0056: tree refreshes after rename" name="FileExplorer — rename (TC-0053..TC-0058) TC-0056: tree refreshes after rename" time="0.067">
+    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0056: tree refreshes after rename" name="FileExplorer — rename (TC-0053..TC-0058) TC-0056: tree refreshes after rename" time="0.062">
     </testcase>
-    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0057: shows error alert when rename fails" name="FileExplorer — rename (TC-0053..TC-0058) TC-0057: shows error alert when rename fails" time="0.061">
+    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0057: shows error alert when rename fails" name="FileExplorer — rename (TC-0053..TC-0058) TC-0057: shows error alert when rename fails" time="0.058">
     </testcase>
-    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0058: Cancel closes rename modal without renaming" name="FileExplorer — rename (TC-0053..TC-0058) TC-0058: Cancel closes rename modal without renaming" time="0.066">
+    <testcase classname="FileExplorer — rename (TC-0053..TC-0058) TC-0058: Cancel closes rename modal without renaming" name="FileExplorer — rename (TC-0053..TC-0058) TC-0058: Cancel closes rename modal without renaming" time="0.056">
     </testcase>
     <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0059: tapping Delete shows a confirmation Alert" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0059: tapping Delete shows a confirmation Alert" time="0.055">
     </testcase>
-    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0060: Cancel in delete Alert does not call deleteEntry" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0060: Cancel in delete Alert does not call deleteEntry" time="0.059">
+    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0060: Cancel in delete Alert does not call deleteEntry" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0060: Cancel in delete Alert does not call deleteEntry" time="0.054">
     </testcase>
-    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0061: confirming Delete calls deleteEntry with the file path" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0061: confirming Delete calls deleteEntry with the file path" time="0.063">
+    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0061: confirming Delete calls deleteEntry with the file path" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0061: confirming Delete calls deleteEntry with the file path" time="0.056">
     </testcase>
-    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0062: fires onFileDelete after successful delete" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0062: fires onFileDelete after successful delete" time="0.064">
+    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0062: fires onFileDelete after successful delete" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0062: fires onFileDelete after successful delete" time="0.054">
     </testcase>
-    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0063: tree refreshes after confirmed delete" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0063: tree refreshes after confirmed delete" time="0.062">
+    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0063: tree refreshes after confirmed delete" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0063: tree refreshes after confirmed delete" time="0.056">
     </testcase>
-    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0064: shows error alert when deleteEntry fails" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0064: shows error alert when deleteEntry fails" time="0.069">
+    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0064: shows error alert when deleteEntry fails" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0064: shows error alert when deleteEntry fails" time="0.055">
     </testcase>
-    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0065: Alert title says &quot;Delete Folder&quot; for a directory" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0065: Alert title says &quot;Delete Folder&quot; for a directory" time="0.06">
+    <testcase classname="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0065: Alert title says &quot;Delete Folder&quot; for a directory" name="FileExplorer — delete confirmed (TC-0059..TC-0065) TC-0065: Alert title says &quot;Delete Folder&quot; for a directory" time="0.053">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0066: tapping Move to opens the move picker modal" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0066: tapping Move to opens the move picker modal" time="0.07">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0066: tapping Move to opens the move picker modal" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0066: tapping Move to opens the move picker modal" time="0.062">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0067: move picker shows only directories, not files" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0067: move picker shows only directories, not files" time="0.064">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0067: move picker shows only directories, not files" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0067: move picker shows only directories, not files" time="0.058">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0068: tapping a directory row in the picker selects it" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0068: tapping a directory row in the picker selects it" time="0.081">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0068: tapping a directory row in the picker selects it" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0068: tapping a directory row in the picker selects it" time="0.066">
     </testcase>
     <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0069: Move Here button is disabled until a directory is selected" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0069: Move Here button is disabled until a directory is selected" time="0.059">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0070: confirming a valid move calls moveEntry, fires onFileMove, and refreshes" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0070: confirming a valid move calls moveEntry, fires onFileMove, and refreshes" time="0.066">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0070: confirming a valid move calls moveEntry, fires onFileMove, and refreshes" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0070: confirming a valid move calls moveEntry, fires onFileMove, and refreshes" time="0.062">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0071: move picker closes after successful move" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0071: move picker closes after successful move" time="0.082">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0071: move picker closes after successful move" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0071: move picker closes after successful move" time="0.063">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0072: Cancel closes move picker without moving" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0072: Cancel closes move picker without moving" time="0.07">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0072: Cancel closes move picker without moving" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0072: Cancel closes move picker without moving" time="0.062">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0073: moving a directory to itself is blocked with an error alert" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0073: moving a directory to itself is blocked with an error alert" time="0.061">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0073: moving a directory to itself is blocked with an error alert" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0073: moving a directory to itself is blocked with an error alert" time="0.059">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0074: moving a directory into its own descendant is blocked" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0074: moving a directory into its own descendant is blocked" time="0.063">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0074: moving a directory into its own descendant is blocked" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0074: moving a directory into its own descendant is blocked" time="0.055">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0075: shows error alert when moveEntry fails during move" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0075: shows error alert when moveEntry fails during move" time="0.069">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0075: shows error alert when moveEntry fails during move" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0075: shows error alert when moveEntry fails during move" time="0.06">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0076: the source node row is disabled in the move picker" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0076: the source node row is disabled in the move picker" time="0.067">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0076: the source node row is disabled in the move picker" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0076: the source node row is disabled in the move picker" time="0.058">
     </testcase>
-    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0077: full tree reload occurs after a successful move" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0077: full tree reload occurs after a successful move" time="0.067">
+    <testcase classname="FileExplorer — move picker (TC-0066..TC-0077) TC-0077: full tree reload occurs after a successful move" name="FileExplorer — move picker (TC-0066..TC-0077) TC-0077: full tree reload occurs after a successful move" time="0.062">
     </testcase>
-    <testcase classname="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0078: create file does not crash when onFileCreate is undefined" name="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0078: create file does not crash when onFileCreate is undefined" time="0.07">
+    <testcase classname="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0078: create file does not crash when onFileCreate is undefined" name="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0078: create file does not crash when onFileCreate is undefined" time="0.058">
     </testcase>
-    <testcase classname="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0079: rename does not crash when onFileRename is undefined" name="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0079: rename does not crash when onFileRename is undefined" time="0.067">
+    <testcase classname="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0079: rename does not crash when onFileRename is undefined" name="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0079: rename does not crash when onFileRename is undefined" time="0.061">
     </testcase>
-    <testcase classname="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0080: move does not crash when onFileMove is undefined" name="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0080: move does not crash when onFileMove is undefined" time="0.07">
+    <testcase classname="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0080: move does not crash when onFileMove is undefined" name="FileExplorer — no-crash without callbacks (TC-0078..TC-0080) TC-0080: move does not crash when onFileMove is undefined" time="0.061">
     </testcase>
   </testsuite>
 </testsuites>

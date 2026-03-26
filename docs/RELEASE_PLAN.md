@@ -23,7 +23,7 @@ Dependencies: EPIC-0001
 EPIC-0003: Terminal
 Description: Integrated sandboxed terminal via Xterm.js + WASI for running build/test commands.
 Release Target: Release 0.5 (Beta)
-Status: Planned
+Status: In Progress
 Dependencies: EPIC-0001, EPIC-0002
 
 EPIC-0004: Command Palette
@@ -396,6 +396,18 @@ Acceptance Criteria:
   - [x] AC-0062: deactivateExtension removes the extension from ExtensionRegistry
   - [x] AC-0063: Extensions run in an isolated WebView sandbox — the sandbox HTML wraps source in try/catch
 Dependencies: EPIC-0001, EPIC-0002, EPIC-0003, EPIC-0004
+
+US-0057 (EPIC-0005): As a user, I want an About screen showing the splash and app info, so that I can identify the app version and credits.
+Priority: Low (P2)
+Estimate: S
+Status: Done
+Branch: feature/EPIC-0003-terminal-ac-completion
+Acceptance Criteria:
+  - [x] AC-0149: A ⓘ button in the status bar has a minimum 44pt touch target and is accessible via aria-label="About NomadCode"
+  - [x] AC-0150: Tapping ⓘ opens a full-screen modal displaying the splash image
+  - [x] AC-0151: The About modal footer shows the app version (from package.json) and copyright line
+  - [x] AC-0152: Tapping the ✕ close button dismisses the About modal with a fade animation
+Dependencies: US-0018
 ```
 
 ### EPIC-0006: Plan Visualizer
@@ -578,6 +590,17 @@ Acceptance Criteria:
   - [ ] AC-0099: `eas build --platform all` produces a valid iOS .ipa and Android .aab without errors
   - [ ] AC-0100: Build configuration is defined in `eas.json` with a production profile
 Dependencies: EPIC-0005, EPIC-0007, EPIC-0008, EPIC-0009, EPIC-0010
+
+US-0058 (EPIC-0011): As a release engineer, I want branded app icons, splash screens, and named APK artefacts, so that the app presents a polished identity in stores and on device home screens.
+Priority: High (P0)
+Estimate: S
+Status: Done
+Branch: feature/EPIC-0003-terminal-ac-completion
+Acceptance Criteria:
+  - [x] AC-0153: App icon (1024×1024 NomadCode logo) is correctly referenced in `app.json`, `ios/Images.xcassets/AppIcon`, and all Android mipmap densities (mdpi–xxxhdpi WebP)
+  - [x] AC-0154: Splash screen displays the NomadCode logo centred on Deep Slate (#0F172A) background; `app.json` splash config uses `resizeMode: "contain"` and matching backgroundColor
+  - [x] AC-0155: Android APK build artefacts are named `NomadCode-debug.apk` and `NomadCode-release.apk` via `applicationVariants.all` in `android/app/build.gradle`
+Dependencies: EPIC-0005
 
 US-0037 (EPIC-0011): As a release engineer, I want to submit to the iOS App Store, so that users can install on iPhone and iPad.
 Priority: High (P0)

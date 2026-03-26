@@ -4,9 +4,9 @@
 
 | Tool | Version | Install |
 |------|---------|---------|
-| Node.js | ≥ 18 | https://nodejs.org |
-| npm / yarn | latest | bundled with Node |
-| Expo CLI | latest | `npm i -g expo-cli` |
+| Node.js | ≥ 20 LTS | https://nodejs.org |
+| npm | latest | bundled with Node |
+| EAS CLI | latest | `npm i -g eas-cli` |
 | Xcode | ≥ 15 (iOS) | Mac App Store |
 | Android Studio | latest (Android) | https://developer.android.com/studio |
 | CocoaPods | latest (iOS) | `sudo gem install cocoapods` |
@@ -34,8 +34,9 @@ npx expo start --ios
 npx expo run:ios --simulator "iPad Pro (12.9-inch) (6th generation)"
 ```
 
-> **Note:** The Monaco editor loads from CDN (`cdn.jsdelivr.net`).
-> Ensure the simulator has internet access, or bundle Monaco locally (see below).
+> ⚠️ **App Store / Play Store compliance:** The Monaco editor currently loads from CDN (`cdn.jsdelivr.net`).
+> This violates Apple App Store §2.5.2 (dynamic code download) and must be bundled locally before any production build.
+> See **Offline Monaco** section below — this is required, not optional, for store submission.
 
 ---
 
@@ -89,17 +90,17 @@ npm run lint
 
 ```bash
 # Build the Detox test binary first (iOS example):
-npx detox build --configuration ios.sim.debug
+npx detox build --configuration ios.ipad.debug
 
 # Run E2E tests:
-npx detox test --configuration ios.sim.debug
+npx detox test --configuration ios.ipad.debug
 ```
 
 See [Detox docs](https://wix.github.io/Detox/docs/introduction/getting-started) for configuration.
 
 ---
 
-## Offline Monaco (optional)
+## Offline Monaco (required for store submission)
 
 To run without internet access, bundle Monaco locally:
 

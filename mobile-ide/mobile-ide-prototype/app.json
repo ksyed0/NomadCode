@@ -5,11 +5,11 @@
     "scheme": "nomadcode",
     "version": "0.1.0",
     "orientation": "landscape",
-    "icon": "./assets/placeholder.png",
+    "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/placeholder.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1e1e1e"
+      "backgroundColor": "#0F172A"
     },
     "platforms": [
       "ios",
@@ -27,8 +27,8 @@
     "android": {
       "package": "com.nomadcode.mobileide",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/placeholder.png",
-        "backgroundColor": "#1e1e1e"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
       }
     },
     "plugins": [

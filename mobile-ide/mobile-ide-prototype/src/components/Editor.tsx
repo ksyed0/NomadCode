@@ -22,6 +22,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -217,6 +218,15 @@ const TOOLBAR_ITEMS: ToolbarItem[] = [
   { id: 'preview',     label: '👁',  title: 'Toggle preview',   action: 'preview',     toggle: true },
 ];
 
+const FONT_DEC_ID = 'font-dec';
+const FONT_INC_ID = 'font-inc';
+
+const TOOLTIP_LABELS: Readonly<Record<string, string>> = {
+  [FONT_DEC_ID]: 'Decrease font size',
+  [FONT_INC_ID]: 'Increase font size',
+  ...Object.fromEntries(TOOLBAR_ITEMS.map((item) => [item.id, item.title])),
+};
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -243,6 +253,8 @@ export default function Editor({
   const [isOffline,   setIsOffline]   = useState(false);
   const [multiCursor, setMultiCursor] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [tooltipId,   setTooltipId]   = useState<string | null>(null);
+  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeTab      = tabs.find((tab) => tab.path === activeTabPath) ?? null;
   const previewEnabled = activeTab ? canPreview(activeTab.language) : false;
@@ -253,6 +265,27 @@ export default function Editor({
       setMonacoHtml(buildMonacoHtml(baseUrl));
       setIsOffline(offline);
     });
+  }, []);
+
+  // ── Tooltip helpers ──────────────────────────────────────────────────────
+  const showTooltip = useCallback((id: string) => {
+    if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+    setTooltipId(id);
+  }, []);
+
+  const hideTooltip = useCallback(() => {
+    if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+    setTooltipId(null);
+  }, []);
+
+  /** Show tooltip then auto-dismiss after 1500 ms (for long-press on touch). */
+  const showTooltipTemp = useCallback((id: string) => {
+    showTooltip(id);
+    tooltipTimerRef.current = setTimeout(() => setTooltipId(null), 1500);
+  }, [showTooltip]);
+
+  useEffect(() => () => {
+    if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
   }, []);
 
   // ── Send content to Monaco when active tab changes ───────────────────────
@@ -464,6 +497,15 @@ export default function Editor({
         )}
       </View>
 
+      {/* ── Tooltip strip (shown on hover or long-press) ── */}
+      {tooltipId !== null && (
+        <View testID="toolbar-tooltip" style={styles.tooltipStrip} pointerEvents="none">
+          <Text style={styles.tooltipText} numberOfLines={1}>
+            {TOOLTIP_LABELS[tooltipId] ?? ''}
+          </Text>
+        </View>
+      )}
+
       {/* ── Mobile toolbar ── */}
       <View style={styles.toolbar}>
         <ScrollView
@@ -473,21 +515,29 @@ export default function Editor({
           bounces={false}
         >
           {/* Font size A- / size / A+ */}
-          <TouchableOpacity
+          <Pressable
             style={styles.toolbarBtn}
             onPress={() => changeFontSize(-1)}
+            onHoverIn={() => showTooltip(FONT_DEC_ID)}
+            onHoverOut={hideTooltip}
+            onLongPress={() => showTooltipTemp(FONT_DEC_ID)}
             hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+            accessibilityLabel="Decrease font size"
           >
             <Text style={styles.toolbarIcon}>A-</Text>
-          </TouchableOpacity>
+          </Pressable>
           <Text style={styles.toolbarFontSize}>{fontSize}</Text>
-          <TouchableOpacity
+          <Pressable
             style={styles.toolbarBtn}
             onPress={() => changeFontSize(+1)}
+            onHoverIn={() => showTooltip(FONT_INC_ID)}
+            onHoverOut={hideTooltip}
+            onLongPress={() => showTooltipTemp(FONT_INC_ID)}
             hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+            accessibilityLabel="Increase font size"
           >
             <Text style={styles.toolbarIcon}>A+</Text>
-          </TouchableOpacity>
+          </Pressable>
 
           <View style={styles.toolbarDivider} />
 
@@ -498,7 +548,7 @@ export default function Editor({
             const isDisabled = item.id === 'preview' && !previewEnabled;
 
             return (
-              <TouchableOpacity
+              <Pressable
                 key={item.id}
                 style={[
                   styles.toolbarBtn,
@@ -506,6 +556,9 @@ export default function Editor({
                   isDisabled && styles.toolbarBtnDisabled,
                 ]}
                 onPress={() => !isDisabled && handleToolbarAction(item)}
+                onHoverIn={() => showTooltip(item.id)}
+                onHoverOut={hideTooltip}
+                onLongPress={() => showTooltipTemp(item.id)}
                 hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
                 accessibilityLabel={item.title}
               >
@@ -516,7 +569,7 @@ export default function Editor({
                 ]}>
                   {item.label}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
         </ScrollView>
@@ -588,6 +641,13 @@ function makeStyles(t: ThemeTokens) {
       alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 1,
     },
     loadingText:    { color: t.textMuted, fontSize: 13 },
+    // Tooltip strip (appears above toolbar on hover / long-press)
+    tooltipStrip: {
+      height: 22, backgroundColor: t.bgElevated,
+      borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border,
+      justifyContent: 'center', paddingHorizontal: 12,
+    },
+    tooltipText: { color: t.accent, fontSize: 11, fontStyle: 'italic' },
     // Mobile toolbar
     toolbar: {
       height: TOOLBAR_HEIGHT, backgroundColor: t.bgElevated, flexDirection: 'row',

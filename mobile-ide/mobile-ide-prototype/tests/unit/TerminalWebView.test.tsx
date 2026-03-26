@@ -20,6 +20,7 @@ const mockWebViewCallbacks: {
   onMessage?: (event: unknown) => void;
   onError?: (event: unknown) => void;
   onLayout?: (event: unknown) => void;
+  onLoadEnd?: (event: unknown) => void;
 } = {};
 
 const mockSendToWebView = jest.fn();
@@ -29,11 +30,12 @@ const mockSendToWebView = jest.fn();
 // ---------------------------------------------------------------------------
 
 jest.mock('react-native-webview', () => ({
-  WebView: jest.fn(({ onMessage, onError, onLayout, ..._props }) => {
+  WebView: jest.fn(({ onMessage, onError, onLayout, onLoadEnd, ..._props }) => {
     // Store callbacks for test access.
     mockWebViewCallbacks.onMessage = onMessage;
     mockWebViewCallbacks.onError = onError;
     mockWebViewCallbacks.onLayout = onLayout;
+    mockWebViewCallbacks.onLoadEnd = onLoadEnd;
     // Return null — WebView has no native renderer in Jest.
     return null;
   }),
@@ -205,6 +207,41 @@ describe('TerminalWebView', () => {
   it('renders the TERMINAL header bar', () => {
     render(<TerminalWebView />);
     expect(screen.getByText('TERMINAL')).toBeTruthy();
+  });
+
+  // 2c. Sends SET_CWD after WebView finishes loading (onLoadEnd) — fixes VFS path issue
+  // where useEffect fires before webViewRef.current is populated and the message is
+  // silently dropped via optional chaining.
+  it('sends SET_CWD when WebView fires onLoadEnd (guaranteed delivery after load)', () => {
+    render(<TerminalWebView workingDirectory="/projects" />);
+
+    // Clear any calls already made by the useEffect on mount.
+    mockSendToWebView.mockClear();
+
+    // Simulate the WebView finishing its load.
+    act(() => {
+      mockWebViewCallbacks.onLoadEnd?.({});
+    });
+
+    expect(mockSendToWebView).toHaveBeenCalledWith({
+      type: 'SET_CWD',
+      cwd: '/projects',
+    });
+  });
+
+  // 2d. onLoadEnd falls back to '/' when no workingDirectory provided
+  it('sends SET_CWD with "/" on onLoadEnd when workingDirectory is not provided', () => {
+    render(<TerminalWebView />);
+    mockSendToWebView.mockClear();
+
+    act(() => {
+      mockWebViewCallbacks.onLoadEnd?.({});
+    });
+
+    expect(mockSendToWebView).toHaveBeenCalledWith({
+      type: 'SET_CWD',
+      cwd: '/',
+    });
   });
 
   // 9. Sends RESIZE on layout change
