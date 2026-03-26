@@ -564,3 +564,26 @@ version 50.18.2. The `capture-cost.js` script was written expecting those fields
 > pulling the updated tooling into NomadCode.
 
 ---
+
+### BUG-0032 / TOOL-2 — `docs/LESSONS.md` missing — plan visualizer Lessons tab always empty [FIXED]
+
+**Severity:** Low (dashboard Lessons tab renders "No lessons logged yet" instead of project lessons)
+**File:** `docs/LESSONS.md` (absent), `plan-visualizer.config.json`
+**Description:**
+`tools/generate-plan.js` reads `docs/LESSONS.md` to populate the Lessons tab in the plan
+visualizer dashboard. The file was never created and was not listed in
+`plan-visualizer.config.json` (relying on the hardcoded default path). `readFile()` returns
+`''` for missing files, so `parseLessons('')` returns `[]` → "No lessons logged yet." The
+Lessons tab has been empty since the plan visualizer was introduced.
+
+**Root cause:** `LESSONS.md` was never created as part of the plan visualizer setup, and no
+session had captured lessons in the expected format.
+
+**Fix:** Created `docs/LESSONS.md` with 4 seed lessons from recent sessions:
+- L-0001: `npm version` stdout is multiline in newer npm
+- L-0002: debug.keystore must be gitignored before `expo prebuild`
+- L-0003: `injectJavaScript` silently dropped on hidden WebViews
+- L-0004: double-stringify required when passing JSON through `injectJavaScript`
+Also added explicit `"lessons": "docs/LESSONS.md"` to `plan-visualizer.config.json`.
+
+---
