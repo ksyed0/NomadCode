@@ -87,6 +87,14 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.nomadcode.mobileide'
+
+    // Output APK as NomadCode-<buildType>.apk instead of the default app-<buildType>.apk
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "NomadCode-${variant.buildType.name}.apk"
+        }
+    }
+
     defaultConfig {
         applicationId 'com.nomadcode.mobileide'
         minSdkVersion rootProject.ext.minSdkVersion

@@ -14,6 +14,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Image,
+  Modal,
   Platform,
   SafeAreaView,
   StatusBar,
@@ -71,6 +73,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [terminalHeight, setTerminalHeight] = useState(220);
   const [triggerNewFile, setTriggerNewFile] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   // ── Git status (updated after Git operations) ─────────────────────────────
   const [gitBranch, setGitBranch] = useState('main');
@@ -297,8 +300,29 @@ export default function App() {
               <Text style={styles.statusDirty}>● Save</Text>
             </TouchableOpacity>
           )}
+          <TouchableOpacity onPress={() => setShowAbout(true)} style={styles.aboutBtn} accessibilityLabel="About NomadCode">
+            <Text style={styles.aboutBtnText}>ⓘ</Text>
+          </TouchableOpacity>
         </View>
       </View>
+
+      {/* ── About / Splash overlay ───────────────────────────────────────── */}
+      <Modal visible={showAbout} animationType="fade" transparent statusBarTranslucent>
+        <View style={styles.aboutOverlay}>
+          <Image
+            source={require('./assets/splash.png')}
+            style={styles.aboutSplash}
+            resizeMode="contain"
+          />
+          <TouchableOpacity onPress={() => setShowAbout(false)} style={styles.aboutClose} accessibilityLabel="Close">
+            <Text style={styles.aboutCloseText}>✕</Text>
+          </TouchableOpacity>
+          <View style={styles.aboutFooter}>
+            <Text style={styles.aboutVersion}>NomadCode v{require('./package.json').version}</Text>
+            <Text style={styles.aboutCopy}>Created by Kamal Syed · FableSoft 2026</Text>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── Three-pane layout ────────────────────────────────────────────── */}
       <TabletResponsive
@@ -413,6 +437,59 @@ const styles = StyleSheet.create({
   },
   statusDirty: {
     color: '#FBBF24',
+    fontSize: 11,
+  },
+  aboutBtn: {
+    marginLeft: 10,
+    paddingHorizontal: 4,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aboutBtnText: {
+    color: '#94A3B8',
+    fontSize: 14,
+  },
+  aboutOverlay: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aboutSplash: {
+    width: '70%',
+    height: '70%',
+  },
+  aboutClose: {
+    position: 'absolute',
+    top: 48,
+    right: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aboutCloseText: {
+    color: '#E2E8F0',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  aboutFooter: {
+    position: 'absolute',
+    bottom: 48,
+    alignItems: 'center',
+    gap: 4,
+  },
+  aboutVersion: {
+    color: '#64748B',
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  aboutCopy: {
+    color: '#475569',
     fontSize: 11,
   },
   fab: {

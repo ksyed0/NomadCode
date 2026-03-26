@@ -380,3 +380,123 @@ only had Save, Close Tab, Toggle Terminal, Git Status, and Git Commit.
 **Root cause:** "File: New File" command was never registered in the palette command list.
 
 **Fix:** Register a `"File: New File"` command that triggers `triggerNewFile` state in `App.tsx`.
+
+---
+
+## EPIC-0003 — Terminal AC Completion / PR #45 Review (detected 2026-03-25)
+
+### BUG-0024 / SEC-1 — `android/app/debug.keystore` committed to version control [OPEN]
+
+**Severity:** High
+**File:** `mobile-ide/mobile-ide-prototype/android/app/debug.keystore`
+**Description:**
+A binary Android debug keystore (private key material) was committed to the repo in PR #45 as
+part of the native project scaffolding. CLAUDE.md § 9 explicitly prohibits committing secrets or
+key material to version control. Standard Expo/React Native practice is to gitignore `*.keystore`.
+
+**Root cause:** `expo prebuild` generated the full `android/` directory including the debug keystore,
+and the generated `.gitignore` inside `android/` did not exclude it.
+
+**Fix:** Add `*.keystore` to `mobile-ide/mobile-ide-prototype/android/.gitignore`, then remove the
+committed keystore with `git rm --cached android/app/debug.keystore` and commit the removal.
+
+---
+
+### BUG-0025 / TERM-11 — `getToken()` has no reject path or timeout — `git push`/`git clone` hang forever [OPEN]
+
+**Severity:** High
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts` (~line 159)
+**Description:**
+`getToken()` creates a `Promise` with only a `resolve` callback and no `reject`. All other VFS
+bridge helpers (`vfsRead`, `vfsWrite`, etc.) use `(resolve, reject)` pairs with error handling.
+If the React Native side never sends `TOKEN_RESULT` (app backgrounded, bridge crash, or terminal
+WebView hidden — the same `injectJavaScript`-on-hidden-WebView failure documented in BUG-0022),
+the `git push` or `git clone` operation awaits forever, freezing the terminal permanently. The
+`pendingRequests` map entry also leaks.
+
+**Root cause:** `TOKEN_RESULT` message handling added in PR #45 without mirroring the reject/timeout
+pattern used by all other pending-request handlers. This is the same class of bug as BUG-0022
+(terminal hidden → `injectJavaScript` silently dropped).
+
+**Fix:** Add a `reject` arm and a `setTimeout`-based timeout (e.g., 30 s) with `Promise.race`,
+matching the pattern of the VFS helpers. Clean up the `pendingRequests` entry in both paths.
+
+---
+
+### BUG-0026 / TERM-12 — `git status` reports newly-staged files as `??` (untracked) instead of `A ` (added) [OPEN]
+
+**Severity:** High
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts` (lines 198–201)
+**Description:**
+The `statusMatrix` evaluation checks `head === 0 && workdir === 2` (no `stage` guard) before the
+more-specific `head === 0 && workdir === 2 && stage === 2` check. isomorphic-git returns the tuple
+`[path, 0, 2, 2]` for a newly staged file (`git add newfile`). The broad condition on line 198
+matches first and returns `?? newfile`, making the `A  newfile` branch on line 201 unreachable.
+Any user who runs `git add <file>` then `git status` will see the file reported as untracked.
+
+**Root cause:** Condition ordering error introduced in the initial git-status implementation
+(commit `17d2b1b`); the more-specific tuple must be checked first.
+
+**Fix:** Swap order — check `(head === 0 && workdir === 2 && stage === 2)` → `A ` before
+`(head === 0 && workdir === 2)` → `??`.
+
+---
+
+### BUG-0027 / TERM-13 — `git init` failure is misreported as "not a git repository" [OPEN]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts` (~lines 242–312)
+**Description:**
+The `case 'init'` block shares the same outer `try/catch` as all other git subcommands. The catch
+block converts any error containing `ENOENT`, `is not readable`, `readAsStringAsync`, or
+`readDirectoryAsync` into the "not a git repository — run `git init`" message. If `git init`
+itself throws one of those errors (e.g., the VFS cannot create the `.git/objects` directory due
+to an invalid `cwd`), the user sees the paradoxical message "not a git repository — run `git init`"
+immediately after typing `git init`. The root cause is silently swallowed.
+
+**Root cause:** PR #45 added `git init` handling (commit `ebe295e`) without giving it its own
+inner try/catch to isolate init-specific failures from the generic "not a repo" fallback.
+
+**Fix:** Wrap the `case 'init'` block in its own try/catch (or check `subcommand !== 'init'` before
+applying the "not a git repository" message in the outer catch).
+
+---
+
+### BUG-0028 / TERM-14 — ENOENT error masking too broad — corrupted repos return wrong diagnostic [OPEN]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts` (~lines 299–309)
+**Description:**
+The catch block in the git dispatcher matches `is not readable`, `readAsStringAsync`, and
+`readDirectoryAsync` as signals for "not a git repository". These strings are too broad — Expo
+FileSystem can emit them for any locked, corrupted, or permission-denied file inside a valid repo
+(e.g., a corrupted `.git/index`). A valid repo with a corrupted index would incorrectly tell the
+user "not a git repository — run `git init`", which is both wrong and destructive.
+
+**Root cause:** Strings added in commit `2658c62` to paper over emulator-specific error messages
+without scoping them to `.git`-path lookups.
+
+**Fix:** Scope the ENOENT checks to paths that contain `.git/` (check `err.message` includes both
+`.git` and the file operation string), or catch only the specific isomorphic-git error codes
+(`NotFoundError`, `MissingParameterError`) rather than string-matching Expo FileSystem messages.
+
+---
+
+### BUG-0029 / DASH-1 — Plan visualizer dashboard not updated since 2026-03-13 [OPEN]
+
+**Severity:** Low
+**File:** `plan-visualizer.config.json` (line 8), `.github/workflows/plan-visualizer.yml`
+**Description:**
+The plan visualizer CI workflow has not regenerated the dashboard since 2026-03-13 for three
+compounding reasons:
+1. All active development is on `feature/EPIC-0003-terminal-ac-completion`; the workflow only
+   triggers on pushes to `main` or `develop`, so it never fires while work stays on the feature branch.
+2. `plan-visualizer.config.json` has `"outputDir": "Docs"` (capital D). On the Linux CI runner
+   (case-sensitive filesystem), the generator writes to `Docs/` but the Pages upload step reads
+   from `./docs`, so even when CI does run the output is never deployed.
+3. The generator has not been re-run locally and committed since 2026-03-13.
+
+**Fix:**
+- Change `"outputDir": "Docs"` → `"outputDir": "docs"` in `plan-visualizer.config.json`
+- Run `node tools/generate-plan.js` and commit `docs/plan-status.html` + `docs/plan-status.json`
+- Merge to `develop` so CI can maintain future updates automatically
