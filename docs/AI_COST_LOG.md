@@ -154,3 +154,4 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-26 | 3c0921ae-6c38-4546-9ef6-029994f4c242 | feature/EPIC-0003-terminal-ac-completion | 0 | 0 | 0 | 0.0000 |
 | 2026-03-26 | 3c0921ae-6c38-4546-9ef6-029994f4c242 | feature/EPIC-0003-terminal-ac-completion | 0 | 0 | 0 | 0.0000 |
 | 2026-03-26 | 3c0921ae-6c38-4546-9ef6-029994f4c242 | feature/EPIC-0003-terminal-ac-completion | 0 | 0 | 0 | 0.0000 |
+| 2026-03-26 | 3c0921ae-6c38-4546-9ef6-029994f4c242 | bugfix/version-bump-output-format | 0 | 0 | 0 | 0.0000 |

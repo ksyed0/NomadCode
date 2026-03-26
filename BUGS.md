@@ -500,3 +500,28 @@ compounding reasons:
 - Change `"outputDir": "Docs"` → `"outputDir": "docs"` in `plan-visualizer.config.json`
 - Run `node tools/generate-plan.js` and commit `docs/plan-status.html` + `docs/plan-status.json`
 - Merge to `develop` so CI can maintain future updates automatically
+
+---
+
+## CI/CD (detected 2026-03-25)
+
+### BUG-0030 / CI-1 — version-bump workflow fails with "Invalid format '0.1.1'" on GITHUB_OUTPUT [FIXED]
+
+**Severity:** High (breaks automated version bump after every PR merge to develop)
+**File:** `.github/workflows/version-bump.yml` line 33
+**Description:**
+`$(npm version patch --no-git-tag-version | sed 's/^v//')` captures multiline stdout from
+newer npm versions (deprecation warnings and info lines mixed with the version tag), then
+writes the multiline result to `$GITHUB_OUTPUT` via a plain `echo`. The GitHub Actions
+runner rejects the bare `0.1.1` line (no `name=` prefix) with:
+`Invalid format '0.1.1'` / `Unable to process file command 'output' successfully.`
+This caused the version-bump job to fail on every PR merge to develop.
+
+**Root cause:** `npm version` in newer npm versions writes extra lines to stdout alongside
+the version tag. Capturing stdout with `$(...)` included those extra lines; using the result
+directly as the `$GITHUB_OUTPUT` value violated the required `key=value` format.
+
+**Fix:** Run `npm version patch --no-git-tag-version` for the side-effect only (modifies
+`package.json`), then extract the clean version with `jq -r '.version' package.json`.
+`jq` always outputs a single, clean version string with no prefix or extra lines.
+PR #46: `bugfix/version-bump-output-format`

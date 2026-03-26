@@ -30,7 +30,8 @@ jobs:
         id: bump
         working-directory: mobile-ide/mobile-ide-prototype
         run: |
-          NEW_VERSION=$(npm version patch --no-git-tag-version | sed 's/^v//')
+          npm version patch --no-git-tag-version
+          NEW_VERSION=$(jq -r '.version' package.json)
           echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create branch and commit
