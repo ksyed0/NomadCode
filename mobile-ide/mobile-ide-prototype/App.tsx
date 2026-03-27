@@ -240,7 +240,7 @@ export default function App() {
     }
 
     setConflict(null);
-  }, [conflict]);
+  }, [conflict, openFile]);
 
   const deleteFile = useCallback(async (path: string) => {
     Alert.alert('Delete file', `Delete "${path.split('/').pop()}"?`, [
@@ -275,7 +275,7 @@ export default function App() {
     } catch (err) {
       Alert.alert('Git status', String(err));
     }
-  }, []);
+  }, [rootPath]);
 
   const gitCommit = useCallback(async () => {
     const tab = tabs.find((t) => t.path === activeTabPath);
@@ -302,7 +302,7 @@ export default function App() {
         },
       },
     ]);
-  }, [tabs, activeTabPath, saveActiveFile]);
+  }, [tabs, activeTabPath, saveActiveFile, rootPath]);
 
   // ---------------------------------------------------------------------------
   // Terminal callbacks
