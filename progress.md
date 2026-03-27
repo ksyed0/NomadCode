@@ -4,7 +4,47 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
-## Session 8 — 2026-03-27
+## Session 10 — 2026-03-27
+
+### What Was Done
+- **Started EPIC-0013: Multi-Language Editor Support** on `feature/EPIC-0013-multi-language` branched from `develop` (post PR #48 merge)
+- **Fixed diverged local develop**: local `develop` had 1 stale commit; hard-reset to `origin/develop`
+- **Created `src/utils/languageRules.ts`**: 40+ language rules map (tabSize, insertSpaces, autoClosingBrackets/Quotes) matching VS Code / community style conventions; `getLanguageRules(languageId)` pure function; `detectIndentation: false` enforced as literal type
+- **Extended LANG_MAP in `Editor.tsx`**: added C# (`.cs`), F# (`.fs`/`.fsx`), Zig (`.zig`), Dart (`.dart`), Lua (`.lua`), Elixir (`.ex`/`.exs`), R (`.r`), Scala (`.scala`), Perl (`.pl`/`.pm`), PowerShell (`.ps1`/`.psm1`), HCL/Terraform (`.tf`/`.hcl`), Protocol Buffers (`.proto`), INI (`.ini`/`.cfg`), Vue (`.vue→html`); fixed `jsonc→'jsonc'` and `toml→'toml'` mappings
+- **Wired rules into `setContent` message**: rules embedded atomically with language/content on every tab switch — no race condition
+- **Updated `MonacoAssetManager.ts`**: inline rules application inside `setContent` case; new standalone `applyLanguageRules` case for future use; `default: break` added
+- **Created `tests/unit/languageRules.test.ts`**: 141 tests, 100% coverage
+- **Extended `tests/unit/Editor.test.tsx`**: +40 LANG_MAP cases, +7 dispatch tests, WebView mock updated to capture `injectJavaScript` reference
+- **Updated `RELEASE_PLAN.md`**: US-0059/0060/0061 (AC-0156–AC-0171), EPIC-0013 status → In Progress
+- **Updated `ID_REGISTRY.md`**: US next → US-0062, AC next → AC-0172
+
+### Current State
+- Branch: `feature/EPIC-0013-multi-language` — committed, ready to PR → `develop`
+- All mobile unit tests: **802 tests, 0 failures** (24 suites)
+- Coverage: `languageRules.ts` 100%, `Editor.tsx` ≥85% all metrics
+- TypeScript: 0 errors
+
+### Test Status
+- 802 mobile tests passing, 0 failing
+- Coverage ≥ 80% confirmed on all new/modified files
+
+### Key Files Modified
+- `mobile-ide/mobile-ide-prototype/src/utils/languageRules.ts` — **NEW**
+- `mobile-ide/mobile-ide-prototype/tests/unit/languageRules.test.ts` — **NEW**
+- `mobile-ide/mobile-ide-prototype/src/components/Editor.tsx` — LANG_MAP expanded, rules wired
+- `mobile-ide/mobile-ide-prototype/src/utils/MonacoAssetManager.ts` — applyLanguageRules case
+- `mobile-ide/mobile-ide-prototype/tests/unit/Editor.test.tsx` — extended
+- `docs/RELEASE_PLAN.md` — US-0059/0060/0061 added
+- `docs/ID_REGISTRY.md` — IDs updated
+
+### Next Session Pick-up
+1. **Open PR** for `feature/EPIC-0013-multi-language` → `develop`, ensure CI green
+2. **BUG-0031** (capture-cost.js zero-cost Stop hook) — still In Progress; investigate Claude Code 2.x hook payload schema changes
+3. **EPIC-0014: Global Search — Find in Files** — next EPIC to implement
+
+---
+
+## Session 9 — 2026-03-27
 
 ### What Was Done
 - **Resumed after quota-limit interruption** — session picked up mid-flight on `bugfix/version-bump-output-format`
