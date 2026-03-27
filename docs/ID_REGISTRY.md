@@ -6,8 +6,8 @@ Always consult before creating a new artefact. Update immediately after assignin
 | Sequence | Next Available ID | Last Assigned |
 |---|---|---|
 | EPIC | EPIC-0016 | EPIC-0015 |
-| US | US-0059 | US-0058 |
+| US | US-0062 | US-0061 |
 | TASK | TASK-0005 | TASK-0004 |
-| AC | AC-0156 | AC-0155 |
+| AC | AC-0172 | AC-0171 |
 | TC | TC-0347 | TC-0346 |
 | BUG | BUG-0033 | BUG-0032 |

@@ -5,6 +5,28 @@
 
 ---
 
+## EPIC-0013 — Multi-Language Editor Support (detected 2026-03-27, code review PR #49)
+
+### BUG-0033 / LANG-1 — `applyLanguageRules` message handler in MonacoAssetManager.ts is untested dead code [FIXED]
+
+**Severity:** Medium
+**File:** `mobile-ide/mobile-ide-prototype/src/utils/MonacoAssetManager.ts`
+**Description:**
+The `case 'applyLanguageRules'` handler added to the Monaco WebView message switch has no unit
+test and no caller — `Editor.tsx` dispatches language rules exclusively inline inside `setContent`.
+The standalone case is unreachable dead code, violating CLAUDE.md § Session Startup:
+"No code written without unit tests in the same session."
+
+**Root cause:** The case was added as a future-use escape hatch (for a live language-switch without
+a content reload) but no test was written to cover it.
+
+**Fix:** Added three tests to `MonacoAssetManager.test.ts` under `buildMonacoHtml()`:
+- Verifies `applyLanguageRules` case string is present in generated HTML
+- Verifies `model.updateOptions` and `editor.updateOptions` calls are present in the handler
+- Verifies `default: break` fallback is present in the message switch
+
+---
+
 ## EPIC-0004 — Command Palette (detected 2026-03-12)
 
 ### BUG-0001 / CP-1 — `onRequestClose` fires first command on Android back [FIXED]

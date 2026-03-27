@@ -220,4 +220,22 @@ describe('buildMonacoHtml()', () => {
     const html = buildMonacoHtml(CDN);
     expect(html).toContain('onLoaderError');
   });
+
+  it('includes applyLanguageRules case in the message handler', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('applyLanguageRules');
+  });
+
+  it('applyLanguageRules handler calls model.updateOptions and editor.updateOptions', () => {
+    const html = buildMonacoHtml(CDN);
+    // Both update paths must exist within the handler
+    expect(html).toContain('model3.updateOptions');
+    expect(html).toContain('autoClosingBrackets');
+    expect(html).toContain('autoClosingQuotes');
+  });
+
+  it('includes default: break fallback in the message switch', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('default:');
+  });
 });

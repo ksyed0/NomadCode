@@ -81,9 +81,9 @@ Status: Deferred
 Dependencies: EPIC-0007
 
 EPIC-0013: Multi-Language Editor Support
-Description: Syntax highlighting, indentation rules, and auto-close brackets for Python, Rust, Go, Swift, and other popular languages.
+Description: Per-language indentation rules, auto-close behaviour, and comprehensive VSCode-compatible extension coverage (C, C++, C#, F#, TypeScript, JavaScript, Python, Rust, Go, Swift, Dart/Flutter, Lua, Elixir, R, Scala, Perl, Terraform, PowerShell, and more).
 Release Target: Release 1.1 (Post-Launch)
-Status: Deferred
+Status: In Progress
 Dependencies: EPIC-0001
 
 EPIC-0014: Global Search — Find in Files
@@ -708,6 +708,52 @@ Acceptance Criteria:
   - [ ] AC-0120: Cold start time, editor input latency, and memory usage are tracked as named metrics
   - [ ] AC-0121: Performance degradation beyond baseline thresholds (§ 8 of PROJECT.md) triggers an alert
 Dependencies: US-0045
+```
+
+---
+
+### EPIC-0013: Multi-Language Editor Support
+
+```
+US-0059 (EPIC-0013): As a developer, I want the editor to apply language-appropriate indentation settings automatically when I open a file, so that code I type is formatted consistently with the conventions of that language.
+Priority: High (P0)
+Estimate: S
+Status: Done
+Branch: feature/EPIC-0013-multi-language
+Acceptance Criteria:
+  - [x] AC-0156: Python files use tabSize=4, insertSpaces=true, detectIndentation=false
+  - [x] AC-0157: Go files use tabSize=4, insertSpaces=false (hard tabs per gofmt)
+  - [x] AC-0158: Rust and Swift files use tabSize=4, insertSpaces=true
+  - [x] AC-0159: C, C++, C#, F#, Java, and Kotlin files use tabSize=4, insertSpaces=true
+  - [x] AC-0160: TypeScript and JavaScript files use tabSize=2, insertSpaces=true
+  - [x] AC-0161: Dart, HTML, CSS, JSON, YAML, and Markdown files use tabSize=2, insertSpaces=true
+  - [x] AC-0162: detectIndentation is always false — Monaco must not override configured rules
+  - [x] AC-0163: When switching tabs, indentation rules for the new tab's language are applied within the same message cycle as the content load
+Dependencies: EPIC-0001
+
+US-0060 (EPIC-0013): As a developer, I want language-specific auto-close bracket behaviour, so that bracket and quote completion matches the language I am writing.
+Priority: Medium (P1)
+Estimate: S
+Status: Done
+Branch: feature/EPIC-0013-multi-language
+Acceptance Criteria:
+  - [x] AC-0164: Python files use autoClosingQuotes='languageDefined' (defers to Monaco's built-in Python grammar to avoid doubling quotes inside strings)
+  - [x] AC-0165: Ruby, R, HTML, and XML files use autoClosingQuotes='languageDefined'
+  - [x] AC-0166: All other supported languages use autoClosingBrackets='always' and autoClosingQuotes='always'
+  - [x] AC-0167: Switching from a Python tab to a Go tab updates autoClosingQuotes from 'languageDefined' to 'always'
+Dependencies: US-0059
+
+US-0061 (EPIC-0013): As a developer working with Zig, Dart, Lua, Elixir, C#, F#, R, Scala, Perl, PowerShell, Terraform, or Protocol Buffers files, I want NomadCode to recognise those extensions and apply a Monaco language mode and correct indentation.
+Priority: Medium (P1)
+Estimate: S
+Status: Done
+Branch: feature/EPIC-0013-multi-language
+Acceptance Criteria:
+  - [x] AC-0168: .cs → csharp, .fs/.fsx → fsharp, .zig → zig, .dart → dart, .lua → lua, .ex/.exs → elixir, .r/.R → r, .scala → scala, .pl/.pm → perl, .ps1/.psm1 → powershell, .tf/.hcl → hcl, .proto → proto, .ini/.cfg/.env → ini
+  - [x] AC-0169: Extension matching is case-insensitive (e.g. App.DART → dart)
+  - [x] AC-0170: Vue SFCs (.vue) fall back to html language mode (no dedicated Monaco grammar)
+  - [x] AC-0171: jsonc files map to Monaco language ID 'jsonc'; toml files map to 'toml'
+Dependencies: US-0059
 ```
 
 ---

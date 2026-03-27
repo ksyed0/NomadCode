@@ -59,6 +59,8 @@ jest.mock('../../src/utils/MonacoAssetManager', () => ({
 
 // Captured onMessage handler — set by the mock, used in tests to fire messages
 let capturedOnMessage: ((e: object) => void) | undefined;
+// Captured injectJavaScript mock — used in tests to inspect dispatched payloads
+let capturedInjectJS: jest.Mock | undefined;
 
 jest.mock('react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -67,7 +69,11 @@ jest.mock('react-native-webview', () => {
   const { View } = require('react-native');
   const WebView = React.forwardRef((props: { onMessage?: (e: object) => void }, ref: unknown) => {
     // Expose injectJavaScript via ref so webViewRef.current is non-null
-    React.useImperativeHandle(ref, () => ({ injectJavaScript: jest.fn() }));
+    React.useImperativeHandle(ref, () => {
+      const fn = jest.fn();
+      capturedInjectJS = fn;
+      return { injectJavaScript: fn };
+    });
     // Capture onMessage so tests can fire arbitrary messages
     capturedOnMessage = props.onMessage;
     // Fire the 'ready' message so editorReady becomes true
@@ -477,15 +483,18 @@ describe('getLanguageForFile', () => {
     ['feed.xml',       'xml'],
     // Data / config
     ['config.json',    'json'],
-    ['settings.jsonc', 'json'],
+    ['settings.jsonc', 'jsonc'],
     ['README.md',      'markdown'],
     ['post.mdx',       'markdown'],
     ['ci.yaml',        'yaml'],
     ['ci.yml',         'yaml'],
-    ['config.toml',    'ini'],
+    ['config.toml',    'toml'],
     ['.env',           'ini'],
+    ['config.ini',     'ini'],
+    ['app.cfg',        'ini'],
     ['schema.sql',     'sql'],
     ['query.graphql',  'graphql'],
+    ['service.proto',  'proto'],
     // Systems languages
     ['main.rs',        'rust'],
     ['main.go',        'go'],
@@ -496,16 +505,37 @@ describe('getLanguageForFile', () => {
     ['header.hpp',     'cpp'],
     ['Main.java',      'java'],
     ['Main.kt',        'kotlin'],
+    ['Program.cs',     'csharp'],
+    ['Module.fs',      'fsharp'],
+    ['Module.fsx',     'fsharp'],
+    ['Main.scala',     'scala'],
+    ['widget.dart',    'dart'],
+    ['main.zig',       'zig'],
+    ['AppDelegate.m',  'objective-c'],
+    ['Module.vb',      'vb'],
     ['script.py',      'python'],
     ['app.rb',         'ruby'],
     ['index.php',      'php'],
-    // Shell
+    ['init.lua',       'lua'],
+    ['router.ex',      'elixir'],
+    ['config.exs',     'elixir'],
+    ['analysis.r',     'r'],
+    ['report.R',       'r'],
+    ['parse.pl',       'perl'],
+    ['utils.pm',       'perl'],
+    // Shell / infra
     ['build.sh',       'shell'],
     ['run.bash',       'shell'],
     ['setup.zsh',      'shell'],
+    ['deploy.ps1',     'powershell'],
+    ['module.psm1',    'powershell'],
+    ['main.tf',        'hcl'],
+    ['vars.hcl',       'hcl'],
     // Dockerfile
     ['Dockerfile',     'dockerfile'],
     ['Dockerfile.dev', 'dockerfile'],
+    // Vue SFCs → html fallback
+    ['App.vue',        'html'],
     // Unknown → plaintext
     ['notes.txt',      'plaintext'],
     ['binary.bin',     'plaintext'],
@@ -521,6 +551,14 @@ describe('getLanguageForFile', () => {
     expect(getLanguageForFile('APP.TSX')).toBe('typescript');
     expect(getLanguageForFile('Index.JS')).toBe('javascript');
     expect(getLanguageForFile('DOCKERFILE')).toBe('dockerfile');
+    // New languages — uppercase extensions
+    expect(getLanguageForFile('Program.CS')).toBe('csharp');
+    expect(getLanguageForFile('Module.FS')).toBe('fsharp');
+    expect(getLanguageForFile('App.ZIG')).toBe('zig');
+    expect(getLanguageForFile('Widget.DART')).toBe('dart');
+    expect(getLanguageForFile('Analysis.R')).toBe('r');
+    expect(getLanguageForFile('Router.EX')).toBe('elixir');
+    expect(getLanguageForFile('Init.LUA')).toBe('lua');
   });
 
   it('handles files with multiple dots correctly', () => {
@@ -598,5 +636,111 @@ describe('Editor — keyboard avoidance', () => {
     expect(kav).toBeTruthy();
     expect(kav.props.behavior).toBe(Platform.OS === 'ios' ? 'padding' : 'height');
     expect(kav.props.keyboardVerticalOffset).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Language rules dispatch
+// ---------------------------------------------------------------------------
+
+/** Extract the parsed payload from the first setContent injectJavaScript call. */
+function getSetContentPayload(): Record<string, unknown> | null {
+  if (!capturedInjectJS) return null;
+  for (const [callArg] of capturedInjectJS.mock.calls) {
+    if (typeof callArg !== 'string') continue;
+    // The injected JS is: window.dispatchEvent(new MessageEvent('message',{data:<JSON>}));true;
+    const match = callArg.match(/data:(.*?)\}\)\);true;/s);
+    if (!match) continue;
+    try {
+      const outerJson = JSON.parse(match[1]);
+      const inner = JSON.parse(outerJson);
+      if (inner?.type === 'setContent') return inner;
+    } catch {
+      // ignore parse errors from other injected JS
+    }
+  }
+  return null;
+}
+
+describe('Editor — language rules dispatch', () => {
+  beforeEach(() => {
+    capturedInjectJS = undefined;
+  });
+
+  it('includes rules in the setContent payload for a TypeScript file (tabSize 2)', async () => {
+    const tsTab = makeTab({ path: '/src/App.tsx', name: 'App.tsx', language: 'typescript' });
+    renderEditor([tsTab], tsTab.path);
+    await waitFor(() => expect(capturedInjectJS).toBeDefined());
+    await waitFor(() => expect(capturedInjectJS?.mock.calls.length).toBeGreaterThan(0));
+    const payload = getSetContentPayload();
+    expect(payload).not.toBeNull();
+    expect(payload?.rules).toBeDefined();
+    expect((payload?.rules as Record<string, unknown>)?.indent).toMatchObject({
+      tabSize: 2,
+      insertSpaces: true,
+      detectIndentation: false,
+    });
+  });
+
+  it('includes rules for a Go file (insertSpaces: false — hard tabs)', async () => {
+    const goTab = makeTab({ path: '/src/main.go', name: 'main.go', language: 'go' });
+    renderEditor([goTab], goTab.path);
+    await waitFor(() => expect(capturedInjectJS).toBeDefined());
+    await waitFor(() => expect(capturedInjectJS?.mock.calls.length).toBeGreaterThan(0));
+    const payload = getSetContentPayload();
+    expect((payload?.rules as Record<string, unknown>)?.indent).toMatchObject({
+      tabSize: 4,
+      insertSpaces: false,
+      detectIndentation: false,
+    });
+  });
+
+  it('includes rules for a Python file (autoClosingQuotes: languageDefined)', async () => {
+    const pyTab = makeTab({ path: '/src/main.py', name: 'main.py', language: 'python' });
+    renderEditor([pyTab], pyTab.path);
+    await waitFor(() => expect(capturedInjectJS).toBeDefined());
+    await waitFor(() => expect(capturedInjectJS?.mock.calls.length).toBeGreaterThan(0));
+    const payload = getSetContentPayload();
+    expect((payload?.rules as Record<string, unknown>)?.autoClose).toMatchObject({
+      autoClosingQuotes: 'languageDefined',
+    });
+  });
+
+  it('includes rules for a C# file (tabSize 4)', async () => {
+    const csTab = makeTab({ path: '/src/Program.cs', name: 'Program.cs', language: 'csharp' });
+    renderEditor([csTab], csTab.path);
+    await waitFor(() => expect(capturedInjectJS).toBeDefined());
+    await waitFor(() => expect(capturedInjectJS?.mock.calls.length).toBeGreaterThan(0));
+    const payload = getSetContentPayload();
+    expect((payload?.rules as Record<string, unknown>)?.indent).toMatchObject({
+      tabSize: 4,
+      insertSpaces: true,
+    });
+  });
+
+  it('falls back to default rules (tabSize 4, spaces) for a plaintext file', async () => {
+    const txtTab = makeTab({ path: '/notes.txt', name: 'notes.txt', language: 'plaintext' });
+    renderEditor([txtTab], txtTab.path);
+    await waitFor(() => expect(capturedInjectJS).toBeDefined());
+    await waitFor(() => expect(capturedInjectJS?.mock.calls.length).toBeGreaterThan(0));
+    const payload = getSetContentPayload();
+    expect((payload?.rules as Record<string, unknown>)?.indent).toMatchObject({
+      tabSize: 4,
+      insertSpaces: true,
+      detectIndentation: false,
+    });
+    expect((payload?.rules as Record<string, unknown>)?.autoClose).toMatchObject({
+      autoClosingQuotes: 'always',
+    });
+  });
+
+  it('does not throw when handleMessage receives an unknown message type', async () => {
+    renderEditor([TAB_A], TAB_A.path);
+    await waitFor(() => screen.getByTestId('webview'));
+    expect(() =>
+      (capturedOnMessage as (e: object) => void)({
+        nativeEvent: { data: JSON.stringify({ type: 'unknownFutureType', payload: {} }) },
+      })
+    ).not.toThrow();
   });
 });

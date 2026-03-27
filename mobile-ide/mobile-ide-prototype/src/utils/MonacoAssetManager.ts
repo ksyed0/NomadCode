@@ -321,6 +321,23 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
               editor.revealLine(1);
               editor.setPosition({ lineNumber: 1, column: 1 });
             }
+            // Apply per-language rules when supplied inline (primary path)
+            if (msg.rules) {
+              var m2 = editor.getModel();
+              if (m2 && msg.rules.indent) {
+                m2.updateOptions({
+                  tabSize:           msg.rules.indent.tabSize,
+                  insertSpaces:      msg.rules.indent.insertSpaces,
+                  detectIndentation: false,
+                });
+              }
+              if (msg.rules.autoClose) {
+                editor.updateOptions({
+                  autoClosingBrackets: msg.rules.autoClose.autoClosingBrackets,
+                  autoClosingQuotes:   msg.rules.autoClose.autoClosingQuotes,
+                });
+              }
+            }
             break;
           }
           case 'format':
@@ -360,6 +377,26 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
             if (p) editor.setSelections([
               new monaco.Selection(p.lineNumber, p.column, p.lineNumber, p.column)
             ]);
+            break;
+          case 'applyLanguageRules': {
+            if (!msg.rules) break;
+            var model3 = editor.getModel();
+            if (model3 && msg.rules.indent) {
+              model3.updateOptions({
+                tabSize:           msg.rules.indent.tabSize,
+                insertSpaces:      msg.rules.indent.insertSpaces,
+                detectIndentation: false,
+              });
+            }
+            if (msg.rules.autoClose) {
+              editor.updateOptions({
+                autoClosingBrackets: msg.rules.autoClose.autoClosingBrackets,
+                autoClosingQuotes:   msg.rules.autoClose.autoClosingQuotes,
+              });
+            }
+            break;
+          }
+          default:
             break;
         }
       } catch (err) { /* ignore parse errors */ }
