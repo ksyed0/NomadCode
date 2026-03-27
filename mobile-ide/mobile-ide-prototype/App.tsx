@@ -11,9 +11,10 @@
  * Future cloud/sync integration points are marked with: // CLOUD_HOOK
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  AppState,
   Image,
   Modal,
   Platform,
@@ -31,20 +32,19 @@ import { TerminalWebView } from './src/components/TerminalWebView';
 import { Command, CommandPalette } from './src/components/CommandPalette';
 import SetupWizard from './src/components/SetupWizard';
 import SettingsScreen from './src/components/SettingsScreen';
+import WorkspaceConflictModal from './src/components/WorkspaceConflictModal';
 import ExtensionHost from './src/components/ExtensionHost';
 import TabletResponsive from './src/layout/TabletResponsive';
 import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
+import { simpleHash } from './src/utils/hash';
 import useSettingsStore from './src/stores/useSettingsStore';
 import useAuthStore from './src/stores/useAuthStore';
 import { useTheme } from './src/theme/tokens';
+import type { OpenTabMeta, ConflictInfo, ConflictResolution } from './src/types/workspace';
 import splashImage from './assets/splash.png';
 
 const APP_VERSION = '0.1.0';
 
-// ---------------------------------------------------------------------------
-// Root document directory — all local project files live here
-// ---------------------------------------------------------------------------
-const ROOT_PATH = FileSystemBridge.documentDirectory;
 
 // ---------------------------------------------------------------------------
 // App
@@ -57,6 +57,9 @@ export default function App() {
   // ── Settings store ────────────────────────────────────────────────────────
   const hasCompletedSetup = useSettingsStore((s) => s.hasCompletedSetup);
   const installedExtensions = useSettingsStore((s) => s.installedExtensions);
+  const workspaceUri = useSettingsStore((s) => s.workspaceUri);
+  // Fall back to the app's sandboxed document directory when no workspace has been picked yet
+  const rootPath = workspaceUri || FileSystemBridge.documentDirectory;
 
   // ── Auth store ────────────────────────────────────────────────────────────
   const hydrateAuth = useAuthStore((s) => s.hydrate);
@@ -80,6 +83,12 @@ export default function App() {
 
   // ── Git status (updated after Git operations) ─────────────────────────────
   const [gitBranch, setGitBranch] = useState('main');
+
+  // ── Cloud-sync conflict detection ─────────────────────────────────────────
+  // tabMetaRef holds a snapshot of each open tab's content hash at load/save
+  // time, so we can detect background cloud sync changes on app foreground.
+  const tabMetaRef = useRef<Map<string, OpenTabMeta>>(new Map());
+  const [conflict, setConflict] = useState<ConflictInfo | null>(null);
 
   // ---------------------------------------------------------------------------
   // File operations
@@ -107,6 +116,11 @@ export default function App() {
         language,
         isDirty: false,
       };
+      tabMetaRef.current.set(path, {
+        path,
+        loadedAt: Date.now(),
+        contentHash: simpleHash(content),
+      });
       setTabs((prev) => [...prev, tab]);
       setActiveTabPath(path);
 
@@ -119,6 +133,7 @@ export default function App() {
   }, [tabs]);
 
   const closeTab = useCallback((path: string) => {
+    tabMetaRef.current.delete(path);
     setTabs((prev) => {
       const idx = prev.findIndex((t) => t.path === path);
       const next = prev.filter((t) => t.path !== path);
@@ -142,8 +157,8 @@ export default function App() {
       setTabs((prev) =>
         prev.map((t) => (t.path === path ? { ...t, isDirty: false } : t)),
       );
-      // CLOUD_HOOK: after local save, enqueue cloud sync:
-      //   await CloudSync.enqueueUpload(path, content);
+      // Refresh meta so the next foreground check won't flag this save as a conflict
+      tabMetaRef.current.set(path, { path, loadedAt: Date.now(), contentHash: simpleHash(content) });
     } catch (err) {
       Alert.alert('Save failed', String(err));
     }
@@ -162,6 +177,58 @@ export default function App() {
     if (!activeTabPath) return;
     updateContent(activeTabPath, text);
   }, [activeTabPath, updateContent]);
+
+  // ── AppState conflict detection ────────────────────────────────────────────
+  // When the app returns to the foreground, compare each open tab's stored
+  // content hash against the current on-disk file. If they differ the OS cloud
+  // provider has synced a new version while we were backgrounded.
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextState) => {
+      if (nextState !== 'active') return;
+      for (const [path, meta] of tabMetaRef.current) {
+        try {
+          const diskContent = await FileSystemBridge.readFile(path);
+          if (simpleHash(diskContent) === meta.contentHash) continue;
+          const openTab = tabs.find((tab) => tab.path === path);
+          if (!openTab) continue;
+          const fileName = path.split('%2F').pop()?.split('/').pop() ?? path;
+          setConflict({
+            tabPath: path,
+            fileName: decodeURIComponent(fileName),
+            localContent: openTab.content,
+            cloudContent: diskContent,
+          });
+          return; // surface one conflict at a time
+        } catch {
+          // File may have been deleted by the cloud provider — skip silently
+        }
+      }
+    });
+    return () => subscription.remove();
+  }, [tabs]);
+
+  const handleConflictResolve = useCallback(async (resolution: ConflictResolution) => {
+    if (!conflict) return;
+    const { tabPath, localContent, cloudContent } = conflict;
+
+    if (resolution === 'keep-mine') {
+      tabMetaRef.current.set(tabPath, { path: tabPath, loadedAt: Date.now(), contentHash: simpleHash(localContent) });
+    } else if (resolution === 'use-cloud') {
+      setTabs((prev) => prev.map((tab) => tab.path === tabPath ? { ...tab, content: cloudContent, isDirty: false } : tab));
+      tabMetaRef.current.set(tabPath, { path: tabPath, loadedAt: Date.now(), contentHash: simpleHash(cloudContent) });
+    } else {
+      // keep-both: save editor version to a .conflict file, then load cloud version
+      const dotIdx = tabPath.lastIndexOf('.');
+      const conflictPath = dotIdx >= 0
+        ? `${tabPath.slice(0, dotIdx)}.conflict${tabPath.slice(dotIdx)}`
+        : `${tabPath}.conflict`;
+      await FileSystemBridge.writeFile(conflictPath, localContent);
+      setTabs((prev) => prev.map((tab) => tab.path === tabPath ? { ...tab, content: cloudContent, isDirty: false } : tab));
+      tabMetaRef.current.set(tabPath, { path: tabPath, loadedAt: Date.now(), contentHash: simpleHash(cloudContent) });
+    }
+
+    setConflict(null);
+  }, [conflict]);
 
   const deleteFile = useCallback(async (path: string) => {
     Alert.alert('Delete file', `Delete "${path.split('/').pop()}"?`, [
@@ -187,7 +254,7 @@ export default function App() {
 
   const gitStatus = useCallback(async () => {
     try {
-      const status = await GitBridge.status(ROOT_PATH);
+      const status = await GitBridge.status(rootPath);
       setGitBranch(status.branch);
       Alert.alert(
         `Git — ${status.branch}`,
@@ -213,7 +280,7 @@ export default function App() {
         text: 'Commit',
         onPress: async () => {
           try {
-            await GitBridge.commit(ROOT_PATH, 'feat: update from NomadCode', {
+            await GitBridge.commit(rootPath, 'feat: update from NomadCode', {
               name: 'NomadCode User',
               email: 'user@nomadcode.app',
             });
@@ -335,7 +402,7 @@ export default function App() {
       <TabletResponsive
         sidebar={
           <FileExplorer
-            rootPath={ROOT_PATH}
+            rootPath={rootPath}
             onFileSelect={openFile}
             onFileCreate={openFile}
             onFileDelete={deleteFile}
@@ -353,7 +420,7 @@ export default function App() {
             onSave={saveFile}
           />
         }
-        terminal={<TerminalWebView workingDirectory={ROOT_PATH} onCommand={handleCommandComplete} visible={showTerminal} />}
+        terminal={<TerminalWebView workingDirectory={rootPath} onCommand={handleCommandComplete} visible={showTerminal} />}
         terminalHeight={terminalHeight}
         onTerminalHeightChange={setTerminalHeight}
         onOpenPalette={() => setShowPalette(true)}
@@ -396,6 +463,9 @@ export default function App() {
 
       {/* ── Settings screen ───────────────────────────────────────────────── */}
       <SettingsScreen visible={showSettings} onClose={() => setShowSettings(false)} />
+
+      {/* ── Cloud-sync conflict resolution modal ─────────────────────────── */}
+      <WorkspaceConflictModal conflict={conflict} onResolve={handleConflictResolve} />
 
       {/* ── Extension host (hidden, always mounted) ──────────────────────── */}
       <ExtensionHost

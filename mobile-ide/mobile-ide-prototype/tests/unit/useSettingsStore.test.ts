@@ -2,7 +2,8 @@
  * Unit tests — useSettingsStore
  *
  * AsyncStorage is mocked so tests run in Node without a device.
- * Coverage: default state, setTheme, setFontSize (with clamp), setWorkspacePath, completeSetup.
+ * Coverage: default state, setTheme, setFontSize (with clamp), setWorkspacePath,
+ * setWorkspaceRoot (atomic workspace root), completeSetup.
  */
 
 import { act, renderHook } from '@testing-library/react-native';
@@ -21,6 +22,9 @@ beforeEach(() => {
     theme: 'nomad-dark',
     fontSize: 14,
     workspacePath: '',
+    workspaceUri: '',
+    workspaceUriType: 'file',
+    workspaceDisplayName: '',
     hasCompletedSetup: false,
     installedExtensions: [],
   });
@@ -41,6 +45,21 @@ describe('useSettingsStore — default state', () => {
   it('defaults workspacePath to empty string', () => {
     const { result } = renderHook(() => useSettingsStore());
     expect(result.current.workspacePath).toBe('');
+  });
+
+  it('defaults workspaceUri to empty string', () => {
+    const { result } = renderHook(() => useSettingsStore());
+    expect(result.current.workspaceUri).toBe('');
+  });
+
+  it('defaults workspaceUriType to file', () => {
+    const { result } = renderHook(() => useSettingsStore());
+    expect(result.current.workspaceUriType).toBe('file');
+  });
+
+  it('defaults workspaceDisplayName to empty string', () => {
+    const { result } = renderHook(() => useSettingsStore());
+    expect(result.current.workspaceDisplayName).toBe('');
   });
 
   it('defaults hasCompletedSetup to false', () => {
@@ -83,6 +102,48 @@ describe('useSettingsStore — actions', () => {
     const { result } = renderHook(() => useSettingsStore());
     act(() => { result.current.setWorkspacePath('/projects/myapp'); });
     expect(result.current.workspacePath).toBe('/projects/myapp');
+  });
+
+  describe('setWorkspaceRoot', () => {
+    it('sets workspaceUri, workspaceUriType, and workspaceDisplayName atomically (file://)', () => {
+      const { result } = renderHook(() => useSettingsStore());
+      act(() => {
+        result.current.setWorkspaceRoot({
+          uri: 'file:///var/mobile/Documents/Projects',
+          uriType: 'file',
+          displayName: 'Projects',
+        });
+      });
+      expect(result.current.workspaceUri).toBe('file:///var/mobile/Documents/Projects');
+      expect(result.current.workspaceUriType).toBe('file');
+      expect(result.current.workspaceDisplayName).toBe('Projects');
+    });
+
+    it('sets workspaceUri, workspaceUriType, and workspaceDisplayName atomically (SAF content://)', () => {
+      const { result } = renderHook(() => useSettingsStore());
+      act(() => {
+        result.current.setWorkspaceRoot({
+          uri: 'content://com.android.externalstorage.documents/tree/primary%3AProjects',
+          uriType: 'saf',
+          displayName: 'Projects',
+        });
+      });
+      expect(result.current.workspaceUri).toBe('content://com.android.externalstorage.documents/tree/primary%3AProjects');
+      expect(result.current.workspaceUriType).toBe('saf');
+      expect(result.current.workspaceDisplayName).toBe('Projects');
+    });
+
+    it('also mirrors uri to workspacePath for backward compat', () => {
+      const { result } = renderHook(() => useSettingsStore());
+      act(() => {
+        result.current.setWorkspaceRoot({
+          uri: 'file:///var/mobile/Documents/Projects',
+          uriType: 'file',
+          displayName: 'Projects',
+        });
+      });
+      expect(result.current.workspacePath).toBe('file:///var/mobile/Documents/Projects');
+    });
   });
 
   it('completeSetup sets hasCompletedSetup to true', () => {
