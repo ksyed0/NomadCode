@@ -81,11 +81,15 @@ async function safWriteFile(uri: string, content: string): Promise<void> {
 
 async function safCreateFile(path: string, content = ''): Promise<void> {
   // SAF createFileAsync needs (parentDirUri, fileName, mimeType).
-  // The caller passes a path like `<parentUri>/<filename>` — we split at the
-  // last encoded slash or literal slash.
-  const lastSlash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('%2F'));
-  const parentUri = path.slice(0, lastSlash);
-  const fileName = decodeURIComponent(path.slice(lastSlash + 1));
+  // The caller passes a path like `<parentUri>/%2F<filename>` or `<parentUri>/<filename>`.
+  // lastIndexOf('%2F') returns the position of '%', so we must advance by 3
+  // (the length of '%2F') to skip past the separator, not just by 1.
+  const pctIdx = path.lastIndexOf('%2F');
+  const slashIdx = path.lastIndexOf('/');
+  const isSAFSep = pctIdx > slashIdx;
+  const sepStart = isSAFSep ? pctIdx : slashIdx;
+  const parentUri = path.slice(0, sepStart);
+  const fileName = decodeURIComponent(path.slice(sepStart + (isSAFSep ? 3 : 1)));
   const newUri = await ExpoFS.StorageAccessFramework.createFileAsync(
     parentUri,
     fileName,

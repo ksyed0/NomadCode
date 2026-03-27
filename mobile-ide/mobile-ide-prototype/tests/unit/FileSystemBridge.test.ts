@@ -361,6 +361,19 @@ describe('FileSystemBridge.createFile — SAF path', () => {
     expect(mockSAFCreateFile).toHaveBeenCalled();
     expect(mockSAFWriteAsString).not.toHaveBeenCalled();
   });
+
+  it('correctly splits parentUri and fileName when separator is %2F (not literal /)', async () => {
+    // SAF paths from readDirectoryAsync use %2F as the encoded path separator.
+    // The old code used lastIndexOf('%2F') which returns the position of '%',
+    // making parentUri end with '%' and fileName start with '2F'.
+    const path = `${SAF_DIR}%2Fnewfile.ts`;
+    const returnedUri = `${SAF_DIR}%2Fnewfile.ts`;
+    mockSAFCreateFile.mockResolvedValueOnce(returnedUri);
+    mockSAFWriteAsString.mockResolvedValueOnce(undefined);
+
+    await FileSystemBridge.createFile(path, 'hello');
+    expect(mockSAFCreateFile).toHaveBeenCalledWith(SAF_DIR, 'newfile.ts', 'text/plain');
+  });
 });
 
 describe('FileSystemBridge.deleteEntry — SAF path', () => {

@@ -6,6 +6,8 @@
  * the app returns to the foreground.
  *
  * Not cryptographic — only used for change-detection equality checks.
+ * 32-bit hash space (~4 billion values): collision probability is negligible for
+ * typical source files but non-zero for very large files. Do not use for security.
  */
 export function simpleHash(str: string): string {
   let hash = 5381;

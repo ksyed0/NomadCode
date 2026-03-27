@@ -89,6 +89,10 @@ export default function App() {
   // time, so we can detect background cloud sync changes on app foreground.
   const tabMetaRef = useRef<Map<string, OpenTabMeta>>(new Map());
   const [conflict, setConflict] = useState<ConflictInfo | null>(null);
+  // tabsRef is kept in sync on every render so the AppState callback (registered
+  // once) always sees current tab state without a stale closure.
+  const tabsRef = useRef(tabs);
+  useEffect(() => { tabsRef.current = tabs; }, [tabs]);
 
   // ---------------------------------------------------------------------------
   // File operations
@@ -182,6 +186,9 @@ export default function App() {
   // When the app returns to the foreground, compare each open tab's stored
   // content hash against the current on-disk file. If they differ the OS cloud
   // provider has synced a new version while we were backgrounded.
+  // Registered once (empty dep array) — reads tabsRef.current instead of the
+  // captured closure so it always sees the latest tab state even if the async
+  // file reads resolve after subsequent tab mutations.
   useEffect(() => {
     const subscription = AppState.addEventListener('change', async (nextState) => {
       if (nextState !== 'active') return;
@@ -189,7 +196,7 @@ export default function App() {
         try {
           const diskContent = await FileSystemBridge.readFile(path);
           if (simpleHash(diskContent) === meta.contentHash) continue;
-          const openTab = tabs.find((tab) => tab.path === path);
+          const openTab = tabsRef.current.find((tab) => tab.path === path);
           if (!openTab) continue;
           const fileName = path.split('%2F').pop()?.split('/').pop() ?? path;
           setConflict({
@@ -205,13 +212,16 @@ export default function App() {
       }
     });
     return () => subscription.remove();
-  }, [tabs]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConflictResolve = useCallback(async (resolution: ConflictResolution) => {
     if (!conflict) return;
     const { tabPath, localContent, cloudContent } = conflict;
 
     if (resolution === 'keep-mine') {
+      // Write editor content back to disk; without this the on-disk file still
+      // holds cloudContent so the next foreground check re-fires the same conflict.
+      await FileSystemBridge.writeFile(tabPath, localContent);
       tabMetaRef.current.set(tabPath, { path: tabPath, loadedAt: Date.now(), contentHash: simpleHash(localContent) });
     } else if (resolution === 'use-cloud') {
       setTabs((prev) => prev.map((tab) => tab.path === tabPath ? { ...tab, content: cloudContent, isDirty: false } : tab));
@@ -223,8 +233,10 @@ export default function App() {
         ? `${tabPath.slice(0, dotIdx)}.conflict${tabPath.slice(dotIdx)}`
         : `${tabPath}.conflict`;
       await FileSystemBridge.writeFile(conflictPath, localContent);
+      // Open the .conflict file in a new tab so the user can immediately compare
       setTabs((prev) => prev.map((tab) => tab.path === tabPath ? { ...tab, content: cloudContent, isDirty: false } : tab));
       tabMetaRef.current.set(tabPath, { path: tabPath, loadedAt: Date.now(), contentHash: simpleHash(cloudContent) });
+      openFile(conflictPath);
     }
 
     setConflict(null);
