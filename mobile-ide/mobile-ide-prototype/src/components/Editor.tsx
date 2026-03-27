@@ -31,6 +31,7 @@ import {
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { buildMonacoHtml, MonacoAssetManager } from '../utils/MonacoAssetManager';
+import { getLanguageRules } from '../utils/languageRules';
 import { useTheme, getMonacoTheme } from '../theme/tokens';
 import useSettingsStore from '../stores/useSettingsStore';
 
@@ -60,21 +61,43 @@ interface EditorProps {
 // ---------------------------------------------------------------------------
 
 const LANG_MAP: Record<string, string> = {
+  // TypeScript / JavaScript
   ts: 'typescript', tsx: 'typescript',
   js: 'javascript', jsx: 'javascript', mjs: 'javascript', cjs: 'javascript',
-  json: 'json', jsonc: 'json',
+  // Web
+  json: 'json', jsonc: 'jsonc',
   md: 'markdown', mdx: 'markdown',
   css: 'css', scss: 'scss', less: 'less',
   html: 'html', htm: 'html', xml: 'xml',
+  // Scripting
   py: 'python', rb: 'ruby', php: 'php',
+  lua: 'lua',
+  ex: 'elixir', exs: 'elixir',
+  r: 'r',
+  pl: 'perl', pm: 'perl',
+  // Systems / compiled
   rs: 'rust', go: 'go', swift: 'swift',
   c: 'c', cpp: 'cpp', h: 'c', hpp: 'cpp',
   java: 'java', kt: 'kotlin',
+  cs: 'csharp',
+  fs: 'fsharp', fsx: 'fsharp',
+  scala: 'scala',
+  dart: 'dart',
+  zig: 'zig',
+  m: 'objective-c',
+  vb: 'vb',
+  // Shell / infra
   sh: 'shell', bash: 'shell', zsh: 'shell',
-  yaml: 'yaml', yml: 'yaml',
-  toml: 'ini', env: 'ini',
-  sql: 'sql', graphql: 'graphql',
+  ps1: 'powershell', psm1: 'powershell',
+  tf: 'hcl', hcl: 'hcl',
   dockerfile: 'dockerfile',
+  // Data / config
+  yaml: 'yaml', yml: 'yaml',
+  toml: 'toml', env: 'ini', ini: 'ini', cfg: 'ini',
+  sql: 'sql', graphql: 'graphql',
+  proto: 'proto',
+  // Vue SFCs: no dedicated Monaco grammar — fall back to HTML
+  vue: 'html',
 };
 
 export function getLanguageForFile(filename: string): string {
@@ -334,6 +357,7 @@ export default function Editor({
       content: activeTab.content,
       language: activeTab.language,
       resetView: true,
+      rules: getLanguageRules(activeTab.language),
     });
     webViewRef.current?.injectJavaScript(
       `window.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));true;`,
