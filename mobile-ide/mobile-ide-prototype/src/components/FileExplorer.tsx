@@ -10,7 +10,6 @@ import {
   Modal,
   Alert,
   Dimensions,
-  InteractionManager,
   Platform,
 } from 'react-native';
 import { FileSystemBridge, FileEntry } from '../utils/FileSystemBridge';
