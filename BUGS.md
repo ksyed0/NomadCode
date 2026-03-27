@@ -525,3 +525,71 @@ directly as the `$GITHUB_OUTPUT` value violated the required `key=value` format.
 `package.json`), then extract the clean version with `jq -r '.version' package.json`.
 `jq` always outputs a single, clean version string with no prefix or extra lines.
 PR #46: `bugfix/version-bump-output-format`
+
+---
+
+## Plan Visualizer / Tooling (detected 2026-03-25)
+
+### BUG-0031 / TOOL-1 — `capture-cost.js` Stop hook records zero tokens and cost for every session [IN_PROGRESS]
+
+**Severity:** Medium (cost tracking non-functional; all AI spend shown as $0.00 in the dashboard)
+**File:** `tools/capture-cost.js`, `.claude/settings.json` (Stop hook)
+**Description:**
+The Stop hook runs `capture-cost.js` on every session end and appends a row to
+`docs/AI_COST_LOG.md`. Every row produced by the hook shows `0 | 0 | 0 | 0.0000` for
+tokens and cost. Confirmed via debug logs: the hook executes but receives `{ session_id,
+stop_hook_active }` only — Claude Code 50.18.2 does not include `cost_usd` or `usage`
+fields in the Stop hook stdin payload.
+
+The seed rows at the top of `AI_COST_LOG.md` (e.g. `sess_prot0_001`, $0.84) are
+manually entered — no real per-session cost has ever been captured by the hook.
+
+**Root cause:** Claude Code's Stop hook payload did not include cost/token data in
+version 50.18.2. The `capture-cost.js` script was written expecting those fields.
+
+**Partial fix applied (2026-03-27, Claude Code 2.1.85):**
+- Zero-cost rows are now tagged `[NO_DATA]` in the Session ID column so they are
+  visually distinguishable from real entries.
+- Raw Stop-hook stdin is saved to `docs/capture-cost-debug.json` on every invocation.
+  After this session ends, inspect that file to verify whether 2.1.85 includes
+  `cost_usd` / `usage` in the payload.  If it does, no further code changes are needed
+  and this bug can be marked FIXED.
+- `buildRow()` logic extracted and covered by 13 unit tests
+  (`tests/unit/capture-cost.test.js`).
+- `docs/capture-cost-debug.json` added to `.gitignore`.
+
+**Remaining action:**
+Check `docs/capture-cost-debug.json` after the next session end.  If the payload
+contains `cost_usd` / `usage`, mark this bug FIXED.  If still missing, implement the
+`stats-cache.json` diff approach (see options below).
+
+**Fix options (if payload still missing data):**
+1. **Read from `~/.claude/stats-cache.json`** — contains daily token aggregates by
+   model; could be diffed between session start and stop to approximate session cost.
+2. **Open an upstream issue** in the plan-visualizer parent project requesting that
+   `capture-cost.js` document the minimum Claude Code version required.
+
+---
+
+### BUG-0032 / TOOL-2 — `docs/LESSONS.md` missing — plan visualizer Lessons tab always empty [FIXED]
+
+**Severity:** Low (dashboard Lessons tab renders "No lessons logged yet" instead of project lessons)
+**File:** `docs/LESSONS.md` (absent), `plan-visualizer.config.json`
+**Description:**
+`tools/generate-plan.js` reads `docs/LESSONS.md` to populate the Lessons tab in the plan
+visualizer dashboard. The file was never created and was not listed in
+`plan-visualizer.config.json` (relying on the hardcoded default path). `readFile()` returns
+`''` for missing files, so `parseLessons('')` returns `[]` → "No lessons logged yet." The
+Lessons tab has been empty since the plan visualizer was introduced.
+
+**Root cause:** `LESSONS.md` was never created as part of the plan visualizer setup, and no
+session had captured lessons in the expected format.
+
+**Fix:** Created `docs/LESSONS.md` with 4 seed lessons from recent sessions:
+- L-0001: `npm version` stdout is multiline in newer npm
+- L-0002: debug.keystore must be gitignored before `expo prebuild`
+- L-0003: `injectJavaScript` silently dropped on hidden WebViews
+- L-0004: double-stringify required when passing JSON through `injectJavaScript`
+Also added explicit `"lessons": "docs/LESSONS.md"` to `plan-visualizer.config.json`.
+
+---

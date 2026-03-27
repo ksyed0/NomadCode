@@ -23,7 +23,7 @@
       "title": "Terminal",
       "description": "Integrated sandboxed terminal via Xterm.js + WASI for running build/test commands.",
       "releaseTarget": "Release 0.5 (Beta)",
-      "status": "Planned",
+      "status": "In Progress",
       "dependencies": [
         "EPIC-0001",
         "EPIC-0002"
@@ -34,7 +34,7 @@
       "title": "Command Palette",
       "description": "Fuzzy-search command palette accessible by gesture or Cmd+P for keyboard-free power workflows.",
       "releaseTarget": "Release 0.5 (Beta)",
-      "status": "Planned",
+      "status": "Done",
       "dependencies": [
         "EPIC-0001"
       ]
@@ -44,7 +44,7 @@
       "title": "Customization",
       "description": "Light/dark themes, font size settings, and extension installation.",
       "releaseTarget": "Release 1.0 (GA)",
-      "status": "Planned",
+      "status": "Done",
       "dependencies": [
         "EPIC-0001",
         "EPIC-0002",
@@ -59,6 +59,102 @@
       "releaseTarget": "MVP (v0.1)",
       "status": "Done",
       "dependencies": []
+    },
+    {
+      "id": "EPIC-0007",
+      "title": "Authentication",
+      "description": "GitHub OAuth sign-in via browser redirect, secure token storage in platform keychain, and sign-out with token revocation.",
+      "releaseTarget": "Release 1.0 (GA)",
+      "status": "Done",
+      "dependencies": [
+        "EPIC-0005"
+      ]
+    },
+    {
+      "id": "EPIC-0008",
+      "title": "Git Integration",
+      "description": "Full git workflow via isomorphic-git — clone, stage, commit, push, pull, diff, and branch management.",
+      "releaseTarget": "Release 1.0 (GA)",
+      "status": "Planned",
+      "dependencies": [
+        "EPIC-0007"
+      ]
+    },
+    {
+      "id": "EPIC-0009",
+      "title": "In-App Purchases & Monetization",
+      "description": "Three-tier subscription model (Free / Pro / Pro+AI) via native IAP with receipt validation and feature gating.",
+      "releaseTarget": "Release 1.0 (GA)",
+      "status": "Planned",
+      "dependencies": [
+        "EPIC-0007"
+      ]
+    },
+    {
+      "id": "EPIC-0010",
+      "title": "AI Suggestions",
+      "description": "Inline code completions and AI chat panel powered by Claude API, gated behind the Pro+AI subscription tier.",
+      "releaseTarget": "Release 1.0 (GA)",
+      "status": "Planned",
+      "dependencies": [
+        "EPIC-0009",
+        "EPIC-0008"
+      ]
+    },
+    {
+      "id": "EPIC-0011",
+      "title": "App Store & EAS Build Delivery",
+      "description": "EAS Build pipeline producing iOS .ipa and Android .aab artefacts, submitted to App Store Connect and Google Play Console.",
+      "releaseTarget": "Release 1.0 (GA)",
+      "status": "Planned",
+      "dependencies": [
+        "EPIC-0005",
+        "EPIC-0007",
+        "EPIC-0008",
+        "EPIC-0009",
+        "EPIC-0010"
+      ]
+    },
+    {
+      "id": "EPIC-0012",
+      "title": "Cloud Sync",
+      "description": "S3-compatible cloud storage for project sync — upload on save, pull on launch, conflict resolution UI.",
+      "releaseTarget": "Release 1.1 (Post-Launch)",
+      "status": "Deferred",
+      "dependencies": [
+        "EPIC-0007"
+      ]
+    },
+    {
+      "id": "EPIC-0013",
+      "title": "Multi-Language Editor Support",
+      "description": "Syntax highlighting, indentation rules, and auto-close brackets for Python, Rust, Go, Swift, and other popular languages.",
+      "releaseTarget": "Release 1.1 (Post-Launch)",
+      "status": "Deferred",
+      "dependencies": [
+        "EPIC-0001"
+      ]
+    },
+    {
+      "id": "EPIC-0014",
+      "title": "Global Search — Find in Files",
+      "description": "Cross-project full-text search panel with result grouping by file, line preview, and navigate-to-line.",
+      "releaseTarget": "Release 1.1 (Post-Launch)",
+      "status": "Deferred",
+      "dependencies": [
+        "EPIC-0001",
+        "EPIC-0002"
+      ]
+    },
+    {
+      "id": "EPIC-0015",
+      "title": "Crash Reporting & Observability",
+      "description": "Automated crash reporting via Sentry/Bugsnag and performance metric tracking (cold start, latency, memory) with alerting.",
+      "releaseTarget": "Release 1.1 (Post-Launch)",
+      "status": "Deferred",
+      "dependencies": [
+        "EPIC-0011"
+      ]
     }
   ],
   "stories": [
@@ -446,6 +542,169 @@
       ]
     },
     {
+      "id": "US-0050",
+      "epicId": "EPIC-0003",
+      "title": "As a developer, I can use `touch`, `cp`, and `mv` commands to create and manage files.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
+      "acs": [
+        {
+          "id": "AC-0136",
+          "text": "`touch <file>` creates a file if it doesn't exist; no-op if it does",
+          "done": true
+        },
+        {
+          "id": "AC-0137",
+          "text": "`cp <src> <dest>` copies a file/directory",
+          "done": true
+        },
+        {
+          "id": "AC-0138",
+          "text": "`mv <src> <dest>` moves/renames a file/directory",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0012"
+      ]
+    },
+    {
+      "id": "US-0051",
+      "epicId": "EPIC-0003",
+      "title": "As a developer, I can use `clear` to reset the terminal screen.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
+      "acs": [
+        {
+          "id": "AC-0139",
+          "text": "`clear` resets terminal output",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0012"
+      ]
+    },
+    {
+      "id": "US-0052",
+      "epicId": "EPIC-0003",
+      "title": "As a developer, I can run `node <file>` to execute JavaScript files.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
+      "acs": [
+        {
+          "id": "AC-0140",
+          "text": "`node <file>` executes JS via WebView engine, capturing console.log output",
+          "done": true
+        },
+        {
+          "id": "AC-0141",
+          "text": "`node <file>` with `require()` returns a clear error",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0012"
+      ]
+    },
+    {
+      "id": "US-0053",
+      "epicId": "EPIC-0003",
+      "title": "As a developer, I can use `npm run <script>` to run package.json scripts.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
+      "acs": [
+        {
+          "id": "AC-0142",
+          "text": "`npm run <script>` reads package.json and runs the matching script",
+          "done": true
+        },
+        {
+          "id": "AC-0143",
+          "text": "`npm run <missing>` returns 'not found in package.json' error",
+          "done": true
+        },
+        {
+          "id": "AC-0144",
+          "text": "`npm install` returns 'not supported' error",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0012"
+      ]
+    },
+    {
+      "id": "US-0054",
+      "epicId": "EPIC-0003",
+      "title": "As a developer, I can use `npx prettier` offline to format code.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
+      "acs": [
+        {
+          "id": "AC-0145",
+          "text": "`npx prettier <file>` formats the file using pre-bundled prettier",
+          "done": true
+        },
+        {
+          "id": "AC-0146",
+          "text": "`npx <unknown>` returns 'not available' with list of bundled tools",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0012"
+      ]
+    },
+    {
+      "id": "US-0055",
+      "epicId": "EPIC-0003",
+      "title": "As a developer, I see clear error messages for unsupported operations.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
+      "acs": [
+        {
+          "id": "AC-0147",
+          "text": "All unsupported operations return specific, actionable error messages",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0012"
+      ]
+    },
+    {
+      "id": "US-0056",
+      "epicId": "EPIC-0003",
+      "title": "App.tsx uses TerminalWebView for the live terminal experience.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "feature/epic-0003-terminal",
+      "acs": [
+        {
+          "id": "AC-0148",
+          "text": "App.tsx renders TerminalWebView instead of the deprecated Terminal stub",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0012"
+      ]
+    },
+    {
       "id": "US-0015",
       "epicId": "EPIC-0004",
       "title": "As a power user, I want to open a command palette, so that I can run any action without navigating menus.",
@@ -592,28 +851,28 @@
       "title": "As a power user, I want to install extensions, so that I can enhance the IDE with tools I need.",
       "priority": "P1",
       "estimate": "XL",
-      "status": "Planned",
+      "status": "Done",
       "branch": "",
       "acs": [
         {
           "id": "AC-0060",
           "text": "An extension manifest can be registered in ExtensionRegistry and retrieved by id",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0061",
           "text": "activateExtension registers the manifest and returns valid sandbox HTML containing the extension source",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0062",
           "text": "deactivateExtension removes the extension from ExtensionRegistry",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0063",
           "text": "Extensions run in an isolated WebView sandbox — the sandbox HTML wraps source in try/catch",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -621,6 +880,40 @@
         "EPIC-0002",
         "EPIC-0003",
         "EPIC-0004"
+      ]
+    },
+    {
+      "id": "US-0057",
+      "epicId": "EPIC-0005",
+      "title": "As a user, I want an About screen showing the splash and app info, so that I can identify the app version and credits.",
+      "priority": "P2",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "feature/EPIC-0003-terminal-ac-completion",
+      "acs": [
+        {
+          "id": "AC-0149",
+          "text": "A ⓘ button in the status bar has a minimum 44pt touch target and is accessible via aria-label=\"About NomadCode\"",
+          "done": true
+        },
+        {
+          "id": "AC-0150",
+          "text": "Tapping ⓘ opens a full-screen modal displaying the splash image",
+          "done": true
+        },
+        {
+          "id": "AC-0151",
+          "text": "The About modal footer shows the app version (from package.json) and copyright line",
+          "done": true
+        },
+        {
+          "id": "AC-0152",
+          "text": "Tapping the ✕ close button dismisses the About modal with a fade animation",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0018"
       ]
     },
     {
@@ -674,6 +967,683 @@
         }
       ],
       "dependencies": []
+    },
+    {
+      "id": "US-0022",
+      "epicId": "EPIC-0007",
+      "title": "As a developer, I want to sign in with my GitHub account, so that I can access private repositories and push code.",
+      "priority": "P0",
+      "estimate": "L",
+      "status": "Done",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0064",
+          "text": "Tapping \"Sign in with GitHub\" launches the system browser with the correct OAuth authorize URL",
+          "done": true
+        },
+        {
+          "id": "AC-0065",
+          "text": "After successful OAuth callback, an access token is returned and stored in the keychain",
+          "done": true
+        },
+        {
+          "id": "AC-0066",
+          "text": "The user's GitHub username and avatar are displayed in the settings screen after sign-in",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "EPIC-0005"
+      ]
+    },
+    {
+      "id": "US-0023",
+      "epicId": "EPIC-0007",
+      "title": "As a developer, I want my auth token stored securely, so that my credentials are never exposed.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0067",
+          "text": "OAuth access token is stored in the platform keychain (iOS Keychain / Android Keystore), not in app storage or logs",
+          "done": true
+        },
+        {
+          "id": "AC-0068",
+          "text": "Token survives app restart and is retrieved without re-authentication",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0022"
+      ]
+    },
+    {
+      "id": "US-0024",
+      "epicId": "EPIC-0007",
+      "title": "As a developer, I want to sign out, so that I can switch accounts or revoke access.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0069",
+          "text": "Tapping \"Sign out\" deletes the token from the keychain and clears the user session",
+          "done": true
+        },
+        {
+          "id": "AC-0070",
+          "text": "After sign-out, git operations requiring auth prompt re-authentication",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0022",
+        "US-0023"
+      ]
+    },
+    {
+      "id": "US-0025",
+      "epicId": "EPIC-0008",
+      "title": "As a developer, I want to clone a GitHub repository, so that I can work on an existing project.",
+      "priority": "P0",
+      "estimate": "L",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0071",
+          "text": "User can enter a GitHub repository URL and initiate a clone to local storage",
+          "done": false
+        },
+        {
+          "id": "AC-0072",
+          "text": "Clone progress is shown via a progress indicator; errors surface a readable message",
+          "done": false
+        },
+        {
+          "id": "AC-0073",
+          "text": "Cloned repo appears in the file explorer immediately on completion",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0007"
+      ]
+    },
+    {
+      "id": "US-0026",
+      "epicId": "EPIC-0008",
+      "title": "As a developer, I want to stage and commit changes, so that I can record my work in git history.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0074",
+          "text": "Modified files are listed in the git status panel with staged/unstaged indicators",
+          "done": false
+        },
+        {
+          "id": "AC-0075",
+          "text": "Tapping a file checkbox toggles it between staged and unstaged",
+          "done": false
+        },
+        {
+          "id": "AC-0076",
+          "text": "Entering a commit message and confirming creates a local commit",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0025"
+      ]
+    },
+    {
+      "id": "US-0027",
+      "epicId": "EPIC-0008",
+      "title": "As a developer, I want to push and pull from remote, so that I can collaborate with my team.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0077",
+          "text": "Tapping Push sends local commits to the remote using the stored OAuth token",
+          "done": false
+        },
+        {
+          "id": "AC-0078",
+          "text": "Tapping Pull fetches and merges remote changes into the working directory",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0026"
+      ]
+    },
+    {
+      "id": "US-0028",
+      "epicId": "EPIC-0008",
+      "title": "As a developer, I want to view file diffs, so that I can review changes before committing.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0079",
+          "text": "Tapping a modified file in the git status panel shows an inline diff view",
+          "done": false
+        },
+        {
+          "id": "AC-0080",
+          "text": "Added lines are highlighted green; removed lines are highlighted red",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0026"
+      ]
+    },
+    {
+      "id": "US-0029",
+      "epicId": "EPIC-0008",
+      "title": "As a developer, I want to create and switch branches, so that I can work on features in isolation.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0081",
+          "text": "Current branch name is visible in the status bar",
+          "done": false
+        },
+        {
+          "id": "AC-0082",
+          "text": "User can create a new branch from the current HEAD via the branch panel",
+          "done": false
+        },
+        {
+          "id": "AC-0083",
+          "text": "User can switch to an existing local branch without losing uncommitted changes",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0025"
+      ]
+    },
+    {
+      "id": "US-0030",
+      "epicId": "EPIC-0009",
+      "title": "As a free-tier user, I want clear limits displayed, so that I understand what the free plan includes.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0084",
+          "text": "Free tier users can open up to 3 files simultaneously; attempting a 4th shows an upgrade prompt",
+          "done": false
+        },
+        {
+          "id": "AC-0085",
+          "text": "Free tier label is displayed in the settings screen alongside an upgrade CTA",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0007"
+      ]
+    },
+    {
+      "id": "US-0031",
+      "epicId": "EPIC-0009",
+      "title": "As a developer, I want to subscribe to Pro, so that I can unlock unlimited files and advanced features.",
+      "priority": "P0",
+      "estimate": "L",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0086",
+          "text": "Pro subscription is purchasable via the native IAP sheet on iOS and Google Play Billing on Android",
+          "done": false
+        },
+        {
+          "id": "AC-0087",
+          "text": "Successful purchase removes file-count limits and unlocks Pro-gated features immediately",
+          "done": false
+        },
+        {
+          "id": "AC-0088",
+          "text": "Subscription status persists across app restarts via server-side receipt validation",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0030"
+      ]
+    },
+    {
+      "id": "US-0032",
+      "epicId": "EPIC-0009",
+      "title": "As a power user, I want to subscribe to Pro+AI, so that I can use AI-powered code suggestions.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0089",
+          "text": "Pro+AI subscription unlocks AI Suggestions features in addition to all Pro features",
+          "done": false
+        },
+        {
+          "id": "AC-0090",
+          "text": "Purchasing Pro+AI when already on Pro upgrades the subscription without double-charging",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0031"
+      ]
+    },
+    {
+      "id": "US-0033",
+      "epicId": "EPIC-0010",
+      "title": "As a Pro+AI user, I want inline code completions, so that I can write code faster.",
+      "priority": "P0",
+      "estimate": "XL",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0091",
+          "text": "While typing, ghost-text completions appear after a 300 ms debounce",
+          "done": false
+        },
+        {
+          "id": "AC-0092",
+          "text": "Pressing Tab accepts the current completion; pressing Escape dismisses it",
+          "done": false
+        },
+        {
+          "id": "AC-0093",
+          "text": "Completions are only triggered for Pro+AI subscribers; other users see no ghost text",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0009",
+        "EPIC-0008"
+      ]
+    },
+    {
+      "id": "US-0034",
+      "epicId": "EPIC-0010",
+      "title": "As a Pro+AI user, I want an AI chat panel, so that I can ask questions about my code.",
+      "priority": "P0",
+      "estimate": "L",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0094",
+          "text": "A chat panel can be opened alongside the editor via a toolbar button",
+          "done": false
+        },
+        {
+          "id": "AC-0095",
+          "text": "User can type a prompt referencing the current file and receive a streamed response",
+          "done": false
+        },
+        {
+          "id": "AC-0096",
+          "text": "Chat history persists for the session and is cleared on app restart",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0033"
+      ]
+    },
+    {
+      "id": "US-0035",
+      "epicId": "EPIC-0010",
+      "title": "As a non-subscriber, I want AI features gated with a clear upgrade prompt, so that I understand what I'm missing.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0097",
+          "text": "Non-Pro+AI users see a paywall prompt when attempting to open the AI chat panel",
+          "done": false
+        },
+        {
+          "id": "AC-0098",
+          "text": "AI completion ghost text is hidden entirely for Free and Pro tier users",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0033",
+        "US-0034"
+      ]
+    },
+    {
+      "id": "US-0036",
+      "epicId": "EPIC-0011",
+      "title": "As a release engineer, I want an EAS Build pipeline, so that I can produce store-ready binaries from CI.",
+      "priority": "P0",
+      "estimate": "L",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0099",
+          "text": "`eas build --platform all` produces a valid iOS .ipa and Android .aab without errors",
+          "done": false
+        },
+        {
+          "id": "AC-0100",
+          "text": "Build configuration is defined in `eas.json` with a production profile",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0005",
+        "EPIC-0007",
+        "EPIC-0008",
+        "EPIC-0009",
+        "EPIC-0010"
+      ]
+    },
+    {
+      "id": "US-0058",
+      "epicId": "EPIC-0011",
+      "title": "As a release engineer, I want branded app icons, splash screens, and named APK artefacts, so that the app presents a polished identity in stores and on device home screens.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "feature/EPIC-0003-terminal-ac-completion",
+      "acs": [
+        {
+          "id": "AC-0153",
+          "text": "App icon (1024×1024 NomadCode logo) is correctly referenced in `app.json`, `ios/Images.xcassets/AppIcon`, and all Android mipmap densities (mdpi–xxxhdpi WebP)",
+          "done": true
+        },
+        {
+          "id": "AC-0154",
+          "text": "Splash screen displays the NomadCode logo centred on Deep Slate (#0F172A) background; `app.json` splash config uses `resizeMode: \"contain\"` and matching backgroundColor",
+          "done": true
+        },
+        {
+          "id": "AC-0155",
+          "text": "Android APK build artefacts are named `NomadCode-debug.apk` and `NomadCode-release.apk` via `applicationVariants.all` in `android/app/build.gradle`",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "EPIC-0005"
+      ]
+    },
+    {
+      "id": "US-0037",
+      "epicId": "EPIC-0011",
+      "title": "As a release engineer, I want to submit to the iOS App Store, so that users can install on iPhone and iPad.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0101",
+          "text": "`eas submit --platform ios` successfully uploads the build to App Store Connect",
+          "done": false
+        },
+        {
+          "id": "AC-0102",
+          "text": "App metadata (name, description, screenshots, privacy policy URL) is complete in App Store Connect",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0036"
+      ]
+    },
+    {
+      "id": "US-0038",
+      "epicId": "EPIC-0011",
+      "title": "As a release engineer, I want to submit to Google Play, so that users can install on Android devices.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0103",
+          "text": "`eas submit --platform android` successfully uploads the build to the Google Play Console",
+          "done": false
+        },
+        {
+          "id": "AC-0104",
+          "text": "App metadata (title, description, screenshots) is complete in the Play Console internal track",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0036"
+      ]
+    },
+    {
+      "id": "US-0039",
+      "epicId": "EPIC-0012",
+      "title": "As a developer, I want to upload my project to cloud storage, so that I can access it from multiple devices.",
+      "priority": "P1",
+      "estimate": "L",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0105",
+          "text": "User can connect an S3-compatible bucket by entering endpoint URL and access credentials in settings",
+          "done": false
+        },
+        {
+          "id": "AC-0106",
+          "text": "Modified local files are uploaded to the configured bucket automatically on save",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0007"
+      ]
+    },
+    {
+      "id": "US-0040",
+      "epicId": "EPIC-0012",
+      "title": "As a developer, I want to download remote changes on launch, so that my files are always up to date.",
+      "priority": "P1",
+      "estimate": "L",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0107",
+          "text": "On app launch with network access, remote changes are pulled and merged into local storage",
+          "done": false
+        },
+        {
+          "id": "AC-0108",
+          "text": "Sync conflicts are surfaced to the user with a merge prompt before overwriting local files",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0039"
+      ]
+    },
+    {
+      "id": "US-0041",
+      "epicId": "EPIC-0013",
+      "title": "As a developer, I want syntax highlighting for Python, Rust, Go, and Swift, so that I can work in my preferred language.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0109",
+          "text": "Python, Rust, Go, and Swift files receive correct syntax highlighting",
+          "done": false
+        },
+        {
+          "id": "AC-0110",
+          "text": "Language is auto-detected from file extension; unknown extensions fall back to plain text",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0001"
+      ]
+    },
+    {
+      "id": "US-0042",
+      "epicId": "EPIC-0013",
+      "title": "As a developer, I want language-correct indentation and auto-close, so that the editor follows language conventions.",
+      "priority": "P2",
+      "estimate": "S",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0111",
+          "text": "Python files default to 4-space indentation; Go files default to tabs",
+          "done": false
+        },
+        {
+          "id": "AC-0112",
+          "text": "Bracket and quote auto-close is active for all supported languages",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0041"
+      ]
+    },
+    {
+      "id": "US-0043",
+      "epicId": "EPIC-0014",
+      "title": "As a developer, I want to search across all project files, so that I can find any symbol or string quickly.",
+      "priority": "P1",
+      "estimate": "L",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0113",
+          "text": "A global search panel can be opened via the command palette or a dedicated toolbar button",
+          "done": false
+        },
+        {
+          "id": "AC-0114",
+          "text": "Entering a query returns all matching lines across the project file tree",
+          "done": false
+        },
+        {
+          "id": "AC-0115",
+          "text": "Results are grouped by file with file path, line number, and line preview shown",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0001",
+        "EPIC-0002"
+      ]
+    },
+    {
+      "id": "US-0044",
+      "epicId": "EPIC-0014",
+      "title": "As a developer, I want to navigate to a search result, so that I can jump directly to the relevant code.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0116",
+          "text": "Tapping a search result opens the file and scrolls to the matching line",
+          "done": false
+        },
+        {
+          "id": "AC-0117",
+          "text": "The matching text is highlighted in the editor after navigation",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0043"
+      ]
+    },
+    {
+      "id": "US-0045",
+      "epicId": "EPIC-0015",
+      "title": "As a developer, I want crashes reported automatically, so that I can fix production issues quickly.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0118",
+          "text": "Unhandled exceptions and crashes are automatically reported to the configured crash reporting service",
+          "done": false
+        },
+        {
+          "id": "AC-0119",
+          "text": "No PII, user file content, or credentials are included in crash payloads",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0011"
+      ]
+    },
+    {
+      "id": "US-0046",
+      "epicId": "EPIC-0015",
+      "title": "As a developer, I want performance metrics tracked, so that I can detect regressions before users do.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0120",
+          "text": "Cold start time, editor input latency, and memory usage are tracked as named metrics",
+          "done": false
+        },
+        {
+          "id": "AC-0121",
+          "text": "Performance degradation beyond baseline thresholds (§ 8 of PROJECT.md) triggers an alert",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0045"
+      ]
     }
   ],
   "tasks": [
@@ -2079,7 +3049,8 @@
       "relatedTask": "",
       "status": "Fixed",
       "fixBranch": "feature/epic-0004-command-palette",
-      "lessonEncoded": "No"
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
     },
     {
       "id": "BUG-0002",
@@ -2089,7 +3060,8 @@
       "relatedTask": "",
       "status": "Fixed",
       "fixBranch": "feature/epic-0004-command-palette",
-      "lessonEncoded": "No"
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
     },
     {
       "id": "BUG-0003",
@@ -2099,7 +3071,8 @@
       "relatedTask": "",
       "status": "Fixed",
       "fixBranch": "feature/epic-0004-command-palette",
-      "lessonEncoded": "No"
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
     },
     {
       "id": "BUG-0004",
@@ -2109,7 +3082,52 @@
       "relatedTask": "",
       "status": "Fixed",
       "fixBranch": "feature/epic-0004-command-palette",
-      "lessonEncoded": "No"
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0006",
+      "title": "EXPO_PUBLIC_GITHUB_CLIENT_SECRET bundled in app binary; env name mismatch (AUTH-1)",
+      "severity": "Critical",
+      "relatedStory": "US-0022",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0007-auth",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0007",
+      "title": "useAutoDiscovery('https://github.com') always returns null — OAuth button non-functional (AUTH-2)",
+      "severity": "High",
+      "relatedStory": "US-0022",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0007-auth",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0008",
+      "title": "Empty catch block in exchangeCode silently discards all OAuth errors (AUTH-3)",
+      "severity": "Medium",
+      "relatedStory": "US-0022",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0007-auth",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0009",
+      "title": "Landscape-locked app crashes on iPhone simulator when SetupWizard Modal is presented (SIM-1)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Open",
+      "fixBranch": "",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
     },
     {
       "id": "BUG-0005",
@@ -2119,140 +3137,690 @@
       "relatedTask": "",
       "status": "Fixed",
       "fixBranch": "feature/epic-0004-command-palette",
-      "lessonEncoded": "No"
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0010",
+      "title": "node command exposes window.ReactNativeWebView to user scripts (TERM-1)",
+      "severity": "High",
+      "relatedStory": "US-0052",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0003-terminal",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0011",
+      "title": "Silent undefined spread in FileBridge.handleMessage for unknown message types (TERM-2)",
+      "severity": "High",
+      "relatedStory": "US-0052",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0003-terminal",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0012",
+      "title": "resolvePath does not normalise .. segments (TERM-3)",
+      "severity": "Medium",
+      "relatedStory": "US-0050",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0003-terminal",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0013",
+      "title": "TypeScript strict-mode implicit any errors in terminal dispatcher (TERM-4)",
+      "severity": "Medium",
+      "relatedStory": "US-0052",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0003-terminal",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0014",
+      "title": "npm run depth guard has no test coverage (TERM-5)",
+      "severity": "Low",
+      "relatedStory": "US-0053",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/epic-0003-terminal",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0015",
+      "title": "expo-crypto missing from package.json causes app entry not found crash on Android (ANDROID-1)",
+      "severity": "Critical",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0016",
+      "title": "Terminal dist bundle stale — all commands return \"command not found\" (TERM-6)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0017",
+      "title": "No visible \"New File\" button in FileExplorer header (UX-1)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0018",
+      "title": "onFileCreate not wired in App.tsx — new files do not auto-open in editor (UX-2)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0019",
+      "title": "\"File: New File\" command missing from command palette (UX-3)",
+      "severity": "Low",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0020",
+      "title": "App.tsx wires Terminal.tsx stub instead of TerminalWebView (TERM-7)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0021",
+      "title": "git status throws \"Cannot read properties of undefined (reading 'bind')\" in terminal (TERM-8)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0022",
+      "title": "Terminal cwd stays at \"/\" — ls / returns empty, touch creates files at wrong path (TERM-9)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0023",
+      "title": "sendToWebView injects JS object literal; receiveFromRN calls JSON.parse — all messages silently fail (TERM-10)",
+      "severity": "Critical",
+      "relatedStory": "US-0047",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
     }
   ],
   "costs": {
     "US-0001": {
       "projectedUsd": 800,
-      "aiCostUsd": 1.47,
+      "costUsd": 1.47,
       "inputTokens": 148000,
       "outputTokens": 52000
     },
     "US-0002": {
       "projectedUsd": 1600,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0003": {
       "projectedUsd": 400,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0004": {
       "projectedUsd": 400,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0005": {
       "projectedUsd": 800,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0006": {
       "projectedUsd": 800,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0007": {
       "projectedUsd": 800,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0008": {
       "projectedUsd": 400,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0009": {
       "projectedUsd": 400,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0010": {
       "projectedUsd": 400,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0011": {
       "projectedUsd": 1600,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0012": {
       "projectedUsd": 3200,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0013": {
       "projectedUsd": 800,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0014": {
       "projectedUsd": 400,
-      "aiCostUsd": 0,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0050": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0051": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0052": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0053": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0054": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0055": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0056": {
+      "projectedUsd": 400,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0015": {
       "projectedUsd": 800,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0016": {
       "projectedUsd": 400,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0017": {
       "projectedUsd": 400,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0018": {
       "projectedUsd": 800,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0019": {
       "projectedUsd": 400,
-      "aiCostUsd": 0,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0020": {
       "projectedUsd": 3200,
-      "aiCostUsd": 0,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0057": {
+      "projectedUsd": 400,
+      "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
     },
     "US-0021": {
       "projectedUsd": 3200,
-      "aiCostUsd": 1.8275000000000001,
+      "costUsd": 1.8275000000000001,
       "inputTokens": 186000,
       "outputTokens": 62200
+    },
+    "US-0022": {
+      "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0023": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0024": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0025": {
+      "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0026": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0027": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0028": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0029": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0030": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0031": {
+      "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0032": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0033": {
+      "projectedUsd": 3200,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0034": {
+      "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0035": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0036": {
+      "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0058": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0037": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0038": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0039": {
+      "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0040": {
+      "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0041": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0042": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0043": {
+      "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0044": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0045": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0046": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
     },
     "_totals": {
       "costUsd": 10.91,
       "inputTokens": 1116000,
       "outputTokens": 376200
+    },
+    "_bugs": {
+      "BUG-0001": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 2,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0002": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 2,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0003": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 2,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0004": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 2,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0006": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 7,
+        "isEstimated": false,
+        "projectedUsd": 1600
+      },
+      "BUG-0007": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 7,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0008": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 7,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0009": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0005": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 2,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0010": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 5,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0011": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 5,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0012": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 5,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0013": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 5,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0014": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 5,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0015": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 92,
+        "isEstimated": false,
+        "projectedUsd": 1600
+      },
+      "BUG-0016": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 92,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0017": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 92,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0018": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 92,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0019": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 92,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0020": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 92,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0021": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 92,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0022": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 92,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0023": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 92,
+        "isEstimated": false,
+        "projectedUsd": 1600
+      },
+      "_totals": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0
+      }
     }
   },
   "atRisk": {
@@ -2354,6 +3922,55 @@
       "openCriticalBug": false,
       "isAtRisk": false
     },
+    "US-0050": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0051": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0052": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0053": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0054": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0055": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0056": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
     "US-0015": {
       "missingTCs": false,
       "noBranch": false,
@@ -2396,43 +4013,272 @@
       "openCriticalBug": false,
       "isAtRisk": false
     },
+    "US-0057": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
     "US-0021": {
       "missingTCs": false,
       "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
       "isAtRisk": false
+    },
+    "US-0022": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0023": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0024": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0025": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0026": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0027": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0028": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0029": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0030": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0031": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0032": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0033": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0034": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0035": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0036": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0058": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0037": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0038": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0039": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0040": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0041": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0042": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0043": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0044": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0045": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0046": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
     }
   },
   "coverage": {
-    "lines": 8.56,
-    "statements": 8.74,
-    "functions": 10.76,
-    "branches": 4.66,
-    "overall": 4.66,
-    "meetsTarget": false,
+    "lines": 95.91,
+    "statements": 94.83,
+    "functions": 96.42,
+    "branches": 84.98,
+    "overall": 84.98,
+    "meetsTarget": true,
     "available": true
   },
   "recentActivity": [
     {
+      "sessionNum": "7",
+      "date": "2026-03-25",
+      "summary": "**Updated root `BUGS.md`**: added BUG-0009 through BUG-0023 (all were in `docs/BUGS.md` but missing from human-readable root tracker); **Merged PR #45** (`feature/EPIC-0003-terminal-ac-completion` → `develop`): editor tooltips, git init/errors, OAuth token bridge, VFS bridge/git fixes (BUG-0021/0022/0023), terminal commands (touch/cp/mv/clear/node/npm/npx); **Uncommitted source changes committed**: SetupWizard theming (`useTheme()` dynamic colours), TerminalWebView SET_CWD re-send on `visible` change, terminal bundle `index.ts` updates, test updates"
+    },
+    {
+      "sessionNum": "6",
+      "date": "2026-03-25",
+      "summary": "**Android runtime audit**: reviewed all requirements for iOS/Android build environment; **Fixed RUNNING.md** (5 issues): Node ≥20 LTS, removed deprecated expo-cli row, Monaco CDN → App Store compliance warning (§2.5.2), Offline Monaco section marked required, Detox config updated to `ios.ipad.debug`; **Created eas.json**: development/preview/production build profiles"
+    },
+    {
+      "sessionNum": "5",
+      "date": "2026-03-17",
+      "summary": "Fixed CI failures on Dependabot PRs:;   - PR #30 (eslint-plugin-react-hooks 4→7): fixed `react-hooks/set-state-in-effect` in CommandPalette.tsx (moved setState to render-time derived value); fixed `react-hooks/refs` in TabletResponsive.tsx (eslint-disable on PanResponder spread);   - PR #31 (zustand 5.0.11→5.0.12): regenerated lock file via `npm install`; merged"
+    },
+    {
+      "sessionNum": "4",
       "date": "2026-03-12",
       "summary": "Merged PR #15 (feature/epic-0003-terminal → develop); 282 tests passing; Checked out `develop`, pulled latest; Brainstormed EPIC-0004 Command Palette: audited existing `CommandPalette.tsx`, chose full audit+rebuild with visible/onClose API, keyboard navigation, and swipe gesture trigger"
     },
     {
+      "sessionNum": "3",
       "date": "2026-03-11",
       "summary": "Installed PlanVisualizer tooling via `install.sh` (tools/, tests/, jest.config.js, GitHub Actions workflow); Fixed `plan-visualizer.yml`: path filters `docs/` → `docs/` (Linux case-sensitive); Pages artifact path `./docs` → `./Docs`; Confirmed `.claude/settings.json` Stop hook already present (`node tools/capture-cost.js`)"
-    },
-    {
-      "date": "2026-03-09",
-      "summary": "Connected local working directory to GitHub repo `ksyed0/NomadCode`; Pulled latest code from `origin/main` (commit 13fec40); Read AGENTS.md and all existing documentation in `mobile-ide/docs/`"
-    },
-    {
-      "date": "2026-03-09",
-      "summary": "Continued from previous context window (PR #5 / US-0021 Plan Visualizer CI fixes); **Security audit fix**: Replaced `npm audit --omit=dev --audit-level=high` with `npx audit-ci@^7 --omit=dev`; created `mobile-ide/mobile-ide-prototype/audit-ci.json` allowlisting 5 tar CVEs (unfixable while on expo@52); **Workspace tar fix**: Bumped `mobile-ide/package.json` tar dep `6.2.1` → `7.5.11`; added CJS interop shim `mobile-ide/scripts/patch-tar-interop.js`; added `postinstall` script"
     }
   ],
-  "generatedAt": "2026-03-13T16:57:50.154Z",
-  "commitSha": "bf2ba65",
+  "lessons": [
+    {
+      "id": "L-0001",
+      "title": "npm version stdout is multiline in newer npm versions",
+      "rule": "Never capture `npm version` stdout directly for use as a value. Run it for the side-effect only, then read the clean version with `jq -r '.version' package.json`.",
+      "context": "Attempting to capture `npm version patch` output with `$(...)` in a CI script to write to `$GITHUB_OUTPUT`.",
+      "date": "2026-03-25"
+    },
+    {
+      "id": "L-0002",
+      "title": "Debug.keystore must be gitignored before expo prebuild",
+      "rule": "Add `*.keystore` to `android/.gitignore` before running `expo prebuild`, or immediately after. Verify with `git status` before committing any `android/` scaffolding.",
+      "context": "Running `expo prebuild` generates `android/` including `debug.keystore` (private key material); the generated `.gitignore` inside `android/` did not exclude it, so it was committed in PR #45.",
+      "date": "2026-03-25"
+    },
+    {
+      "id": "L-0003",
+      "title": "injectJavaScript is silently dropped on hidden WebViews",
+      "rule": "Never `injectJavaScript` before `onLoadEnd` fires. Always move initial bridge messages into the `onLoadEnd` handler.",
+      "context": "`TerminalWebView` dispatched `SET_CWD` via `useEffect` before the WebView finished loading; the message was silently dropped and `cwd` stayed at `/`.",
+      "date": "2026-03-20"
+    },
+    {
+      "id": "L-0004",
+      "title": "double-stringify is required when passing JSON through injectJavaScript",
+      "rule": "When injecting a value that the WebView will `JSON.parse`, use `JSON.stringify(JSON.stringify(msg))` so the injected expression is a string literal, not an object literal.",
+      "context": "`sendToWebView` injected `window.receiveFromRN(${JSON.stringify(msg)})`, passing a JS object literal. The WebView side called `JSON.parse(msgJson)` which coerced the object to `\"[object Object]\"` → SyntaxError → silent drop.",
+      "date": "2026-03-20"
+    }
+  ],
+  "generatedAt": "2026-03-26T03:42:49.483Z",
+  "commitSha": "d0b45de",
+  "buildNumber": "177",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
@@ -2673,8 +4519,378 @@
     {
       "date": "2026-03-12",
       "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-13",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-14",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-16",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-17",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-22",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-22",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-23",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-23",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-24",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-25",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
     }
   ],
   "projectName": "NomadCode",
-  "tagline": "Code from anywhere."
+  "tagline": "Code from anywhere.",
+  "version": "0.1.0",
+  "githubUrl": ""
 }

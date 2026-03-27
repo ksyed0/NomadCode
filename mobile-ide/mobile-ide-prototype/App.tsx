@@ -25,7 +25,7 @@ import {
   View,
 } from 'react-native';
 
-import Editor, { EditorTab, getLanguageForFile } from './src/components/Editor';
+import Editor, { EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
 import FileExplorer from './src/components/FileExplorer';
 import { TerminalWebView } from './src/components/TerminalWebView';
 import { Command, CommandPalette } from './src/components/CommandPalette';
@@ -96,11 +96,15 @@ export default function App() {
     try {
       const content = await FileSystemBridge.readFile(path);
       const name = path.split('/').pop() ?? path;
+      const detectedLang = getLanguageForFile(name);
+      const language = detectedLang === 'plaintext'
+        ? detectLanguageFromContent(content)
+        : detectedLang;
       const tab: EditorTab = {
         path,
         name,
         content,
-        language: getLanguageForFile(name),
+        language,
         isDirty: false,
       };
       setTabs((prev) => [...prev, tab]);
@@ -296,7 +300,7 @@ export default function App() {
         <TouchableOpacity onPress={gitStatus} style={styles.statusItem}>
           <Text style={styles.statusText}>⎇ {gitBranch}</Text>
         </TouchableOpacity>
-        <Text style={styles.statusTitle}>NomadCode</Text>
+        <Text style={styles.statusTitle}>NomadCode <Text style={styles.statusVersion}>v{APP_VERSION}</Text></Text>
         <View style={styles.statusRight}>
           {tabs.find((t) => t.path === activeTabPath)?.isDirty && (
             <TouchableOpacity onPress={saveActiveFile}>
@@ -433,6 +437,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  statusVersion: {
+    color: '#64748B',
+    fontSize: 10,
+    fontWeight: '400',
   },
   statusRight: {
     minWidth: 60,

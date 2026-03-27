@@ -312,3 +312,31 @@ Root Cause: sendToWebView must double-stringify: JSON.stringify(JSON.stringify(m
 Status: Fixed
 Fix Branch: develop
 Lesson Encoded: No
+
+BUG-0031: capture-cost.js Stop hook records zero tokens and cost for every session (TOOL-1)
+Severity: Medium
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. End any Claude Code session (hook fires automatically)
+  2. Check docs/AI_COST_LOG.md — every row shows 0 | 0 | 0 | 0.0000
+Expected: Actual session token counts and cost USD recorded
+Actual: All zeros; hook receives only { session_id, stop_hook_active } from older Claude Code
+Root Cause: Claude Code 50.18.2 Stop hook payload omitted cost_usd and usage fields entirely
+Status: In Progress
+Fix Branch: bugfix/version-bump-output-format
+Lesson Encoded: No
+
+BUG-0032: docs/LESSONS.md missing — plan visualizer Lessons tab always empty (TOOL-2)
+Severity: Low
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Open plan visualizer dashboard
+  2. Click Lessons tab
+Expected: Project lessons listed
+Actual: "No lessons logged yet." because docs/LESSONS.md did not exist
+Root Cause: LESSONS.md was never created as part of plan visualizer setup
+Status: Fixed
+Fix Branch: bugfix/version-bump-output-format
+Lesson Encoded: No

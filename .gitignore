@@ -13,3 +13,4 @@ docs/plan-status.json
 
 # Git worktrees
 .worktrees/
+docs/capture-cost-debug.json
