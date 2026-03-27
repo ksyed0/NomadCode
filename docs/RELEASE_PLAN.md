@@ -77,13 +77,15 @@ Dependencies: EPIC-0005, EPIC-0007, EPIC-0008, EPIC-0009, EPIC-0010
 EPIC-0012: Cloud Sync
 Description: S3-compatible cloud storage for project sync — upload on save, pull on launch, conflict resolution UI.
 Release Target: Release 1.1 (Post-Launch)
-Status: Deferred
+Status: Done
+PR: #48 (merged)
 Dependencies: EPIC-0007
 
 EPIC-0013: Multi-Language Editor Support
 Description: Per-language indentation rules, auto-close behaviour, and comprehensive VSCode-compatible extension coverage (C, C++, C#, F#, TypeScript, JavaScript, Python, Rust, Go, Swift, Dart/Flutter, Lua, Elixir, R, Scala, Perl, Terraform, PowerShell, and more).
 Release Target: Release 1.1 (Post-Launch)
-Status: In Progress
+Status: Done
+PR: #49 (merged)
 Dependencies: EPIC-0001
 
 EPIC-0014: Global Search — Find in Files
@@ -627,19 +629,23 @@ Dependencies: US-0036
 US-0039 (EPIC-0012): As a developer, I want to upload my project to cloud storage, so that I can access it from multiple devices.
 Priority: Medium (P1)
 Estimate: L
-Status: Deferred
+Status: Done
+Branch: feature/EPIC-0012-cloud-sync
+PR: #48 (merged)
 Acceptance Criteria:
-  - [ ] AC-0105: User can connect an S3-compatible bucket by entering endpoint URL and access credentials in settings
-  - [ ] AC-0106: Modified local files are uploaded to the configured bucket automatically on save
+  - [x] AC-0105: User can connect an S3-compatible bucket by entering endpoint URL and access credentials in settings
+  - [x] AC-0106: Modified local files are uploaded to the configured bucket automatically on save
 Dependencies: EPIC-0007
 
 US-0040 (EPIC-0012): As a developer, I want to download remote changes on launch, so that my files are always up to date.
 Priority: Medium (P1)
 Estimate: L
-Status: Deferred
+Status: Done
+Branch: feature/EPIC-0012-cloud-sync
+PR: #48 (merged)
 Acceptance Criteria:
-  - [ ] AC-0107: On app launch with network access, remote changes are pulled and merged into local storage
-  - [ ] AC-0108: Sync conflicts are surfaced to the user with a merge prompt before overwriting local files
+  - [x] AC-0107: On app launch with network access, remote changes are pulled and merged into local storage
+  - [x] AC-0108: Sync conflicts are surfaced to the user with a merge prompt before overwriting local files
 Dependencies: US-0039
 ```
 
@@ -649,19 +655,25 @@ Dependencies: US-0039
 US-0041 (EPIC-0013): As a developer, I want syntax highlighting for Python, Rust, Go, and Swift, so that I can work in my preferred language.
 Priority: Medium (P1)
 Estimate: M
-Status: Deferred
+Status: Done
+Branch: feature/EPIC-0013-multi-language
+PR: #49 (merged)
+Note: Covered by Monaco built-in language grammars + LANG_MAP extension mapping. Superseded in scope by US-0059/US-0060/US-0061.
 Acceptance Criteria:
-  - [ ] AC-0109: Python, Rust, Go, and Swift files receive correct syntax highlighting
-  - [ ] AC-0110: Language is auto-detected from file extension; unknown extensions fall back to plain text
+  - [x] AC-0109: Python, Rust, Go, and Swift files receive correct syntax highlighting
+  - [x] AC-0110: Language is auto-detected from file extension; unknown extensions fall back to plain text
 Dependencies: EPIC-0001
 
 US-0042 (EPIC-0013): As a developer, I want language-correct indentation and auto-close, so that the editor follows language conventions.
 Priority: Low (P2)
 Estimate: S
-Status: Deferred
+Status: Done
+Branch: feature/EPIC-0013-multi-language
+PR: #49 (merged)
+Note: Superseded by US-0059 (indentation) and US-0060 (auto-close), which cover a broader language set with the same ACs.
 Acceptance Criteria:
-  - [ ] AC-0111: Python files default to 4-space indentation; Go files default to tabs
-  - [ ] AC-0112: Bracket and quote auto-close is active for all supported languages
+  - [x] AC-0111: Python files default to 4-space indentation; Go files default to tabs
+  - [x] AC-0112: Bracket and quote auto-close is active for all supported languages
 Dependencies: US-0041
 ```
 
