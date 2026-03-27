@@ -23,7 +23,8 @@ Dependencies: EPIC-0001
 EPIC-0003: Terminal
 Description: Integrated sandboxed terminal via Xterm.js + WASI for running build/test commands.
 Release Target: Release 0.5 (Beta)
-Status: In Progress
+Status: Done
+PR: #45 (merged)
 Dependencies: EPIC-0001, EPIC-0002
 
 EPIC-0004: Command Palette
