@@ -2,7 +2,6 @@ import {
   getLanguageRules,
   DEFAULT_RULES,
   LANGUAGE_RULES_MAP,
-  type LanguageRules,
 } from '../../src/utils/languageRules';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -37,7 +36,7 @@ describe('LANGUAGE_RULES_MAP', () => {
   });
 
   test('every entry has detectIndentation: false', () => {
-    for (const [id, rules] of Object.entries(LANGUAGE_RULES_MAP)) {
+    for (const [, rules] of Object.entries(LANGUAGE_RULES_MAP)) {
       expect(rules.indent.detectIndentation).toBe(false);
     }
   });
@@ -91,7 +90,7 @@ describe('LANGUAGE_RULES_MAP', () => {
   });
 
   test('every entry has autoClosingBrackets: always', () => {
-    for (const [id, rules] of Object.entries(LANGUAGE_RULES_MAP)) {
+    for (const [, rules] of Object.entries(LANGUAGE_RULES_MAP)) {
       expect(rules.autoClose.autoClosingBrackets).toBe('always');
     }
   });
