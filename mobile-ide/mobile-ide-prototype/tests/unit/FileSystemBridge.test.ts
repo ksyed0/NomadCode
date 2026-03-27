@@ -6,10 +6,10 @@
  *                   createDirectory, moveEntry, copyEntry, exists, documentDirectory.
  */
 
-import { FileSystemBridge, GitBridge } from '../../src/utils/FileSystemBridge';
+import { FileSystemBridge, GitBridge, getUriType, requestWorkspacePermission } from '../../src/utils/FileSystemBridge';
 
 // ---------------------------------------------------------------------------
-// Mock expo-file-system
+// Mock expo-file-system (including StorageAccessFramework for SAF tests)
 // ---------------------------------------------------------------------------
 
 const mockGetInfoAsync = jest.fn();
@@ -20,6 +20,14 @@ const mockDeleteAsync = jest.fn();
 const mockMakeDirectoryAsync = jest.fn();
 const mockMoveAsync = jest.fn();
 const mockCopyAsync = jest.fn();
+
+// SAF mocks
+const mockSAFReadDirectory = jest.fn();
+const mockSAFReadAsString = jest.fn();
+const mockSAFWriteAsString = jest.fn();
+const mockSAFCreateFile = jest.fn();
+const mockSAFDeleteAsync = jest.fn();
+const mockSAFRequestPermissions = jest.fn();
 
 jest.mock('expo-file-system', () => ({
   getInfoAsync: (...args: unknown[]) => mockGetInfoAsync(...args),
@@ -32,6 +40,31 @@ jest.mock('expo-file-system', () => ({
   copyAsync: (...args: unknown[]) => mockCopyAsync(...args),
   documentDirectory: '/docs/',
   EncodingType: { UTF8: 'utf8' },
+  StorageAccessFramework: {
+    readDirectoryAsync: (...args: unknown[]) => mockSAFReadDirectory(...args),
+    readAsStringAsync: (...args: unknown[]) => mockSAFReadAsString(...args),
+    writeAsStringAsync: (...args: unknown[]) => mockSAFWriteAsString(...args),
+    createFileAsync: (...args: unknown[]) => mockSAFCreateFile(...args),
+    deleteAsync: (...args: unknown[]) => mockSAFDeleteAsync(...args),
+    requestDirectoryPermissionsAsync: (...args: unknown[]) => mockSAFRequestPermissions(...args),
+  },
+}));
+
+// Mock react-native-document-picker for iOS picker tests
+const mockPickDirectory = jest.fn();
+const mockIsCancel = jest.fn((err) => err && err.code === 'DOCUMENT_PICKER_CANCELED');
+jest.mock('react-native-document-picker', () => ({
+  pickDirectory: (...args: unknown[]) => mockPickDirectory(...args),
+  isCancel: (err: unknown) => mockIsCancel(err),
+  default: {
+    pickDirectory: (...args: unknown[]) => mockPickDirectory(...args),
+    isCancel: (err: unknown) => mockIsCancel(err),
+  },
+}));
+
+// Mock react-native Platform
+jest.mock('react-native', () => ({
+  Platform: { OS: 'ios' },
 }));
 
 // ---------------------------------------------------------------------------
@@ -39,6 +72,24 @@ jest.mock('expo-file-system', () => ({
 // ---------------------------------------------------------------------------
 
 beforeEach(() => jest.clearAllMocks());
+
+// ---------------------------------------------------------------------------
+// getUriType
+// ---------------------------------------------------------------------------
+
+describe('getUriType', () => {
+  it('returns "saf" for content:// URIs', () => {
+    expect(getUriType('content://com.android.externalstorage.documents/tree/primary%3A')).toBe('saf');
+  });
+
+  it('returns "file" for file:// URIs', () => {
+    expect(getUriType('file:///var/mobile/Documents/')).toBe('file');
+  });
+
+  it('returns "file" for plain paths', () => {
+    expect(getUriType('/docs/file.ts')).toBe('file');
+  });
+});
 
 // ---------------------------------------------------------------------------
 // listDirectory
@@ -223,6 +274,197 @@ describe('FileSystemBridge.exists', () => {
 describe('FileSystemBridge.documentDirectory', () => {
   it('returns the expo document directory', () => {
     expect(FileSystemBridge.documentDirectory).toBe('/docs/');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SAF (content:// URI) paths
+// ---------------------------------------------------------------------------
+
+const SAF_DIR = 'content://com.android.externalstorage.documents/tree/primary%3AProjects';
+const SAF_FILE = `${SAF_DIR}%2Findex.ts`;
+
+describe('FileSystemBridge.listDirectory — SAF path', () => {
+  it('lists SAF directory entries sorted dirs first', async () => {
+    const childUris = [
+      `${SAF_DIR}%2Fsrc`,
+      `${SAF_DIR}%2FREADME.md`,
+    ];
+    mockSAFReadDirectory.mockResolvedValueOnce(childUris);
+    mockGetInfoAsync
+      .mockResolvedValueOnce({ exists: true, isDirectory: true, size: 0 }) // src
+      .mockResolvedValueOnce({ exists: true, isDirectory: false, size: 100 }); // README.md
+
+    const entries = await FileSystemBridge.listDirectory(SAF_DIR);
+    expect(entries[0].name).toBe('src');
+    expect(entries[0].isDirectory).toBe(true);
+    expect(entries[1].name).toBe('README.md');
+    expect(entries[1].isDirectory).toBe(false);
+  });
+
+  it('sorts same-type entries alphabetically', async () => {
+    const uris = [`${SAF_DIR}%2Fzeta.ts`, `${SAF_DIR}%2Falpha.ts`];
+    mockSAFReadDirectory.mockResolvedValueOnce(uris);
+    mockGetInfoAsync
+      .mockResolvedValueOnce({ exists: true, isDirectory: false, size: 10 })
+      .mockResolvedValueOnce({ exists: true, isDirectory: false, size: 20 });
+
+    const entries = await FileSystemBridge.listDirectory(SAF_DIR);
+    expect(entries[0].name).toBe('alpha.ts');
+    expect(entries[1].name).toBe('zeta.ts');
+  });
+
+  it('returns undefined modifiedAt for SAF entries', async () => {
+    mockSAFReadDirectory.mockResolvedValueOnce([SAF_FILE]);
+    mockGetInfoAsync.mockResolvedValueOnce({ exists: true, isDirectory: false, size: 50 });
+
+    const entries = await FileSystemBridge.listDirectory(SAF_DIR);
+    expect(entries[0].modifiedAt).toBeUndefined();
+  });
+});
+
+describe('FileSystemBridge.readFile — SAF path', () => {
+  it('reads SAF file content', async () => {
+    mockSAFReadAsString.mockResolvedValueOnce('const a = 1;');
+
+    const content = await FileSystemBridge.readFile(SAF_FILE);
+    expect(content).toBe('const a = 1;');
+    expect(mockSAFReadAsString).toHaveBeenCalledWith(SAF_FILE, { encoding: 'utf8' });
+  });
+});
+
+describe('FileSystemBridge.writeFile — SAF path', () => {
+  it('writes to a SAF file', async () => {
+    mockSAFWriteAsString.mockResolvedValueOnce(undefined);
+
+    await FileSystemBridge.writeFile(SAF_FILE, 'hello');
+    expect(mockSAFWriteAsString).toHaveBeenCalledWith(SAF_FILE, 'hello', { encoding: 'utf8' });
+  });
+});
+
+describe('FileSystemBridge.createFile — SAF path', () => {
+  it('creates a SAF file and writes content', async () => {
+    const newUri = `${SAF_DIR}%2Fnew.ts`;
+    mockSAFCreateFile.mockResolvedValueOnce(newUri);
+    mockSAFWriteAsString.mockResolvedValueOnce(undefined);
+
+    await FileSystemBridge.createFile(`${SAF_DIR}/new.ts`, 'hello');
+    expect(mockSAFCreateFile).toHaveBeenCalled();
+    expect(mockSAFWriteAsString).toHaveBeenCalledWith(newUri, 'hello', { encoding: 'utf8' });
+  });
+
+  it('creates a SAF file with empty content (no write call)', async () => {
+    const newUri = `${SAF_DIR}%2Fempty.ts`;
+    mockSAFCreateFile.mockResolvedValueOnce(newUri);
+
+    await FileSystemBridge.createFile(`${SAF_DIR}/empty.ts`);
+    expect(mockSAFCreateFile).toHaveBeenCalled();
+    expect(mockSAFWriteAsString).not.toHaveBeenCalled();
+  });
+
+  it('correctly splits parentUri and fileName when separator is %2F (not literal /)', async () => {
+    // SAF paths from readDirectoryAsync use %2F as the encoded path separator.
+    // The old code used lastIndexOf('%2F') which returns the position of '%',
+    // making parentUri end with '%' and fileName start with '2F'.
+    const path = `${SAF_DIR}%2Fnewfile.ts`;
+    const returnedUri = `${SAF_DIR}%2Fnewfile.ts`;
+    mockSAFCreateFile.mockResolvedValueOnce(returnedUri);
+    mockSAFWriteAsString.mockResolvedValueOnce(undefined);
+
+    await FileSystemBridge.createFile(path, 'hello');
+    expect(mockSAFCreateFile).toHaveBeenCalledWith(SAF_DIR, 'newfile.ts', 'text/plain');
+  });
+});
+
+describe('FileSystemBridge.deleteEntry — SAF path', () => {
+  it('deletes a SAF entry', async () => {
+    mockSAFDeleteAsync.mockResolvedValueOnce(undefined);
+
+    await FileSystemBridge.deleteEntry(SAF_FILE);
+    expect(mockSAFDeleteAsync).toHaveBeenCalledWith(SAF_FILE);
+  });
+});
+
+describe('FileSystemBridge.createDirectory — SAF path', () => {
+  it('is a no-op for SAF paths', async () => {
+    await FileSystemBridge.createDirectory(SAF_DIR);
+    expect(mockMakeDirectoryAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe('FileSystemBridge.moveEntry — SAF path', () => {
+  it('copies then deletes for SAF source', async () => {
+    mockSAFReadAsString.mockResolvedValueOnce('data');
+    mockSAFCreateFile.mockResolvedValueOnce(`${SAF_DIR}%2Fmoved.ts`);
+    mockSAFWriteAsString.mockResolvedValueOnce(undefined);
+    mockSAFDeleteAsync.mockResolvedValueOnce(undefined);
+
+    await FileSystemBridge.moveEntry(SAF_FILE, `${SAF_DIR}/moved.ts`);
+    expect(mockSAFReadAsString).toHaveBeenCalled();
+    expect(mockSAFCreateFile).toHaveBeenCalled();
+    expect(mockSAFDeleteAsync).toHaveBeenCalledWith(SAF_FILE);
+  });
+});
+
+describe('FileSystemBridge.copyEntry — SAF path', () => {
+  it('reads then creates for SAF source', async () => {
+    mockSAFReadAsString.mockResolvedValueOnce('data');
+    mockSAFCreateFile.mockResolvedValueOnce(`${SAF_DIR}%2Fcopy.ts`);
+    mockSAFWriteAsString.mockResolvedValueOnce(undefined);
+
+    await FileSystemBridge.copyEntry(SAF_FILE, `${SAF_DIR}/copy.ts`);
+    expect(mockSAFReadAsString).toHaveBeenCalledWith(SAF_FILE, { encoding: 'utf8' });
+    expect(mockSAFCreateFile).toHaveBeenCalled();
+  });
+});
+
+describe('FileSystemBridge.exists — SAF path', () => {
+  it('returns true when URI is in parent directory listing', async () => {
+    mockSAFReadDirectory.mockResolvedValueOnce([SAF_FILE, `${SAF_DIR}%2Fother.ts`]);
+    expect(await FileSystemBridge.exists(SAF_FILE)).toBe(true);
+  });
+
+  it('returns false when URI is not in parent directory listing', async () => {
+    mockSAFReadDirectory.mockResolvedValueOnce([`${SAF_DIR}%2Fother.ts`]);
+    expect(await FileSystemBridge.exists(SAF_FILE)).toBe(false);
+  });
+
+  it('returns false when SAF readDirectory throws', async () => {
+    mockSAFReadDirectory.mockRejectedValueOnce(new Error('Permission denied'));
+    expect(await FileSystemBridge.exists(SAF_FILE)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// requestWorkspacePermission
+// ---------------------------------------------------------------------------
+
+describe('requestWorkspacePermission — iOS', () => {
+  it('returns a WorkspaceRoot with file uriType when user picks a folder', async () => {
+    mockPickDirectory.mockResolvedValueOnce({ uri: 'file:///var/mobile/Documents/Projects/' });
+
+    const result = await requestWorkspacePermission();
+    expect(result).not.toBeNull();
+    expect(result?.uriType).toBe('file');
+    expect(result?.uri).toBe('file:///var/mobile/Documents/Projects/');
+    expect(result?.displayName).toBe('Projects');
+  });
+
+  it('returns null when user cancels (no result)', async () => {
+    mockPickDirectory.mockResolvedValueOnce(null);
+    expect(await requestWorkspacePermission()).toBeNull();
+  });
+
+  it('returns null when picker throws a cancel error', async () => {
+    mockIsCancel.mockReturnValueOnce(true);
+    mockPickDirectory.mockRejectedValueOnce({ code: 'DOCUMENT_PICKER_CANCELED' });
+    expect(await requestWorkspacePermission()).toBeNull();
+  });
+
+  it('returns null when picker throws a non-cancel error', async () => {
+    mockIsCancel.mockReturnValueOnce(false);
+    mockPickDirectory.mockRejectedValueOnce(new Error('Something went wrong'));
+    expect(await requestWorkspacePermission()).toBeNull();
   });
 });
 

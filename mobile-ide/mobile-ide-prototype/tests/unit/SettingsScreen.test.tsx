@@ -13,8 +13,11 @@ const mockSetTheme = jest.fn();
 const mockSetFontSize = jest.fn();
 const mockAddExtension = jest.fn();
 const mockRemoveExtension = jest.fn();
+const mockSetWorkspaceRoot = jest.fn();
 let mockTheme = 'nomad-dark';
 let mockFontSize = 14;
+let mockWorkspaceUri = '';
+let mockWorkspaceDisplayName = '';
 let mockInstalledExtensions: Array<{ id: string; name: string; version: string; source: string }> = [];
 
 jest.mock('../../src/stores/useSettingsStore', () => ({
@@ -23,9 +26,12 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
     sel({
       theme: mockTheme,
       fontSize: mockFontSize,
+      workspaceUri: mockWorkspaceUri,
+      workspaceDisplayName: mockWorkspaceDisplayName,
       installedExtensions: mockInstalledExtensions,
       setTheme: mockSetTheme,
       setFontSize: mockSetFontSize,
+      setWorkspaceRoot: mockSetWorkspaceRoot,
       addExtension: mockAddExtension,
       removeExtension: mockRemoveExtension,
     })
@@ -34,6 +40,15 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
 
 jest.mock('expo-file-system', () => ({
   documentDirectory: 'file:///mock-docs/',
+  StorageAccessFramework: {
+    requestDirectoryPermissionsAsync: jest.fn(),
+  },
+}));
+
+const mockRequestWorkspacePermission = jest.fn();
+jest.mock('../../src/utils/FileSystemBridge', () => ({
+  requestWorkspacePermission: (...args: unknown[]) => mockRequestWorkspacePermission(...args),
+  FileSystemBridge: {},
 }));
 
 const mockActivateExtension = jest.fn();
@@ -93,6 +108,8 @@ beforeEach(() => {
   mockDeactivateExtension.mockClear();
   mockTheme = 'nomad-dark';
   mockFontSize = 14;
+  mockWorkspaceUri = '';
+  mockWorkspaceDisplayName = '';
   mockInstalledExtensions = [];
   mockAuthToken = null;
   mockAuthUsername = null;
@@ -101,6 +118,8 @@ beforeEach(() => {
   mockSignInWithToken.mockReset();
   mockSignOut.mockReset();
   mockSetError.mockReset();
+  mockRequestWorkspacePermission.mockReset();
+  mockSetWorkspaceRoot.mockReset();
 });
 
 describe('SettingsScreen', () => {
@@ -346,5 +365,53 @@ describe('SettingsScreen — GitHub Account section (signed in)', () => {
     render(<SettingsScreen visible={true} onClose={jest.fn()} />);
     expect(screen.queryByTestId('pat-input')).toBeNull();
     expect(screen.queryByTestId('btn-pat-connect')).toBeNull();
+  });
+});
+
+describe('SettingsScreen — Workspace section', () => {
+  it('renders WORKSPACE section label', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByText('WORKSPACE')).toBeTruthy();
+  });
+
+  it('renders Browse button', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByTestId('btn-browse-workspace')).toBeTruthy();
+  });
+
+  it('shows "No workspace selected" when no workspace is set', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByText('No workspace selected')).toBeTruthy();
+  });
+
+  it('shows displayName when a workspace is selected', () => {
+    mockWorkspaceDisplayName = 'iCloud Drive › Projects';
+    mockWorkspaceUri = 'file:///var/mobile/Documents/Projects';
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByText('iCloud Drive › Projects')).toBeTruthy();
+  });
+
+  it('calls setWorkspaceRoot with picker result when Browse is pressed', async () => {
+    const pickerResult = {
+      uri: 'file:///var/mobile/Documents/Projects',
+      uriType: 'file' as const,
+      displayName: 'Projects',
+    };
+    mockRequestWorkspacePermission.mockResolvedValueOnce(pickerResult);
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent.press(screen.getByTestId('btn-browse-workspace'));
+    await waitFor(() => {
+      expect(mockSetWorkspaceRoot).toHaveBeenCalledWith(pickerResult);
+    });
+  });
+
+  it('does not call setWorkspaceRoot when user cancels picker', async () => {
+    mockRequestWorkspacePermission.mockResolvedValueOnce(null);
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent.press(screen.getByTestId('btn-browse-workspace'));
+    await waitFor(() => {
+      expect(mockRequestWorkspacePermission).toHaveBeenCalled();
+    });
+    expect(mockSetWorkspaceRoot).not.toHaveBeenCalled();
   });
 });

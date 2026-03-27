@@ -36,16 +36,30 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
       theme: 'nomad-dark',
       fontSize: 14,
       workspacePath: '',
+      workspaceUri: '',
+      workspaceUriType: 'file',
+      workspaceDisplayName: '',
       hasCompletedSetup: true,
       setTheme: jest.fn(),
       setFontSize: jest.fn(),
       setWorkspacePath: jest.fn(),
+      setWorkspaceRoot: jest.fn(),
       completeSetup: jest.fn(),
       installedExtensions: [],
       addExtension: jest.fn(),
       removeExtension: jest.fn(),
     })
   ),
+}));
+
+// Mock react-native-document-picker (not available in Jest)
+jest.mock('react-native-document-picker', () => ({
+  pickDirectory: jest.fn(),
+  isCancel: jest.fn((err) => err && err.code === 'DOCUMENT_PICKER_CANCELED'),
+  default: {
+    pickDirectory: jest.fn(),
+    isCancel: jest.fn((err) => err && err.code === 'DOCUMENT_PICKER_CANCELED'),
+  },
 }));
 
 // Mock ExtensionHost — renders null, no WebView needed in unit tests
@@ -215,10 +229,14 @@ describe('App — SetupWizard integration', () => {
         theme: 'nomad-dark',
         fontSize: 14,
         workspacePath: '',
+        workspaceUri: '',
+        workspaceUriType: 'file',
+        workspaceDisplayName: '',
         hasCompletedSetup: false,
         setTheme: jest.fn(),
         setFontSize: jest.fn(),
         setWorkspacePath: jest.fn(),
+        setWorkspaceRoot: jest.fn(),
         completeSetup: jest.fn(),
         installedExtensions: [],
         addExtension: jest.fn(),
@@ -302,5 +320,57 @@ describe('App — TerminalWebView wiring (EPIC-0003)', () => {
     expect(mockTerminalWebViewProps.length).toBeGreaterThan(0);
     const props = mockTerminalWebViewProps[0];
     expect(typeof props.onCommand).toBe('function');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Cloud Sync workspace integration (EPIC-0012)
+// ---------------------------------------------------------------------------
+
+describe('App — EPIC-0012 workspace & conflict modal', () => {
+  it('conflict modal is not visible on initial mount (no conflict)', () => {
+    render(<App />);
+    expect(screen.queryByTestId('conflict-modal')).toBeNull();
+  });
+
+  it('TerminalWebView receives rootPath falling back to documentDirectory when workspaceUri is empty', () => {
+    render(<App />);
+    const props = mockTerminalWebViewProps[0];
+    expect(props.workingDirectory).toBe('file:///mock-docs/');
+  });
+
+  it('TerminalWebView uses workspaceUri when set', () => {
+    (useSettingsStore as unknown as jest.Mock).mockImplementation((sel: (s: object) => unknown) =>
+      sel({
+        theme: 'nomad-dark',
+        fontSize: 14,
+        workspacePath: 'file:///var/mobile/Documents/Projects/',
+        workspaceUri: 'file:///var/mobile/Documents/Projects/',
+        workspaceUriType: 'file',
+        workspaceDisplayName: 'Projects',
+        hasCompletedSetup: true,
+        setTheme: jest.fn(),
+        setFontSize: jest.fn(),
+        setWorkspacePath: jest.fn(),
+        setWorkspaceRoot: jest.fn(),
+        completeSetup: jest.fn(),
+        installedExtensions: [],
+        addExtension: jest.fn(),
+        removeExtension: jest.fn(),
+      })
+    );
+    render(<App />);
+    const props = mockTerminalWebViewProps[0];
+    expect(props.workingDirectory).toBe('file:///var/mobile/Documents/Projects/');
+    // Restore the default mock for subsequent tests
+    (useSettingsStore as unknown as jest.Mock).mockImplementation((sel: (s: object) => unknown) =>
+      sel({
+        theme: 'nomad-dark', fontSize: 14, workspacePath: '', workspaceUri: '',
+        workspaceUriType: 'file', workspaceDisplayName: '', hasCompletedSetup: true,
+        setTheme: jest.fn(), setFontSize: jest.fn(), setWorkspacePath: jest.fn(),
+        setWorkspaceRoot: jest.fn(), completeSetup: jest.fn(),
+        installedExtensions: [], addExtension: jest.fn(), removeExtension: jest.fn(),
+      })
+    );
   });
 });

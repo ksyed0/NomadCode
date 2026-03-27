@@ -17,12 +17,14 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
   StyleSheet,
 } from 'react-native';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { activateExtension, deactivateExtension } from '../extensions/sandbox';
 import type { ExtensionManifest } from '../extensions/sandbox';
+import { requestWorkspacePermission } from '../utils/FileSystemBridge';
 
 // Required once per file by expo-auth-session to complete any pending auth sessions.
 WebBrowser.maybeCompleteAuthSession();
@@ -42,6 +44,9 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   // Individual Zustand selectors — no full-store selector
   const theme = useSettingsStore((s) => s.theme);
   const fontSize = useSettingsStore((s) => s.fontSize);
+  const workspaceDisplayName = useSettingsStore((s) => s.workspaceDisplayName);
+  const workspaceUri = useSettingsStore((s) => s.workspaceUri);
+  const setWorkspaceRoot = useSettingsStore((s) => s.setWorkspaceRoot);
   const setTheme = useSettingsStore((s) => s.setTheme);
   const setFontSize = useSettingsStore((s) => s.setFontSize);
   const installedExtensions = useSettingsStore((s) => s.installedExtensions);
@@ -117,6 +122,7 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const [extSource, setExtSource] = useState('');
   const [showPat, setShowPat] = useState(false);
   const [patValue, setPatValue] = useState('');
+  const [workspacePicking, setWorkspacePicking] = useState(false);
 
   // Active theme tokens for theming the UI
   const tokens = useTheme();
@@ -173,6 +179,16 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const handlePatConnect = useCallback(() => {
     if (patValue.trim()) signInWithToken(patValue.trim());
   }, [patValue, signInWithToken]);
+
+  const handleBrowse = useCallback(async () => {
+    setWorkspacePicking(true);
+    try {
+      const root = await requestWorkspacePermission();
+      if (root) setWorkspaceRoot(root);
+    } finally {
+      setWorkspacePicking(false);
+    }
+  }, [setWorkspaceRoot]);
 
   const installEnabled = extName.trim().length > 0 && extSource.trim().length > 0;
 
@@ -318,6 +334,36 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
               ) : null}
             </View>
           )}
+
+          {/* ── Section: Workspace ──────────────────────────────────────── */}
+          <Text style={[styles.sectionLabel, dynamicSectionLabel]}>WORKSPACE</Text>
+
+          <View style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.editorRowLabel, { color: tokens.text }]}>Location</Text>
+              <Text
+                testID="workspace-display-name"
+                numberOfLines={1}
+                style={{ color: tokens.textMuted, fontSize: 12 }}
+              >
+                {workspaceDisplayName || (workspaceUri ? workspaceUri : 'No workspace selected')}
+              </Text>
+            </View>
+            <TouchableOpacity
+              testID="btn-browse-workspace"
+              onPress={handleBrowse}
+              disabled={workspacePicking}
+              accessibilityLabel="Browse for workspace folder"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: workspacePicking }}
+              style={styles.fontButton}
+            >
+              {workspacePicking
+                ? <ActivityIndicator size="small" color={tokens.accent} />
+                : <Text style={[styles.fontBtnText, { color: tokens.accent }]}>Browse</Text>
+              }
+            </TouchableOpacity>
+          </View>
 
           {/* ── Section: Appearance ─────────────────────────────────────── */}
           <Text style={[styles.sectionLabel, dynamicSectionLabel]}>APPEARANCE</Text>
