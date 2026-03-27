@@ -51,18 +51,25 @@ function sendToRN(msg: object): void {
 
 /**
  * Resolve a shell argument to an absolute path.
- * If `arg` already starts with '/' it is returned as-is;
- * otherwise it is joined with `cwd` and duplicate slashes are collapsed.
+ * Handles both POSIX paths ('/foo/bar') and expo-style file:// URIs
+ * ('file:///var/mobile/...') transparently, preserving the scheme prefix.
  */
 function resolvePath(arg: string, baseCwd: string): string {
-  const raw = arg.startsWith('/') ? arg : `${baseCwd}/${arg}`;
+  const FILE_SCHEME = 'file://';
+  const scheme = baseCwd.startsWith(FILE_SCHEME) ? FILE_SCHEME : '';
+  // Strip the scheme so we work with a pure POSIX path internally.
+  const posixCwd = scheme ? baseCwd.slice(FILE_SCHEME.length) : baseCwd;
+  // If arg itself carries the scheme, strip it too.
+  const posixArg = arg.startsWith(FILE_SCHEME) ? arg.slice(FILE_SCHEME.length) : arg;
+
+  const raw = posixArg.startsWith('/') ? posixArg : `${posixCwd}/${posixArg}`;
   const parts = raw.split('/').filter(Boolean);
   const stack: string[] = [];
   for (const p of parts) {
     if (p === '..') stack.pop();
     else if (p !== '.') stack.push(p);
   }
-  return '/' + stack.join('/');
+  return scheme + '/' + stack.join('/');
 }
 
 /* -------------------------------------------------------------------------- */
@@ -372,8 +379,11 @@ export async function dispatch(
   const [base, ...args] = parts;
 
   switch (base) {
-    case 'pwd':
-      return { output: cwd, exitCode: 0 };
+    case 'pwd': {
+      // Strip file:// scheme for display — the raw expo URI is not useful to the user.
+      const display = cwd.startsWith('file://') ? cwd.slice('file://'.length) : cwd;
+      return { output: display, exitCode: 0 };
+    }
 
     case 'cd': {
       const target = args[0] || '/';

@@ -34863,14 +34863,18 @@ $1 $2
     window.ReactNativeWebView.postMessage(JSON.stringify(msg));
   }
   function resolvePath(arg, baseCwd) {
-    const raw = arg.startsWith("/") ? arg : `${baseCwd}/${arg}`;
+    const FILE_SCHEME = "file://";
+    const scheme = baseCwd.startsWith(FILE_SCHEME) ? FILE_SCHEME : "";
+    const posixCwd = scheme ? baseCwd.slice(FILE_SCHEME.length) : baseCwd;
+    const posixArg = arg.startsWith(FILE_SCHEME) ? arg.slice(FILE_SCHEME.length) : arg;
+    const raw = posixArg.startsWith("/") ? posixArg : `${posixCwd}/${posixArg}`;
     const parts = raw.split("/").filter(Boolean);
     const stack = [];
     for (const p2 of parts) {
       if (p2 === "..") stack.pop();
       else if (p2 !== ".") stack.push(p2);
     }
-    return "/" + stack.join("/");
+    return scheme + "/" + stack.join("/");
   }
   async function vfsRead(path) {
     return new Promise((resolve, reject) => {
@@ -35107,8 +35111,10 @@ Run 'git init' to create one.`,
     const parts = trimmed.split(/\s+/);
     const [base, ...args] = parts;
     switch (base) {
-      case "pwd":
-        return { output: cwd, exitCode: 0 };
+      case "pwd": {
+        const display = cwd.startsWith("file://") ? cwd.slice("file://".length) : cwd;
+        return { output: display, exitCode: 0 };
+      }
       case "cd": {
         const target = args[0] || "/";
         cwd = resolvePath(target, cwd);

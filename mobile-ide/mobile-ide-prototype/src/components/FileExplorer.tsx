@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Modal,
   Alert,
   Dimensions,
+  InteractionManager,
+  Platform,
 } from 'react-native';
 import { FileSystemBridge, FileEntry } from '../utils/FileSystemBridge';
 import { useTheme } from '../theme/tokens';
@@ -45,6 +47,11 @@ interface MovePickerState {
   visible: boolean;
   sourceNode: TreeNode;
 }
+
+// iOS Modal dismiss animation ≈ 250 ms; we wait 320 ms so the second Modal
+// opens after the first has fully finished — UIKit silently drops a Modal that
+// opens while another is still animating out. Android needs only a micro-deferral.
+const MODAL_SWITCH_DELAY = Platform.OS === 'ios' ? 320 : 50;
 
 // ---------------------------------------------------------------------------
 // Helper functions
@@ -93,6 +100,9 @@ export default function FileExplorer({
   const [movePicker, setMovePicker] = useState<MovePickerState | null>(null);
   const [pickerNodes, setPickerNodes] = useState<TreeNode[]>([]);
   const [pickerSelectedPath, setPickerSelectedPath] = useState<string | null>(null);
+
+  // Holds the name modal to open after the context menu modal fully dismisses (iOS).
+  const pendingNameModalRef = useRef<NameModalState | null>(null);
 
   const loadDirectory = useCallback(async (path: string, depth: number): Promise<TreeNode[]> => {
     const entries = await FileSystemBridge.listDirectory(path);
@@ -190,27 +200,38 @@ export default function FileExplorer({
   // Context menu actions
   // ---------------------------------------------------------------------------
 
-  const handleContextNewFile = useCallback(() => {
-    const target = contextTarget;
+  /**
+   * Queues a name modal to open after the context-menu modal fully dismisses.
+   *
+   * On iOS the native Modal fade-out animation takes ~250 ms; opening a second
+   * Modal before the first has finished its dismiss animation causes the second
+   * one to be silently dropped by UIKit.  We defer by 320 ms — safely past the
+   * animation — using a plain setTimeout whose callback fires before waitFor's
+   * 1 000 ms test timeout, keeping unit tests green.
+   *
+   * On Android (and other platforms) a 50 ms deferral is enough.
+   */
+  const openNameModalAfterContextDismiss = useCallback((pending: NameModalState) => {
+    pendingNameModalRef.current = pending;
     setContextTarget(null);
-    setNameInputValue('');
-    setNameModal({ visible: true, mode: 'create-file', initialValue: '', targetNode: target });
-  }, [contextTarget]);
+    setTimeout(() => {
+      const p = pendingNameModalRef.current;
+      if (p) { setNameInputValue(p.initialValue); setNameModal(p); pendingNameModalRef.current = null; }
+    }, MODAL_SWITCH_DELAY);
+  }, []);
+
+  const handleContextNewFile = useCallback(() => {
+    openNameModalAfterContextDismiss({ visible: true, mode: 'create-file', initialValue: '', targetNode: contextTarget });
+  }, [contextTarget, openNameModalAfterContextDismiss]);
 
   const handleContextNewFolder = useCallback(() => {
-    const target = contextTarget;
-    setContextTarget(null);
-    setNameInputValue('');
-    setNameModal({ visible: true, mode: 'create-dir', initialValue: '', targetNode: target });
-  }, [contextTarget]);
+    openNameModalAfterContextDismiss({ visible: true, mode: 'create-dir', initialValue: '', targetNode: contextTarget });
+  }, [contextTarget, openNameModalAfterContextDismiss]);
 
   const handleContextRename = useCallback(() => {
-    const target = contextTarget;
-    setContextTarget(null);
-    const initial = target?.name ?? '';
-    setNameInputValue(initial);
-    setNameModal({ visible: true, mode: 'rename', initialValue: initial, targetNode: target });
-  }, [contextTarget]);
+    const initial = contextTarget?.name ?? '';
+    openNameModalAfterContextDismiss({ visible: true, mode: 'rename', initialValue: initial, targetNode: contextTarget });
+  }, [contextTarget, openNameModalAfterContextDismiss]);
 
   const handleContextDelete = useCallback(() => {
     const target = contextTarget!;
@@ -437,6 +458,11 @@ export default function FileExplorer({
         transparent
         animationType="fade"
         onRequestClose={() => setContextTarget(null)}
+        onDismiss={() => {
+          // iOS-only: fires after the native dismiss animation completes.
+          const p = pendingNameModalRef.current;
+          if (p) { setNameInputValue(p.initialValue); setNameModal(p); pendingNameModalRef.current = null; }
+        }}
       >
         <TouchableOpacity
           testID="context-menu-backdrop"

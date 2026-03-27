@@ -140,11 +140,11 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body  { height: 100%; background: #1e1e1e; overflow: hidden; }
-    #container  { position: absolute; inset: 0; }
+    #container  { position: absolute; inset: 0; -webkit-user-select: text; user-select: text; }
     #loading    {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 12px;

@@ -9,7 +9,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import Editor, { EditorTab, buildPreviewHtml, canPreview, getLanguageForFile } from '../../src/components/Editor';
+import Editor, { EditorTab, buildPreviewHtml, canPreview, getLanguageForFile, detectLanguageFromContent } from '../../src/components/Editor';
 
 // ---------------------------------------------------------------------------
 // Mock theme tokens
@@ -510,6 +510,9 @@ describe('getLanguageForFile', () => {
     ['notes.txt',      'plaintext'],
     ['binary.bin',     'plaintext'],
     ['no-extension',   'plaintext'],
+    // No dot at all → plaintext (not the whole filename as ext)
+    ['test',           'plaintext'],
+    ['README',         'plaintext'],
   ])('%s → %s', (filename, expected) => {
     expect(getLanguageForFile(filename)).toBe(expected);
   });
@@ -523,6 +526,56 @@ describe('getLanguageForFile', () => {
   it('handles files with multiple dots correctly', () => {
     expect(getLanguageForFile('index.test.ts')).toBe('typescript');
     expect(getLanguageForFile('config.prod.json')).toBe('json');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// detectLanguageFromContent
+// ---------------------------------------------------------------------------
+
+describe('detectLanguageFromContent', () => {
+  it('detects JSON from object literal', () => {
+    expect(detectLanguageFromContent('{ "name": "test", "version": "1.0" }')).toBe('json');
+  });
+
+  it('detects JSON from array literal', () => {
+    expect(detectLanguageFromContent('[1, 2, 3]')).toBe('json');
+  });
+
+  it('returns plaintext for invalid JSON starting with {', () => {
+    // Starts with { but is not valid JSON — should not claim json
+    expect(detectLanguageFromContent('{ not valid json at all }')).toBe('plaintext');
+  });
+
+  it('detects HTML from <!DOCTYPE html>', () => {
+    expect(detectLanguageFromContent('<!DOCTYPE html>\n<html><body></body></html>')).toBe('html');
+  });
+
+  it('detects HTML from <html> tag', () => {
+    expect(detectLanguageFromContent('<html lang="en"><head></head></html>')).toBe('html');
+  });
+
+  it('detects markdown with ATX heading + list (score ≥ 2)', () => {
+    const md = '# Title\n\n- item one\n- item two\n\nSome text.';
+    expect(detectLanguageFromContent(md)).toBe('markdown');
+  });
+
+  it('detects markdown with heading + bold', () => {
+    const md = '## Section\n\nThis is **important** content.';
+    expect(detectLanguageFromContent(md)).toBe('markdown');
+  });
+
+  it('does NOT detect markdown from a single heading with no other markers', () => {
+    // Score < 2 → not confident enough → plaintext
+    expect(detectLanguageFromContent('# Just a heading')).toBe('plaintext');
+  });
+
+  it('returns plaintext for empty content', () => {
+    expect(detectLanguageFromContent('')).toBe('plaintext');
+  });
+
+  it('returns plaintext for plain prose', () => {
+    expect(detectLanguageFromContent('This is just some plain text without any markers.')).toBe('plaintext');
   });
 });
 

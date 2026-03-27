@@ -81,7 +81,42 @@ export function getLanguageForFile(filename: string): string {
   const lower = filename.toLowerCase();
   if (lower === 'dockerfile' || lower.startsWith('dockerfile.')) return 'dockerfile';
   const ext = lower.split('.').pop() ?? '';
+  // If the extension IS the whole filename (no dot) pop() returns the filename itself,
+  // which won't be in LANG_MAP — handled by the fallback below.
+  if (ext === lower) return 'plaintext'; // no extension
   return LANG_MAP[ext] ?? 'plaintext';
+}
+
+/**
+ * Lightweight content-based language detection used as a fallback when the
+ * filename has no extension. Checks only the first 512 characters so it stays
+ * fast even on large files.
+ */
+export function detectLanguageFromContent(content: string): string {
+  const head = content.slice(0, 512).trimStart();
+  if (!head) return 'plaintext';
+
+  // JSON: starts with { or [
+  if (head[0] === '{' || head[0] === '[') {
+    try { JSON.parse(content); return 'json'; } catch { /* not valid JSON */ }
+  }
+
+  // HTML: starts with <!DOCTYPE or <html or common tags
+  if (/^<!doctype\s+html/i.test(head) || /^<html[\s>]/i.test(head)) return 'html';
+
+  // Markdown: has ATX headings, list markers, or emphasis
+  const markdownScore = [
+    /^#{1,6}\s/m,          // # Heading
+    /^\s*[-*+]\s/m,        // - list item
+    /^\s*\d+\.\s/m,        // 1. ordered list
+    /\*\*.+\*\*/,          // **bold**
+    /\[.+\]\(.+\)/,        // [link](url)
+    /^>\s/m,               // > blockquote
+    /^```/m,               // fenced code block
+  ].filter((re) => re.test(head)).length;
+  if (markdownScore >= 2) return 'markdown';
+
+  return 'plaintext';
 }
 
 /** File types that support a rendered preview alongside the editor. */

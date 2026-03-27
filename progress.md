@@ -4,6 +4,58 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 8 — 2026-03-27
+
+### What Was Done
+- **Resumed after quota-limit interruption** — session picked up mid-flight on `bugfix/version-bump-output-format`
+- **Fixed 2 failing App tests**: `getByText('NomadCode')` → `getByText('NomadCode', { exact: false })` after status bar gained nested `<Text>` version node
+- **Fixed BUG-0031 (partial)**: `capture-cost.js` refactored
+  - Zero-cost rows tagged `[NO_DATA]` in Session ID column (visually distinguishable from real entries)
+  - Raw Stop-hook stdin saved to `docs/capture-cost-debug.json` on every invocation — inspect after session end to verify if 2.1.85 sends cost/usage data
+  - `buildRow()` logic extracted and exported for testing
+  - `require.main === module` guard prevents `main()` running on `require()` in tests
+  - 13 unit tests added: `tests/unit/capture-cost.test.js`
+  - `docs/capture-cost-debug.json` added to `.gitignore`
+- **Updated BUGS.md** (root + docs): BUG-0031 → IN_PROGRESS, BUG-0032 → Fixed; added to machine-readable `docs/BUGS.md`
+- **Verified all previous session work is present** (uncommitted from prior interrupted session):
+  - Build number in status bar (`NomadCode v0.1.0`)
+  - Terminal `file://` URI fix in `resolvePath` + bundle rebuilt
+  - iOS Modal switch timing fix in `FileExplorer.tsx` (320ms setTimeout)
+  - Monaco text selection (`-webkit-user-select: text`) — confirmed already committed to HEAD
+
+### Current State
+- Branch: `bugfix/version-bump-output-format` — PR to `develop`
+- All mobile unit tests passing: **581 tests, 0 failures**
+- All plan-visualizer tests passing: **495 tests, 0 failures**
+
+### Test Status
+- 581 mobile tests passing, 0 failing
+- 495 plan-visualizer tests passing, 0 failing
+- Coverage ≥ 80% on all modified files
+
+### Key Files Modified
+- `mobile-ide/mobile-ide-prototype/App.tsx` — version in status bar, `detectLanguageFromContent` wired
+- `mobile-ide/mobile-ide-prototype/src/components/Editor.tsx` — `detectLanguageFromContent` added + exported
+- `mobile-ide/mobile-ide-prototype/src/components/FileExplorer.tsx` — iOS Modal switch timing fix
+- `mobile-ide/mobile-ide-prototype/src/terminal/bundle/index.ts` — `file://` URI fix in `resolvePath`, `pwd` display fix
+- `mobile-ide/mobile-ide-prototype/src/terminal/bundle/dist/terminal.html` — rebuilt bundle
+- `mobile-ide/mobile-ide-prototype/src/terminal/bundle/dist/terminal.js` — rebuilt bundle
+- `mobile-ide/mobile-ide-prototype/tests/unit/App.test.tsx` — `exact: false` for version-annotated title
+- `mobile-ide/mobile-ide-prototype/tests/unit/Editor.test.tsx` — `detectLanguageFromContent` tests
+- `tools/capture-cost.js` — BUG-0031 partial fix
+- `tests/unit/capture-cost.test.js` — new, 13 tests
+- `BUGS.md` — BUG-0031 updated to IN_PROGRESS
+- `docs/BUGS.md` — BUG-0031 and BUG-0032 appended
+- `.gitignore` — `docs/capture-cost-debug.json` excluded
+- `progress.md` — this entry
+
+### Next Session Pick-up
+1. Check `docs/capture-cost-debug.json` after session end — if payload contains `cost_usd`/`usage`, mark BUG-0031 FIXED
+2. Decide next EPIC (see RELEASE_PLAN.md)
+3. Investigate BUG-0009 (iPhone landscape crash on SetupWizard modal) — OPEN
+
+---
+
 ## Session 7 — 2026-03-25
 
 ### What Was Done

@@ -1,4 +1,9 @@
 {
+  "enabledPlugins": {
+    "vercel@claude-plugins-official": false,
+    "stripe@claude-plugins-official": false,
+    "supabase@claude-plugins-official": false
+  },
   "hooks": {
     "Stop": [
       {

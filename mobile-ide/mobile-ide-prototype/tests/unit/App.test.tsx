@@ -197,7 +197,9 @@ describe('App — smoke tests', () => {
 
   it('renders the NomadCode status bar title', () => {
     render(<App />);
-    expect(screen.getByText('NomadCode')).toBeTruthy();
+    // The title now renders as "NomadCode v0.x.x" with a nested <Text> for the version;
+    // use exact:false to match the outer text node.
+    expect(screen.getByText('NomadCode', { exact: false })).toBeTruthy();
   });
 });
 
@@ -262,8 +264,8 @@ describe('App — ExtensionHost integration', () => {
   it('mounts without crashing when installedExtensions is empty', () => {
     // ExtensionHost renders null for empty list — verifies App renders cleanly
     render(<App />);
-    // App renders the status bar title
-    expect(screen.getByText('NomadCode')).toBeTruthy();
+    // App renders the status bar title (now includes version as nested <Text>)
+    expect(screen.getByText('NomadCode', { exact: false })).toBeTruthy();
   });
 });
 
