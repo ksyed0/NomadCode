@@ -23,7 +23,8 @@ Dependencies: EPIC-0001
 EPIC-0003: Terminal
 Description: Integrated sandboxed terminal via Xterm.js + WASI for running build/test commands.
 Release Target: Release 0.5 (Beta)
-Status: In Progress
+Status: Done
+PR: #45 (merged)
 Dependencies: EPIC-0001, EPIC-0002
 
 EPIC-0004: Command Palette
@@ -776,9 +777,8 @@ Dependencies: US-0059
 TASK-0001 (US-0002): Implement CodeMirror 6 in WebView for syntax-highlighted editing
 Type: Dev
 Assignee: Agent
-Status: To Do
-Branch: feature/US-0002-syntax-highlighting
-Notes: Evaluate @codemirror/lang-javascript bundle size before integrating
+Status: Done
+Notes: Superseded — Monaco Editor v0.45.0 adopted instead of CodeMirror 6 (better mobile WebView support). Syntax highlighting and language detection implemented in EPIC-0001/0013.
 
 TASK-0002 (US-0001): Wire FileSystemBridge to Expo FileSystem for real file read/write
 Type: Dev
@@ -790,14 +790,14 @@ Notes: FileSystemBridge fully wired to expo-file-system (readFile, writeFile, li
 TASK-0003 (US-0001, US-0002): Achieve 80% unit test coverage on all Phase 1 components
 Type: Test
 Assignee: Agent
-Status: To Do
-Notes: Run npm run test:coverage and report results
+Status: Done
+Notes: 80% coverage threshold enforced in CI across all suites. 802+ tests passing as of Session 10.
 
 TASK-0004 (Infrastructure): Set up develop branch and branch protection rules on GitHub
 Type: Infra
 Assignee: Agent
-Status: To Do
-Notes: Enable branch protection on main and develop via GitHub settings
+Status: Done
+Notes: develop branch created; branch protection on main and develop enabled at project setup.
 ```
 
 ---
