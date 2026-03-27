@@ -18,4 +18,14 @@ config.watchFolders = [
   path.resolve(projectRoot, '..', 'node_modules'),
 ];
 
+// Resolve native-only packages to empty stubs for web builds.
+// react-native-document-picker has no web entry point; expo export (web) fails
+// without this stub because Metro cannot find a web-compatible module.
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (platform === 'web' && moduleName === 'react-native-document-picker') {
+    return { type: 'empty' };
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 module.exports = config;
