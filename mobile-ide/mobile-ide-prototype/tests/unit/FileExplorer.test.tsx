@@ -13,6 +13,30 @@ import { Alert } from 'react-native';
 import FileExplorer from '../../src/components/FileExplorer';
 import { FileSystemBridge } from '../../src/utils/FileSystemBridge';
 
+jest.mock('../../src/hooks/useSearch', () => ({
+  useSearch: () => ({
+    query: '',
+    setQuery: jest.fn(),
+    options: { caseSensitive: false, regex: false, wholeWord: false, glob: '' },
+    setOptions: jest.fn(),
+    results: [],
+    isSearching: false,
+    fileCount: 0,
+    totalMatchCount: 0,
+    error: null,
+    submit: jest.fn(),
+    clear: jest.fn(),
+  }),
+}));
+
+jest.mock('../../src/components/GlobalSearch', () => ({
+  GlobalSearch: () => {
+    const React = require('react');
+    const { TextInput } = require('react-native');
+    return React.createElement(TextInput, { placeholder: 'Search', testID: 'global-search-input' });
+  },
+}));
+
 // Mock useTheme so FileExplorer can render without a real Zustand store
 jest.mock('../../src/theme/tokens', () => ({
   useTheme: () => ({
@@ -76,24 +100,42 @@ const SRC_CHILDREN = [
 
 beforeEach(() => jest.clearAllMocks());
 
+type ExplorerOpts = {
+  onFileCreate?: jest.Mock;
+  onFileRename?: jest.Mock;
+  onFileMove?: jest.Mock;
+  sidebarTab?: 'files' | 'search';
+  onSidebarTabChange?: jest.Mock;
+  onSearchNavigate?: jest.Mock;
+};
+
 function renderExplorer(
-  rootPath = '/docs/',
+  rootPathOrOpts: string | ExplorerOpts = '/docs/',
   onFileSelect = jest.fn(),
   onFileDelete?: jest.Mock,
-  opts: {
-    onFileCreate?: jest.Mock;
-    onFileRename?: jest.Mock;
-    onFileMove?: jest.Mock;
-  } = {},
+  opts: ExplorerOpts = {},
 ) {
+  // Allow passing a single opts object as first argument (for tab bar tests)
+  let rootPath: string;
+  let mergedOpts: ExplorerOpts;
+  if (typeof rootPathOrOpts === 'object') {
+    rootPath = '/docs/';
+    mergedOpts = rootPathOrOpts;
+  } else {
+    rootPath = rootPathOrOpts;
+    mergedOpts = opts;
+  }
   return render(
     <FileExplorer
       rootPath={rootPath}
       onFileSelect={onFileSelect}
       onFileDelete={onFileDelete}
-      onFileCreate={opts.onFileCreate}
-      onFileRename={opts.onFileRename}
-      onFileMove={opts.onFileMove}
+      onFileCreate={mergedOpts.onFileCreate}
+      onFileRename={mergedOpts.onFileRename}
+      onFileMove={mergedOpts.onFileMove}
+      sidebarTab={mergedOpts.sidebarTab ?? 'files'}
+      onSidebarTabChange={mergedOpts.onSidebarTabChange ?? jest.fn()}
+      onSearchNavigate={mergedOpts.onSearchNavigate ?? jest.fn()}
     />,
   );
 }
@@ -1218,5 +1260,60 @@ describe('FileExplorer — no-crash without callbacks (TC-0078..TC-0080)', () =>
     await expect(
       act(async () => { fireEvent.press(screen.getByTestId('move-here-btn')); }),
     ).resolves.not.toThrow();
+  });
+});
+
+// ── Sidebar tab bar ────────────────────────────────────────────────────────
+
+describe('sidebar tab bar', () => {
+  it('renders Files and Search tabs', () => {
+    const { getByText } = renderExplorer({
+      sidebarTab: 'files',
+      onSidebarTabChange: jest.fn(),
+      onSearchNavigate: jest.fn(),
+    });
+    expect(getByText('Files')).toBeTruthy();
+    expect(getByText('Search')).toBeTruthy();
+  });
+
+  it('tapping Search tab calls onSidebarTabChange with "search"', () => {
+    const onSidebarTabChange = jest.fn();
+    const { getByText } = renderExplorer({
+      sidebarTab: 'files',
+      onSidebarTabChange,
+      onSearchNavigate: jest.fn(),
+    });
+    fireEvent.press(getByText('Search'));
+    expect(onSidebarTabChange).toHaveBeenCalledWith('search');
+  });
+
+  it('tapping Files tab calls onSidebarTabChange with "files"', () => {
+    const onSidebarTabChange = jest.fn();
+    const { getByText } = renderExplorer({
+      sidebarTab: 'search',
+      onSidebarTabChange,
+      onSearchNavigate: jest.fn(),
+    });
+    fireEvent.press(getByText('Files'));
+    expect(onSidebarTabChange).toHaveBeenCalledWith('files');
+  });
+
+  it('renders file tree when sidebarTab is "files"', () => {
+    const { queryByPlaceholderText } = renderExplorer({
+      sidebarTab: 'files',
+      onSidebarTabChange: jest.fn(),
+      onSearchNavigate: jest.fn(),
+    });
+    // GlobalSearch input should not be present
+    expect(queryByPlaceholderText('Search')).toBeNull();
+  });
+
+  it('renders GlobalSearch when sidebarTab is "search"', () => {
+    const { getByPlaceholderText } = renderExplorer({
+      sidebarTab: 'search',
+      onSidebarTabChange: jest.fn(),
+      onSearchNavigate: jest.fn(),
+    });
+    expect(getByPlaceholderText('Search')).toBeTruthy();
   });
 });
