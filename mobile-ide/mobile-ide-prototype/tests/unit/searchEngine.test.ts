@@ -2,7 +2,11 @@ import {
   globToRegex,
   buildPattern,
   matchFile,
+  searchFiles,
   SearchOptions,
+  FileSearchResult,
+  MAX_FILE_SIZE_BYTES,
+  MAX_TOTAL_MATCHES,
 } from '../../src/utils/searchEngine';
 
 const DEFAULT_OPTS: SearchOptions = {
@@ -127,5 +131,146 @@ describe('matchFile', () => {
   it('handles empty content', () => {
     const pattern = buildPattern('foo', DEFAULT_OPTS);
     expect(matchFile('', pattern)).toEqual([]);
+  });
+});
+
+// ── searchFiles generator ─────────────────────────────────────────────────
+
+const mockListDirectory = jest.fn();
+const mockReadFile = jest.fn();
+const mockGetFileSize = jest.fn();
+
+jest.mock('../../src/utils/FileSystemBridge', () => ({
+  FileSystemBridge: {
+    listDirectory: (...args: unknown[]) => mockListDirectory(...args),
+    readFile: (...args: unknown[]) => mockReadFile(...args),
+    getFileSize: (...args: unknown[]) => mockGetFileSize(...args),
+  },
+}));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockGetFileSize.mockResolvedValue(1000); // small file
+});
+
+async function collectResults(
+  gen: AsyncGenerator<FileSearchResult>,
+): Promise<FileSearchResult[]> {
+  const out: FileSearchResult[] = [];
+  for await (const r of gen) out.push(r);
+  return out;
+}
+
+describe('searchFiles', () => {
+  it('yields nothing for empty query', async () => {
+    const signal = new AbortController().signal;
+    const results = await collectResults(
+      searchFiles('file:///root', '', DEFAULT_OPTS, signal),
+    );
+    expect(results).toEqual([]);
+    expect(mockListDirectory).not.toHaveBeenCalled();
+  });
+
+  it('yields matching file results', async () => {
+    mockListDirectory.mockResolvedValue([
+      { name: 'foo.ts', path: 'file:///root/foo.ts', isDirectory: false },
+    ]);
+    mockReadFile.mockResolvedValue('const foo = 1;\nconst bar = 2;');
+    const signal = new AbortController().signal;
+    const results = await collectResults(
+      searchFiles('file:///root', 'foo', DEFAULT_OPTS, signal),
+    );
+    expect(results).toHaveLength(1);
+    expect(results[0].filePath).toBe('file:///root/foo.ts');
+    expect(results[0].matches[0].lineNumber).toBe(1);
+  });
+
+  it('skips excluded directories', async () => {
+    mockListDirectory.mockResolvedValueOnce([
+      { name: 'node_modules', path: 'file:///root/node_modules', isDirectory: true },
+      { name: 'src', path: 'file:///root/src', isDirectory: true },
+    ]);
+    mockListDirectory.mockResolvedValueOnce([
+      { name: 'index.ts', path: 'file:///root/src/index.ts', isDirectory: false },
+    ]);
+    mockReadFile.mockResolvedValue('foo');
+    const signal = new AbortController().signal;
+    await collectResults(searchFiles('file:///root', 'foo', DEFAULT_OPTS, signal));
+    // node_modules dir should never be listed
+    expect(mockListDirectory).toHaveBeenCalledTimes(2); // root + src
+    expect(mockListDirectory).not.toHaveBeenCalledWith('file:///root/node_modules');
+  });
+
+  it('skips files larger than MAX_FILE_SIZE_BYTES', async () => {
+    mockListDirectory.mockResolvedValue([
+      { name: 'big.ts', path: 'file:///root/big.ts', isDirectory: false },
+    ]);
+    mockGetFileSize.mockResolvedValue(MAX_FILE_SIZE_BYTES + 1);
+    const signal = new AbortController().signal;
+    await collectResults(searchFiles('file:///root', 'foo', DEFAULT_OPTS, signal));
+    expect(mockReadFile).not.toHaveBeenCalled();
+  });
+
+  it('skips unreadable files and continues', async () => {
+    mockListDirectory.mockResolvedValue([
+      { name: 'bad.ts', path: 'file:///root/bad.ts', isDirectory: false },
+      { name: 'good.ts', path: 'file:///root/good.ts', isDirectory: false },
+    ]);
+    mockReadFile
+      .mockRejectedValueOnce(new Error('permission denied'))
+      .mockResolvedValueOnce('foo match');
+    const signal = new AbortController().signal;
+    const results = await collectResults(
+      searchFiles('file:///root', 'foo', DEFAULT_OPTS, signal),
+    );
+    expect(results).toHaveLength(1);
+    expect(results[0].filePath).toBe('file:///root/good.ts');
+  });
+
+  it('stops when signal is aborted', async () => {
+    mockListDirectory.mockResolvedValue([
+      { name: 'a.ts', path: 'file:///root/a.ts', isDirectory: false },
+      { name: 'b.ts', path: 'file:///root/b.ts', isDirectory: false },
+      { name: 'c.ts', path: 'file:///root/c.ts', isDirectory: false },
+    ]);
+    mockReadFile.mockImplementation(() => new Promise(res => setTimeout(() => res('foo'), 10)));
+    const controller = new AbortController();
+    const results: FileSearchResult[] = [];
+    const gen = searchFiles('file:///root', 'foo', DEFAULT_OPTS, controller.signal);
+    const first = await gen.next();
+    if (!first.done) results.push(first.value);
+    controller.abort();
+    const second = await gen.next();
+    expect(second.done).toBe(true);
+  });
+
+  it('applies glob filter — skips non-matching files', async () => {
+    mockListDirectory.mockResolvedValue([
+      { name: 'foo.ts', path: 'file:///root/foo.ts', isDirectory: false },
+      { name: 'foo.js', path: 'file:///root/foo.js', isDirectory: false },
+    ]);
+    mockReadFile.mockResolvedValue('foo match');
+    const signal = new AbortController().signal;
+    const results = await collectResults(
+      searchFiles('file:///root', 'foo', { ...DEFAULT_OPTS, glob: '**/*.ts' }, signal),
+    );
+    expect(results).toHaveLength(1);
+    expect(results[0].filePath).toBe('file:///root/foo.ts');
+  });
+
+  it('caps results at MAX_TOTAL_MATCHES', async () => {
+    // Create a file that produces 600 matches
+    const bigContent = Array.from({ length: 600 }, (_, i) => `line ${i} foo`).join('\n');
+    mockListDirectory.mockResolvedValueOnce([
+      { name: 'a.ts', path: 'file:///root/a.ts', isDirectory: false },
+      { name: 'b.ts', path: 'file:///root/b.ts', isDirectory: false },
+    ]);
+    mockReadFile.mockResolvedValue(bigContent);
+    const signal = new AbortController().signal;
+    const results = await collectResults(
+      searchFiles('file:///root', 'foo', DEFAULT_OPTS, signal),
+    );
+    const total = results.reduce((s, r) => s + r.matches.length, 0);
+    expect(total).toBeLessThanOrEqual(MAX_TOTAL_MATCHES);
   });
 });

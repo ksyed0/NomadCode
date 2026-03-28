@@ -67,12 +67,72 @@ export function matchFile(content: string, pattern: RegExp): MatchLine[] {
   return results;
 }
 
-// searchFiles is added in Task 3
 export async function* searchFiles(
-  _root: string,
-  _query: string,
-  _opts: SearchOptions,
-  _signal: AbortSignal,
+  root: string,
+  query: string,
+  opts: SearchOptions,
+  signal: AbortSignal,
 ): AsyncGenerator<FileSearchResult> {
-  // stub — implemented in Task 3
+  if (!query) return;
+  let pattern: RegExp;
+  try {
+    pattern = buildPattern(query, opts);
+  } catch {
+    return;
+  }
+  const globPattern = globToRegex(opts.glob);
+  const counter = { total: 0 };
+  yield* walkDir(root, root, pattern, globPattern, signal, counter);
+}
+
+async function* walkDir(
+  root: string,
+  dir: string,
+  pattern: RegExp,
+  globPattern: RegExp,
+  signal: AbortSignal,
+  counter: { total: number },
+): AsyncGenerator<FileSearchResult> {
+  if (signal.aborted || counter.total >= MAX_TOTAL_MATCHES) return;
+  let entries;
+  try {
+    entries = await FileSystemBridge.listDirectory(dir);
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (signal.aborted || counter.total >= MAX_TOTAL_MATCHES) return;
+    if (entry.isDirectory) {
+      if (EXCLUDED_DIRS.has(entry.name)) continue;
+      yield* walkDir(root, entry.path, pattern, globPattern, signal, counter);
+    } else {
+      let size = 0;
+      try {
+        size = await FileSystemBridge.getFileSize(entry.path);
+      } catch {
+        continue;
+      }
+      if (size > MAX_FILE_SIZE_BYTES) continue;
+      let content: string;
+      try {
+        content = await FileSystemBridge.readFile(entry.path);
+      } catch {
+        continue;
+      }
+      if (signal.aborted) return;
+      // Glob: test relative path from root.
+      // Prepend '/' so that patterns like **/*.ts (which require a slash) also
+      // match files at the root level (e.g. rel='foo.ts' → '/foo.ts').
+      const rel = entry.path.startsWith(root)
+        ? entry.path.slice(root.length).replace(/^[/]/, '')
+        : entry.name;
+      const relWithSlash = `/${rel}`;
+      if (!globPattern.test(relWithSlash) && !globPattern.test(rel) && !globPattern.test(entry.name)) continue;
+      const matches = matchFile(content, pattern);
+      if (matches.length === 0) continue;
+      const allowed = Math.min(matches.length, MAX_TOTAL_MATCHES - counter.total);
+      counter.total += allowed;
+      yield { filePath: entry.path, matches: matches.slice(0, allowed) };
+    }
+  }
 }

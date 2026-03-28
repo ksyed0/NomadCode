@@ -206,6 +206,19 @@ export const FileSystemBridge = {
     await ExpoFS.copyAsync({ from, to });
   },
 
+  /**
+   * Return the byte size of a file.
+   * Stub — full implementation added in Task 4.
+   */
+  async getFileSize(path: string): Promise<number> {
+    if (getUriType(path) === 'saf') {
+      const info = await ExpoFS.getInfoAsync(path);
+      return info.exists ? (info.size ?? 0) : 0;
+    }
+    const info = await ExpoFS.getInfoAsync(path);
+    return info.exists ? (info.size ?? 0) : 0;
+  },
+
   /** Check whether a path exists. */
   async exists(path: string): Promise<boolean> {
     if (getUriType(path) === 'saf') {
