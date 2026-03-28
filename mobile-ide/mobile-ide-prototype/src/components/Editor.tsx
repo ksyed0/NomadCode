@@ -45,6 +45,11 @@ export interface EditorTab {
   content: string;
   language: string;
   isDirty: boolean;
+  scrollTo?: {
+    line: number;
+    matchStart: number;
+    matchEnd: number;
+  } | null;
 }
 
 interface EditorProps {
@@ -54,6 +59,7 @@ interface EditorProps {
   onTabClose: (path: string) => void;
   onContentChange: (path: string, content: string) => void;
   onSave: (path: string, content: string) => void;
+  onTabScrollConsumed?: (path: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -296,6 +302,7 @@ export default function Editor({
   onTabClose,
   onContentChange,
   onSave,
+  onTabScrollConsumed,
 }: EditorProps) {
   const webViewRef    = useRef<WebView>(null);
   const loadedPathRef = useRef<string | null>(null);
@@ -358,11 +365,15 @@ export default function Editor({
       language: activeTab.language,
       resetView: true,
       rules: getLanguageRules(activeTab.language),
+      scrollTo: activeTab.scrollTo ?? null,
     });
     webViewRef.current?.injectJavaScript(
       `window.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));true;`,
     );
-  }, [editorReady, activeTab]);
+    if (activeTab.scrollTo) {
+      onTabScrollConsumed?.(activeTab.path);
+    }
+  }, [editorReady, activeTab, onTabScrollConsumed]);
 
   // ── Apply Monaco theme when editor is ready or theme changes ─────────────
   useEffect(() => {
