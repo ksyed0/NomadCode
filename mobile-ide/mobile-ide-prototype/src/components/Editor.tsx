@@ -356,8 +356,11 @@ export default function Editor({
   // ── Send content to Monaco when active tab changes ───────────────────────
   useEffect(() => {
     if (!editorReady || !activeTab) return;
-    if (loadedPathRef.current === activeTab.path) return;
-    loadedPathRef.current = activeTab.path;
+    const hasScrollIntent = !!activeTab.scrollTo;
+    if (loadedPathRef.current === activeTab.path && !hasScrollIntent) return;
+    if (loadedPathRef.current !== activeTab.path) {
+      loadedPathRef.current = activeTab.path;
+    }
 
     const msg = JSON.stringify({
       type: 'setContent',
