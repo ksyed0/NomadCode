@@ -1005,3 +1005,98 @@ Related AC: AC-0063
 Type: Unit
 Status: [ ] Not Run
 Defect Raised: None
+
+## US-0043: Search across all project files
+
+TC-0347: searchFiles yields nothing for empty query
+Related Story: US-0043
+Related AC: AC-0114
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0348: searchFiles yields matching file results
+Related Story: US-0043
+Related AC: AC-0114
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0349: searchFiles skips excluded directories
+Related Story: US-0043
+Related AC: AC-0114
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0350: searchFiles skips files larger than 4MB
+Related Story: US-0043
+Related AC: AC-0114
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0351: searchFiles skips unreadable files and continues
+Related Story: US-0043
+Related AC: AC-0114
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0352: searchFiles applies glob filter
+Related Story: US-0043
+Related AC: AC-0115
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0353: searchFiles stops when signal aborted
+Related Story: US-0043
+Related AC: AC-0114
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0354: searchFiles caps at MAX_TOTAL_MATCHES
+Related Story: US-0043
+Related AC: AC-0114
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0355: GlobalSearch renders search input and toggles
+Related Story: US-0043
+Related AC: AC-0113
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0356: GlobalSearch shows grouped results by file
+Related Story: US-0043
+Related AC: AC-0115
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+## US-0044: Navigate to search result
+
+TC-0357: tapping result calls onNavigate with correct args
+Related Story: US-0044
+Related AC: AC-0116
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0358: MonacoAssetManager scrollToLine calls revealLineInCenter
+Related Story: US-0044
+Related AC: AC-0116
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0359: MonacoAssetManager scrollToLine applies deltaDecorations highlight
+Related Story: US-0044
+Related AC: AC-0117
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
