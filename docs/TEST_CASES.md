@@ -811,28 +811,28 @@ TC-0136: CommandPalette renders a search input placeholder
 Related Story: US-0015
 Related AC: AC-0046
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0137: CommandPalette renders all commands with empty query
 Related Story: US-0015
 Related AC: AC-0047
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0138: CommandPalette renders command descriptions when provided
 Related Story: US-0015
 Related AC: AC-0047
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0139: pressing the backdrop does not crash the component
 Related Story: US-0015
 Related AC: AC-0048
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 ## US-0016: Search Commands
@@ -841,42 +841,42 @@ TC-0140: typing a query filters commands by label match
 Related Story: US-0016
 Related AC: AC-0049
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0141: typing a query filters commands by description match
 Related Story: US-0016
 Related AC: AC-0049
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0142: clearing the query restores all commands
 Related Story: US-0016
 Related AC: AC-0049
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0143: a query with no matches shows the empty state message
 Related Story: US-0016
 Related AC: AC-0050
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0144: pressing Enter calls onSelect with the first filtered command
 Related Story: US-0016
 Related AC: AC-0051
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0145: pressing Enter when no results does not call onSelect
 Related Story: US-0016
 Related AC: AC-0051
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 ## US-0017: Keyboard Shortcuts in Palette
@@ -885,21 +885,21 @@ TC-0146: commands with a shortcut field show a badge with the shortcut text
 Related Story: US-0017
 Related AC: AC-0052
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0147: multiple shortcut badges are all rendered
 Related Story: US-0017
 Related AC: AC-0052
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0148: tapping a command without shortcut calls onSelect without error
 Related Story: US-0017
 Related AC: AC-0053
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 ## US-0018: Light/Dark Themes
@@ -908,21 +908,21 @@ TC-0149: dark theme background token resolves to Deep Slate hex value
 Related Story: US-0018
 Related AC: AC-0054
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0150: light theme background token resolves to Off-White hex value
 Related Story: US-0018
 Related AC: AC-0055
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0151: design token contrast ratio for primary text on dark background is at least 4.5:1
 Related Story: US-0018
 Related AC: AC-0056
 Type: Functional
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 ## US-0019: Change Font Size
@@ -931,28 +931,28 @@ TC-0152: pressing A+ increments the displayed font size by 1
 Related Story: US-0019
 Related AC: AC-0057
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0153: pressing A- decrements the displayed font size by 1
 Related Story: US-0019
 Related AC: AC-0058
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0154: default font size value is displayed between A- and A+ buttons
 Related Story: US-0019
 Related AC: AC-0059
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0155: font size display updates after pressing A+
 Related Story: US-0019
 Related AC: AC-0059
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 ## US-0020: Install Extensions
@@ -961,49 +961,49 @@ TC-0156: ExtensionRegistry.register stores a manifest retrievable by id
 Related Story: US-0020
 Related AC: AC-0060
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0157: ExtensionRegistry.list returns all registered manifests
 Related Story: US-0020
 Related AC: AC-0060
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0158: activateExtension registers the manifest in ExtensionRegistry
 Related Story: US-0020
 Related AC: AC-0061
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0159: activateExtension returns HTML containing the extension source code
 Related Story: US-0020
 Related AC: AC-0061
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0160: deactivateExtension removes the extension from ExtensionRegistry
 Related Story: US-0020
 Related AC: AC-0062
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0161: buildSandboxHtml wraps extension source in a try/catch block
 Related Story: US-0020
 Related AC: AC-0063
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 TC-0162: buildSandboxHtml embeds the vscode API shim
 Related Story: US-0020
 Related AC: AC-0063
 Type: Unit
-Status: [ ] Not Run
+Status: [x] Pass
 Defect Raised: None
 
 ## US-0043: Search across all project files

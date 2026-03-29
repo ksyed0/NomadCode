@@ -23,7 +23,7 @@
       "title": "Terminal",
       "description": "Integrated sandboxed terminal via Xterm.js + WASI for running build/test commands.",
       "releaseTarget": "Release 0.5 (Beta)",
-      "status": "In Progress",
+      "status": "Done",
       "dependencies": [
         "EPIC-0001",
         "EPIC-0002"
@@ -120,7 +120,7 @@
       "title": "Cloud Sync",
       "description": "S3-compatible cloud storage for project sync — upload on save, pull on launch, conflict resolution UI.",
       "releaseTarget": "Release 1.1 (Post-Launch)",
-      "status": "Deferred",
+      "status": "Done",
       "dependencies": [
         "EPIC-0007"
       ]
@@ -128,9 +128,9 @@
     {
       "id": "EPIC-0013",
       "title": "Multi-Language Editor Support",
-      "description": "Syntax highlighting, indentation rules, and auto-close brackets for Python, Rust, Go, Swift, and other popular languages.",
+      "description": "Per-language indentation rules, auto-close behaviour, and comprehensive VSCode-compatible extension coverage (C, C++, C#, F#, TypeScript, JavaScript, Python, Rust, Go, Swift, Dart/Flutter, Lua, Elixir, R, Scala, Perl, Terraform, PowerShell, and more).",
       "releaseTarget": "Release 1.1 (Post-Launch)",
-      "status": "Deferred",
+      "status": "Done",
       "dependencies": [
         "EPIC-0001"
       ]
@@ -140,7 +140,7 @@
       "title": "Global Search — Find in Files",
       "description": "Cross-project full-text search panel with result grouping by file, line preview, and navigate-to-line.",
       "releaseTarget": "Release 1.1 (Post-Launch)",
-      "status": "Deferred",
+      "status": "In Progress",
       "dependencies": [
         "EPIC-0001",
         "EPIC-0002"
@@ -1453,18 +1453,18 @@
       "title": "As a developer, I want to upload my project to cloud storage, so that I can access it from multiple devices.",
       "priority": "P1",
       "estimate": "L",
-      "status": "Deferred",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/EPIC-0012-cloud-sync",
       "acs": [
         {
           "id": "AC-0105",
           "text": "User can connect an S3-compatible bucket by entering endpoint URL and access credentials in settings",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0106",
           "text": "Modified local files are uploaded to the configured bucket automatically on save",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -1477,18 +1477,18 @@
       "title": "As a developer, I want to download remote changes on launch, so that my files are always up to date.",
       "priority": "P1",
       "estimate": "L",
-      "status": "Deferred",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/EPIC-0012-cloud-sync",
       "acs": [
         {
           "id": "AC-0107",
           "text": "On app launch with network access, remote changes are pulled and merged into local storage",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0108",
           "text": "Sync conflicts are surfaced to the user with a merge prompt before overwriting local files",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -1501,18 +1501,18 @@
       "title": "As a developer, I want syntax highlighting for Python, Rust, Go, and Swift, so that I can work in my preferred language.",
       "priority": "P1",
       "estimate": "M",
-      "status": "Deferred",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/EPIC-0013-multi-language",
       "acs": [
         {
           "id": "AC-0109",
           "text": "Python, Rust, Go, and Swift files receive correct syntax highlighting",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0110",
           "text": "Language is auto-detected from file extension; unknown extensions fall back to plain text",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -1525,18 +1525,18 @@
       "title": "As a developer, I want language-correct indentation and auto-close, so that the editor follows language conventions.",
       "priority": "P2",
       "estimate": "S",
-      "status": "Deferred",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/EPIC-0013-multi-language",
       "acs": [
         {
           "id": "AC-0111",
           "text": "Python files default to 4-space indentation; Go files default to tabs",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0112",
           "text": "Bracket and quote auto-close is active for all supported languages",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -1549,7 +1549,7 @@
       "title": "As a developer, I want to search across all project files, so that I can find any symbol or string quickly.",
       "priority": "P1",
       "estimate": "L",
-      "status": "Deferred",
+      "status": "In Progress",
       "branch": "",
       "acs": [
         {
@@ -1579,7 +1579,7 @@
       "title": "As a developer, I want to navigate to a search result, so that I can jump directly to the relevant code.",
       "priority": "P1",
       "estimate": "S",
-      "status": "Deferred",
+      "status": "In Progress",
       "branch": "",
       "acs": [
         {
@@ -1644,6 +1644,128 @@
       "dependencies": [
         "US-0045"
       ]
+    },
+    {
+      "id": "US-0059",
+      "epicId": "EPIC-0013",
+      "title": "As a developer, I want the editor to apply language-appropriate indentation settings automatically when I open a file, so that code I type is formatted consistently with the conventions of that language.",
+      "priority": "P0",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "feature/EPIC-0013-multi-language",
+      "acs": [
+        {
+          "id": "AC-0156",
+          "text": "Python files use tabSize=4, insertSpaces=true, detectIndentation=false",
+          "done": true
+        },
+        {
+          "id": "AC-0157",
+          "text": "Go files use tabSize=4, insertSpaces=false (hard tabs per gofmt)",
+          "done": true
+        },
+        {
+          "id": "AC-0158",
+          "text": "Rust and Swift files use tabSize=4, insertSpaces=true",
+          "done": true
+        },
+        {
+          "id": "AC-0159",
+          "text": "C, C++, C#, F#, Java, and Kotlin files use tabSize=4, insertSpaces=true",
+          "done": true
+        },
+        {
+          "id": "AC-0160",
+          "text": "TypeScript and JavaScript files use tabSize=2, insertSpaces=true",
+          "done": true
+        },
+        {
+          "id": "AC-0161",
+          "text": "Dart, HTML, CSS, JSON, YAML, and Markdown files use tabSize=2, insertSpaces=true",
+          "done": true
+        },
+        {
+          "id": "AC-0162",
+          "text": "detectIndentation is always false — Monaco must not override configured rules",
+          "done": true
+        },
+        {
+          "id": "AC-0163",
+          "text": "When switching tabs, indentation rules for the new tab's language are applied within the same message cycle as the content load",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "EPIC-0001"
+      ]
+    },
+    {
+      "id": "US-0060",
+      "epicId": "EPIC-0013",
+      "title": "As a developer, I want language-specific auto-close bracket behaviour, so that bracket and quote completion matches the language I am writing.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "feature/EPIC-0013-multi-language",
+      "acs": [
+        {
+          "id": "AC-0164",
+          "text": "Python files use autoClosingQuotes='languageDefined' (defers to Monaco's built-in Python grammar to avoid doubling quotes inside strings)",
+          "done": true
+        },
+        {
+          "id": "AC-0165",
+          "text": "Ruby, R, HTML, and XML files use autoClosingQuotes='languageDefined'",
+          "done": true
+        },
+        {
+          "id": "AC-0166",
+          "text": "All other supported languages use autoClosingBrackets='always' and autoClosingQuotes='always'",
+          "done": true
+        },
+        {
+          "id": "AC-0167",
+          "text": "Switching from a Python tab to a Go tab updates autoClosingQuotes from 'languageDefined' to 'always'",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0059"
+      ]
+    },
+    {
+      "id": "US-0061",
+      "epicId": "EPIC-0013",
+      "title": "As a developer working with Zig, Dart, Lua, Elixir, C#, F#, R, Scala, Perl, PowerShell, Terraform, or Protocol Buffers files, I want NomadCode to recognise those extensions and apply a Monaco language mode and correct indentation.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "feature/EPIC-0013-multi-language",
+      "acs": [
+        {
+          "id": "AC-0168",
+          "text": ".cs → csharp, .fs/.fsx → fsharp, .zig → zig, .dart → dart, .lua → lua, .ex/.exs → elixir, .r/.R → r, .scala → scala, .pl/.pm → perl, .ps1/.psm1 → powershell, .tf/.hcl → hcl, .proto → proto, .ini/.cfg/.env → ini",
+          "done": true
+        },
+        {
+          "id": "AC-0169",
+          "text": "Extension matching is case-insensitive (e.g. App.DART → dart)",
+          "done": true
+        },
+        {
+          "id": "AC-0170",
+          "text": "Vue SFCs (.vue) fall back to html language mode (no dedicated Monaco grammar)",
+          "done": true
+        },
+        {
+          "id": "AC-0171",
+          "text": "jsonc files map to Monaco language ID 'jsonc'; toml files map to 'toml'",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0059"
+      ]
     }
   ],
   "tasks": [
@@ -1653,9 +1775,9 @@
       "title": "Implement CodeMirror 6 in WebView for syntax-highlighted editing",
       "type": "Dev",
       "assignee": "Agent",
-      "status": "To Do",
-      "branch": "feature/US-0002-syntax-highlighting",
-      "notes": "Evaluate @codemirror/lang-javascript bundle size before integrating"
+      "status": "Done",
+      "branch": "",
+      "notes": "Superseded — Monaco Editor v0.45.0 adopted instead of CodeMirror 6 (better mobile WebView support). Syntax highlighting and language detection implemented in EPIC-0001/0013."
     },
     {
       "id": "TASK-0002",
@@ -2776,7 +2898,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0046",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2786,7 +2908,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0047",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2796,7 +2918,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0047",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2806,7 +2928,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0048",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2816,7 +2938,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0049",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2826,7 +2948,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0049",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2836,7 +2958,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0049",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2846,7 +2968,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0050",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2856,7 +2978,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0051",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2866,7 +2988,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0051",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2876,7 +2998,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0052",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2886,7 +3008,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0052",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2896,7 +3018,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0053",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2906,7 +3028,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0054",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2916,7 +3038,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0055",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2926,7 +3048,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0056",
       "type": "Functional",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2936,7 +3058,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0057",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2946,7 +3068,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0058",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2956,7 +3078,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0059",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2966,7 +3088,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0059",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2976,7 +3098,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0060",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2986,7 +3108,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0060",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -2996,7 +3118,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0061",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -3006,7 +3128,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0061",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -3016,7 +3138,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0062",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -3026,7 +3148,7 @@
       "relatedTask": "",
       "relatedAC": "AC-0063",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
       "defect": "None"
     },
     {
@@ -3036,7 +3158,137 @@
       "relatedTask": "",
       "relatedAC": "AC-0063",
       "type": "Unit",
-      "status": "Not Run",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0347",
+      "title": "searchFiles yields nothing for empty query",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0114",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0348",
+      "title": "searchFiles yields matching file results",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0114",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0349",
+      "title": "searchFiles skips excluded directories",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0114",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0350",
+      "title": "searchFiles skips files larger than 4MB",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0114",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0351",
+      "title": "searchFiles skips unreadable files and continues",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0114",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0352",
+      "title": "searchFiles applies glob filter",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0115",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0353",
+      "title": "searchFiles stops when signal aborted",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0114",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0354",
+      "title": "searchFiles caps at MAX_TOTAL_MATCHES",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0114",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0355",
+      "title": "GlobalSearch renders search input and toggles",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0113",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0356",
+      "title": "GlobalSearch shows grouped results by file",
+      "relatedStory": "US-0043",
+      "relatedTask": "",
+      "relatedAC": "AC-0115",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0357",
+      "title": "tapping result calls onNavigate with correct args",
+      "relatedStory": "US-0044",
+      "relatedTask": "",
+      "relatedAC": "AC-0116",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0358",
+      "title": "MonacoAssetManager scrollToLine calls revealLineInCenter",
+      "relatedStory": "US-0044",
+      "relatedTask": "",
+      "relatedAC": "AC-0116",
+      "type": "Unit",
+      "status": "Pass",
+      "defect": "None"
+    },
+    {
+      "id": "TC-0359",
+      "title": "MonacoAssetManager scrollToLine applies deltaDecorations highlight",
+      "relatedStory": "US-0044",
+      "relatedTask": "",
+      "relatedAC": "AC-0117",
+      "type": "Unit",
+      "status": "Pass",
       "defect": "None"
     }
   ],
@@ -3291,6 +3543,28 @@
       "relatedTask": "",
       "status": "Fixed",
       "fixBranch": "develop",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0031",
+      "title": "capture-cost.js Stop hook records zero tokens and cost for every session (TOOL-1)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "In Progress",
+      "fixBranch": "bugfix/version-bump-output-format",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0032",
+      "title": "docs/LESSONS.md missing — plan visualizer Lessons tab always empty (TOOL-2)",
+      "severity": "Low",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/version-bump-output-format",
       "lessonEncoded": "No",
       "estimatedCostUsd": 0
     }
@@ -3626,6 +3900,24 @@
       "inputTokens": 0,
       "outputTokens": 0
     },
+    "US-0059": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0060": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0061": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
     "_totals": {
       "costUsd": 10.91,
       "inputTokens": 1116000,
@@ -3815,6 +4107,22 @@
         "sessions": 92,
         "isEstimated": false,
         "projectedUsd": 1600
+      },
+      "BUG-0031": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 40,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0032": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 40,
+        "isEstimated": false,
+        "projectedUsd": 400
       },
       "_totals": {
         "costUsd": 0,
@@ -4158,39 +4466,39 @@
       "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
-      "isAtRisk": true
+      "isAtRisk": false
     },
     "US-0040": {
       "missingTCs": true,
       "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
-      "isAtRisk": true
+      "isAtRisk": false
     },
     "US-0041": {
       "missingTCs": true,
       "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
-      "isAtRisk": true
+      "isAtRisk": false
     },
     "US-0042": {
       "missingTCs": true,
       "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
-      "isAtRisk": true
+      "isAtRisk": false
     },
     "US-0043": {
-      "missingTCs": true,
-      "noBranch": false,
+      "missingTCs": false,
+      "noBranch": true,
       "failedTCNoBug": false,
       "openCriticalBug": false,
       "isAtRisk": true
     },
     "US-0044": {
-      "missingTCs": true,
-      "noBranch": false,
+      "missingTCs": false,
+      "noBranch": true,
       "failedTCNoBug": false,
       "openCriticalBug": false,
       "isAtRisk": true
@@ -4208,18 +4516,49 @@
       "failedTCNoBug": false,
       "openCriticalBug": false,
       "isAtRisk": true
+    },
+    "US-0059": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0060": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0061": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
     }
   },
   "coverage": {
-    "lines": 95.91,
-    "statements": 94.83,
-    "functions": 96.42,
-    "branches": 84.98,
-    "overall": 84.98,
+    "lines": 95.79,
+    "statements": 94.52,
+    "functions": 96.09,
+    "branches": 84.06,
+    "overall": 84.06,
     "meetsTarget": true,
     "available": true
   },
   "recentActivity": [
+    {
+      "sessionNum": "10",
+      "date": "2026-03-27",
+      "summary": "**Started EPIC-0013: Multi-Language Editor Support** on `feature/EPIC-0013-multi-language` branched from `develop` (post PR #48 merge); **Fixed diverged local develop**: local `develop` had 1 stale commit; hard-reset to `origin/develop`; **Created `src/utils/languageRules.ts`**: 40+ language rules map (tabSize, insertSpaces, autoClosingBrackets/Quotes) matching VS Code / community style conventions; `getLanguageRules(languageId)` pure function; `detectIndentation: false` enforced as literal type"
+    },
+    {
+      "sessionNum": "9",
+      "date": "2026-03-27",
+      "summary": "**Resumed after quota-limit interruption** — session picked up mid-flight on `bugfix/version-bump-output-format`; **Fixed 2 failing App tests**: `getByText('NomadCode')` → `getByText('NomadCode', { exact: false })` after status bar gained nested `<Text>` version node; **Fixed BUG-0031 (partial)**: `capture-cost.js` refactored"
+    },
     {
       "sessionNum": "7",
       "date": "2026-03-25",
@@ -4234,16 +4573,6 @@
       "sessionNum": "5",
       "date": "2026-03-17",
       "summary": "Fixed CI failures on Dependabot PRs:;   - PR #30 (eslint-plugin-react-hooks 4→7): fixed `react-hooks/set-state-in-effect` in CommandPalette.tsx (moved setState to render-time derived value); fixed `react-hooks/refs` in TabletResponsive.tsx (eslint-disable on PanResponder spread);   - PR #31 (zustand 5.0.11→5.0.12): regenerated lock file via `npm install`; merged"
-    },
-    {
-      "sessionNum": "4",
-      "date": "2026-03-12",
-      "summary": "Merged PR #15 (feature/epic-0003-terminal → develop); 282 tests passing; Checked out `develop`, pulled latest; Brainstormed EPIC-0004 Command Palette: audited existing `CommandPalette.tsx`, chose full audit+rebuild with visible/onClose API, keyboard navigation, and swipe gesture trigger"
-    },
-    {
-      "sessionNum": "3",
-      "date": "2026-03-11",
-      "summary": "Installed PlanVisualizer tooling via `install.sh` (tools/, tests/, jest.config.js, GitHub Actions workflow); Fixed `plan-visualizer.yml`: path filters `docs/` → `docs/` (Linux case-sensitive); Pages artifact path `./docs` → `./Docs`; Confirmed `.claude/settings.json` Stop hook already present (`node tools/capture-cost.js`)"
     }
   ],
   "lessons": [
@@ -4276,9 +4605,9 @@
       "date": "2026-03-20"
     }
   ],
-  "generatedAt": "2026-03-26T03:42:49.483Z",
-  "commitSha": "d0b45de",
-  "buildNumber": "177",
+  "generatedAt": "2026-03-29T22:58:36.166Z",
+  "commitSha": "6f2b61e",
+  "buildNumber": "199",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
@@ -4886,6 +5215,154 @@
     },
     {
       "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-26",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-27",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-27",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-27",
       "cumCost": 10.91
     }
   ],
