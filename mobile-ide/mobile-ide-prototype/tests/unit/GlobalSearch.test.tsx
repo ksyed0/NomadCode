@@ -28,14 +28,23 @@ jest.mock('../../src/hooks/useSearch', () => ({
   }),
 }));
 
-// Mock path matches where useTheme is actually exported from
+// Mock useTheme to return ThemeTokens shape
 jest.mock('../../src/theme/tokens', () => ({
   useTheme: () => ({
-    colors: {
-      background: '#0F172A', text: '#E2E8F0', textMuted: '#64748B',
-      primary: '#2563EB', accent: '#0D9488', error: '#EF4444',
-      border: '#334155', surface: '#1E293B',
-    },
+    id: 'nomad-dark',
+    mode: 'dark',
+    name: 'Nomad Dark',
+    bg: '#0F172A',
+    bgElevated: '#1E293B',
+    bgHighlight: '#1D3461',
+    text: '#E2E8F0',
+    textMuted: '#64748B',
+    border: '#334155',
+    accent: '#2563EB',
+    keyword: '#7C3AED',
+    string: '#0D9488',
+    error: '#EF4444',
+    success: '#22C55E',
   }),
 }));
 
