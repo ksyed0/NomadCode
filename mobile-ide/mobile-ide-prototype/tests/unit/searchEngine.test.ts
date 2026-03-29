@@ -273,4 +273,49 @@ describe('searchFiles', () => {
     const total = results.reduce((s, r) => s + r.matches.length, 0);
     expect(total).toBeLessThanOrEqual(MAX_TOTAL_MATCHES);
   });
+
+  it('returns nothing when buildPattern throws (invalid regex passed through)', async () => {
+    // searchFiles should silently catch invalid regex from buildPattern and yield nothing
+    const signal = new AbortController().signal;
+    const results = await collectResults(
+      searchFiles('file:///root', '[invalid', { ...DEFAULT_OPTS, regex: true }, signal),
+    );
+    expect(results).toEqual([]);
+    expect(mockListDirectory).not.toHaveBeenCalled();
+  });
+
+  it('skips directories whose listDirectory call fails and continues', async () => {
+    mockListDirectory
+      .mockRejectedValueOnce(new Error('permission denied')) // root dir fails
+      .mockResolvedValueOnce([
+        { name: 'ok.ts', path: 'file:///root2/ok.ts', isDirectory: false },
+      ]);
+    mockReadFile.mockResolvedValue('foo match');
+    const signal = new AbortController().signal;
+    // This exercises the listDirectory catch → return path inside walkDir
+    const results = await collectResults(
+      searchFiles('file:///root', 'foo', DEFAULT_OPTS, signal),
+    );
+    expect(results).toEqual([]);
+  });
+
+  it('skips files whose getFileSize call fails and continues to the next file', async () => {
+    // Reset to clear any unconsumed Once queues from prior tests.
+    mockListDirectory.mockReset();
+    mockListDirectory.mockResolvedValue([
+      { name: 'noperm.ts', path: 'file:///root/noperm.ts', isDirectory: false },
+      { name: 'ok.ts', path: 'file:///root/ok.ts', isDirectory: false },
+    ]);
+    // First file: getFileSize fails → skipped via continue. Second: succeeds.
+    mockGetFileSize
+      .mockRejectedValueOnce(new Error('stat failed'))
+      .mockResolvedValueOnce(100);
+    mockReadFile.mockResolvedValue('no match in this file');
+    const signal = new AbortController().signal;
+    await collectResults(searchFiles('file:///root', 'foo', DEFAULT_OPTS, signal));
+    // noperm.ts is skipped entirely (no readFile call for it);
+    // ok.ts proceeds to readFile — confirms the continue path was taken, not a return.
+    expect(mockReadFile).toHaveBeenCalledWith('file:///root/ok.ts');
+    expect(mockReadFile).not.toHaveBeenCalledWith('file:///root/noperm.ts');
+  });
 });

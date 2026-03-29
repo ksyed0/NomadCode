@@ -13,19 +13,19 @@ export interface GlobalSearchProps {
 function ToggleButton({
   label, active, onPress,
 }: { label: string; active: boolean; onPress: () => void }) {
-  const { colors } = useTheme();
+  const theme = useTheme();
   return (
     <TouchableOpacity
       onPress={onPress}
       style={[
         styles.toggle,
         {
-          borderColor: active ? colors.primary : colors.border,
-          backgroundColor: active ? colors.primary + '33' : 'transparent',
+          borderColor: active ? theme.accent : theme.border,
+          backgroundColor: active ? theme.accent + '33' : 'transparent',
         },
       ]}
     >
-      <Text style={{ color: active ? colors.primary : colors.textMuted, fontSize: 11 }}>
+      <Text style={{ color: active ? theme.accent : theme.textMuted, fontSize: 11 }}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -38,26 +38,26 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
     results, isSearching, fileCount, totalMatchCount, error,
     submit, clear,
   } = useSearch(workspaceRoot);
-  const { colors } = useTheme();
+  const theme = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* Search input row */}
-      <View style={[styles.inputRow, { borderColor: colors.border }]}>
+      <View style={[styles.inputRow, { borderColor: theme.border }]}>
         <TextInput
-          style={[styles.input, { color: colors.text }]}
+          style={[styles.input, { color: theme.text }]}
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={submit}
           placeholder="Search"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={theme.textMuted}
           autoCorrect={false}
           autoCapitalize="none"
           returnKeyType="search"
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={clear} style={styles.clearBtn}>
-            <Text style={{ color: colors.textMuted }}>✕</Text>
+            <Text style={{ color: theme.textMuted }}>✕</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -83,27 +83,27 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
 
       {/* Glob filter */}
       <TextInput
-        style={[styles.globInput, { color: colors.text, borderColor: colors.border }]}
+        style={[styles.globInput, { color: theme.text, borderColor: theme.border }]}
         value={options.glob}
         onChangeText={(g) => setOptions({ glob: g })}
         placeholder="files to include (e.g. **/*.ts)"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={theme.textMuted}
         autoCorrect={false}
         autoCapitalize="none"
       />
 
       {/* Status */}
       {error ? (
-        <Text style={[styles.statusText, { color: colors.error }]}>{error}</Text>
+        <Text style={[styles.statusText, { color: theme.error }]}>{error}</Text>
       ) : isSearching ? (
         <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={[styles.statusText, { color: colors.textMuted }]}>
+          <ActivityIndicator size="small" color={theme.accent} />
+          <Text style={[styles.statusText, { color: theme.textMuted }]}>
             {' '}Searching... ({fileCount} files scanned)
           </Text>
         </View>
       ) : results.length > 0 ? (
-        <Text style={[styles.statusText, { color: colors.textMuted }]}>
+        <Text style={[styles.statusText, { color: theme.textMuted }]}>
           {totalMatchCount} result{totalMatchCount !== 1 ? 's' : ''} in {results.length} file{results.length !== 1 ? 's' : ''}
         </Text>
       ) : null}
@@ -111,12 +111,12 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
       {/* Results list */}
       <ScrollView style={styles.resultList} keyboardShouldPersistTaps="handled">
         {!isSearching && results.length === 0 && query.length > 0 && !error && (
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>No results found</Text>
+          <Text style={[styles.emptyText, { color: theme.textMuted }]}>No results found</Text>
         )}
         {results.map((fileResult) => (
           <View key={fileResult.filePath}>
             <Text
-              style={[styles.filePath, { color: colors.accent }]}
+              style={[styles.filePath, { color: theme.accent }]}
               numberOfLines={1}
             >
               {fileResult.filePath}
@@ -127,10 +127,10 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
                 onPress={() => onNavigate(fileResult.filePath, match.lineNumber, match.matchStart, match.matchEnd)}
                 style={styles.matchRow}
               >
-                <Text style={[styles.lineNum, { color: colors.textMuted }]}>
+                <Text style={[styles.lineNum, { color: theme.textMuted }]}>
                   {match.lineNumber}
                 </Text>
-                <Text style={[styles.preview, { color: colors.text }]} numberOfLines={1}>
+                <Text style={[styles.preview, { color: theme.text }]} numberOfLines={1}>
                   {match.preview}
                 </Text>
               </TouchableOpacity>

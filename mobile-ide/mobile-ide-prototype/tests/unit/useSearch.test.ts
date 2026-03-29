@@ -109,4 +109,20 @@ describe('useSearch', () => {
     expect(result.current.error).toMatch(/invalid/i);
     expect(mockSearchFiles).not.toHaveBeenCalled();
   });
+
+  it('sets error when searchFiles generator throws and search was not aborted', async () => {
+    async function* throwingGen() {
+      throw new Error('disk read failure');
+      // eslint-disable-next-line no-unreachable
+      yield { filePath: 'a.ts', matches: [] };
+    }
+    mockSearchFiles.mockReturnValue(throwingGen());
+
+    const { result } = renderHook(() => useSearch(WORKSPACE));
+    act(() => { result.current.setQuery('foo'); });
+    await act(async () => { result.current.submit(); });
+
+    await waitFor(() => expect(result.current.isSearching).toBe(false));
+    expect(result.current.error).toMatch(/disk read failure/i);
+  });
 });
