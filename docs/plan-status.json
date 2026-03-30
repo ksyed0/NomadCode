@@ -140,7 +140,7 @@
       "title": "Global Search — Find in Files",
       "description": "Cross-project full-text search panel with result grouping by file, line preview, and navigate-to-line.",
       "releaseTarget": "Release 1.1 (Post-Launch)",
-      "status": "In Progress",
+      "status": "Done",
       "dependencies": [
         "EPIC-0001",
         "EPIC-0002"
@@ -1549,8 +1549,8 @@
       "title": "As a developer, I want to search across all project files, so that I can find any symbol or string quickly.",
       "priority": "P1",
       "estimate": "L",
-      "status": "In Progress",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/EPIC-0014-global-search",
       "acs": [
         {
           "id": "AC-0113",
@@ -1579,8 +1579,8 @@
       "title": "As a developer, I want to navigate to a search result, so that I can jump directly to the relevant code.",
       "priority": "P1",
       "estimate": "S",
-      "status": "In Progress",
-      "branch": "",
+      "status": "Done",
+      "branch": "feature/EPIC-0014-global-search",
       "acs": [
         {
           "id": "AC-0116",
@@ -3523,13 +3523,24 @@
       "estimatedCostUsd": 0
     },
     {
+      "id": "BUG-0034",
+      "title": "App forces landscape orientation on all devices; ignores user/device preference on foldables and phones (COMPAT-1)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
       "id": "BUG-0009",
       "title": "Landscape-locked app crashes on iPhone simulator when SetupWizard Modal is presented (SIM-1)",
       "severity": "Medium",
       "relatedStory": "",
       "relatedTask": "",
-      "status": "Open",
-      "fixBranch": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
       "lessonEncoded": "No",
       "estimatedCostUsd": 0
     },
@@ -3704,8 +3715,19 @@
       "severity": "Medium",
       "relatedStory": "",
       "relatedTask": "",
-      "status": "In Progress",
-      "fixBranch": "bugfix/version-bump-output-format",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0035",
+      "title": "[FIXED] editor.focus() not called after setContent — Android soft keyboard input silently dropped (EDITOR-1)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
       "lessonEncoded": "No",
       "estimatedCostUsd": 0
     },
@@ -4156,6 +4178,14 @@
         "isEstimated": false,
         "projectedUsd": 400
       },
+      "BUG-0034": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
       "BUG-0009": {
         "costUsd": 0,
         "inputTokens": 0,
@@ -4288,9 +4318,17 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 40,
+        "sessions": 0,
         "isEstimated": false,
         "projectedUsd": 400
+      },
+      "BUG-0035": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 800
       },
       "BUG-0032": {
         "costUsd": 0,
@@ -4670,14 +4708,14 @@
       "noBranch": true,
       "failedTCNoBug": false,
       "openCriticalBug": false,
-      "isAtRisk": true
+      "isAtRisk": false
     },
     "US-0044": {
       "missingTCs": false,
       "noBranch": true,
       "failedTCNoBug": false,
       "openCriticalBug": false,
-      "isAtRisk": true
+      "isAtRisk": false
     },
     "US-0045": {
       "missingTCs": true,
