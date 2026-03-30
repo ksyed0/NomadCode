@@ -52,6 +52,7 @@ export function useTerminalBridge(
   options?: UseTerminalBridgeOptions,
 ): UseTerminalBridgeResult {
   const webViewRef = useRef<WebView>(null);
+  const { onCommandComplete, onGetToken } = options ?? {};
 
   const sendToWebView = useCallback((msg: RNToWebView): void => {
     // receiveFromRN(msgJson: string) calls JSON.parse(msgJson) — the argument must be
@@ -73,12 +74,12 @@ export function useTerminalBridge(
       }
 
       if (msg.type === 'COMMAND_COMPLETE') {
-        options?.onCommandComplete?.(msg.exitCode);
+        onCommandComplete?.(msg.exitCode);
         return;
       }
 
       if (msg.type === 'GET_TOKEN') {
-        const token = options?.onGetToken?.() ?? null;
+        const token = onGetToken?.() ?? null;
         sendToWebView({ type: 'TOKEN_RESULT', requestId: msg.requestId, token });
         return;
       }
@@ -97,8 +98,7 @@ export function useTerminalBridge(
         sendToWebView(response);
       })();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [options?.onCommandComplete, options?.onGetToken, sendToWebView],
+    [onCommandComplete, onGetToken, sendToWebView],
   );
 
   return { webViewRef, sendToWebView, onMessage };
