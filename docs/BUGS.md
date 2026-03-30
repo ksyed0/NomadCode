@@ -659,3 +659,17 @@ Root Cause: Type assertion bypasses proper type checking
 Status: Open
 Fix Branch:
 Lesson Encoded: No
+
+BUG-0049: App does not resize to fill screen on orientation change in Android emulator (LAYOUT-1)
+Severity: High
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Launch app on Android tablet emulator (Pixel_Tablet_API35)
+  2. Rotate device from landscape to portrait (or vice versa)
+Expected: App layout fills the full screen after rotation
+Actual: Large black bands appear at top and bottom; app UI occupies only a letterboxed portion of the screen; layout does not reflow to match new dimensions
+Root Cause: Suspected: React Native window dimensions not updating on rotation, or the root view is not re-measuring after configuration change. Possibly related to BUG-0034 residue — the previous landscape orientation lock may have left the Android activity's configChanges or screenOrientation attribute in a state that prevents proper reflow. Could also be a known issue with React Native's useWindowDimensions() not triggering a re-layout when the emulator reports a new screen size.
+Status: Open
+Fix Branch:
+Lesson Encoded: No
