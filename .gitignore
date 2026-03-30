@@ -3,6 +3,7 @@ node_modules/
 
 # Generated coverage output — do not commit
 docs/coverage/
+coverage/
 
 # Generated plan visualizer artifacts — deployed to GitHub Pages, not committed
 docs/plan-status.html

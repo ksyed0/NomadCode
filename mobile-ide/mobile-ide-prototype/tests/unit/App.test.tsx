@@ -135,6 +135,22 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
   alert: jest.fn(),
 }));
 
+// Mock useWindowDimensions to simulate tablet width so TabletResponsive renders the sidebar
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  default: () => ({ width: 1024, height: 768, scale: 1, fontScale: 1 }),
+}));
+
+// Mock GlobalSearch so it renders a simple placeholder input without needing real theme tokens
+jest.mock('../../src/components/GlobalSearch', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { TextInput } = require('react-native');
+  return {
+    GlobalSearch: () => <TextInput placeholder="Search" testID="global-search-input" />,
+  };
+});
+
 // Mock react-native-webview (TurboModule not available in Jest)
 jest.mock('react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -372,5 +388,29 @@ describe('App — EPIC-0012 workspace & conflict modal', () => {
         installedExtensions: [], addExtension: jest.fn(), removeExtension: jest.fn(),
       })
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Global search wiring (EPIC-0014)
+// ---------------------------------------------------------------------------
+
+describe('global search wiring', () => {
+  it('renders Files and Search tabs in sidebar', () => {
+    const { getByText } = render(<App />);
+    expect(getByText('Files')).toBeTruthy();
+    expect(getByText('Search')).toBeTruthy();
+  });
+
+  it('"Search: Find in Files" palette command switches to Search tab', async () => {
+    const { getByText, getByPlaceholderText } = render(<App />);
+    // Open command palette
+    fireEvent.press(getByText('⌘'));
+    await waitFor(() => getByPlaceholderText(/command/i));
+    // Filter and select the search command
+    fireEvent.changeText(getByPlaceholderText(/command/i), 'Find in Files');
+    fireEvent(getByPlaceholderText(/command/i), 'submitEditing');
+    // Search panel should now be visible
+    await waitFor(() => expect(getByPlaceholderText('Search')).toBeTruthy());
   });
 });

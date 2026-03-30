@@ -73,6 +73,9 @@ export default function App() {
   const [tabs, setTabs] = useState<EditorTab[]>([]);
   const [activeTabPath, setActiveTabPath] = useState<string | null>(null);
 
+  // ── Sidebar tab ───────────────────────────────────────────────────────────
+  const [sidebarTab, setSidebarTab] = useState<'files' | 'search'>('files');
+
   // ── Panel visibility ──────────────────────────────────────────────────────
   const [showTerminal, setShowTerminal] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
@@ -176,6 +179,38 @@ export default function App() {
   const getEditorContent = useCallback((): string => {
     return tabs.find((t) => t.path === activeTabPath)?.content ?? '';
   }, [tabs, activeTabPath]);
+
+  const handleSearchNavigate = useCallback(async (
+    filePath: string, line: number, matchStart: number, matchEnd: number,
+  ) => {
+    const existing = tabs.find((t) => t.path === filePath);
+    if (existing) {
+      setActiveTabPath(filePath);
+      setTabs((prev) => prev.map((t) =>
+        t.path === filePath ? { ...t, scrollTo: { line, matchStart, matchEnd } } : t,
+      ));
+    } else {
+      try {
+        const content = await FileSystemBridge.readFile(filePath);
+        const language = getLanguageForFile(filePath);
+        setTabs((prev) => [...prev, {
+          path: filePath,
+          name: filePath.split('/').pop() ?? filePath,
+          content,
+          language,
+          isDirty: false,
+          scrollTo: { line, matchStart, matchEnd },
+        }]);
+        setActiveTabPath(filePath);
+      } catch {
+        // file unreadable — ignore
+      }
+    }
+  }, [tabs]);
+
+  const handleTabScrollConsumed = useCallback((path: string) => {
+    setTabs((prev) => prev.map((t) => t.path === path ? { ...t, scrollTo: null } : t));
+  }, []);
 
   const replaceEditorContent = useCallback((text: string) => {
     if (!activeTabPath) return;
@@ -356,6 +391,12 @@ export default function App() {
       description: 'Stage all changes and create a commit',
       action: gitCommit,
     },
+    {
+      id: 'search-global',
+      label: 'Search: Find in Files',
+      description: 'Open global search panel',
+      action: () => setSidebarTab('search'),
+    },
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
@@ -420,6 +461,9 @@ export default function App() {
             onFileDelete={deleteFile}
             triggerNewFile={triggerNewFile}
             onNewFileDismissed={() => setTriggerNewFile(false)}
+            sidebarTab={sidebarTab}
+            onSidebarTabChange={setSidebarTab}
+            onSearchNavigate={handleSearchNavigate}
           />
         }
         main={
@@ -430,6 +474,7 @@ export default function App() {
             onTabClose={closeTab}
             onContentChange={updateContent}
             onSave={saveFile}
+            onTabScrollConsumed={handleTabScrollConsumed}
           />
         }
         terminal={<TerminalWebView workingDirectory={rootPath} onCommand={handleCommandComplete} visible={showTerminal} />}

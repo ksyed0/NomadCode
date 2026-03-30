@@ -744,3 +744,40 @@ describe('Editor — language rules dispatch', () => {
     ).not.toThrow();
   });
 });
+
+// ---------------------------------------------------------------------------
+// scrollTo in setContent
+// ---------------------------------------------------------------------------
+
+describe('scrollTo in setContent', () => {
+  beforeEach(() => {
+    capturedInjectJS = undefined;
+  });
+
+  it('includes scrollTo fields in injectJavaScript payload when tab has scrollTo', async () => {
+    const scrollTab = makeTab({
+      path: '/workspace/src/App.tsx',
+      name: 'App.tsx',
+      language: 'typescript',
+      content: 'const x = 1;',
+      isDirty: false,
+      scrollTo: { line: 42, matchStart: 6, matchEnd: 9 },
+    });
+    renderEditor([scrollTab], scrollTab.path);
+    await waitFor(() => expect(capturedInjectJS).toBeDefined());
+    await waitFor(() => expect(capturedInjectJS?.mock.calls.length).toBeGreaterThan(0));
+    const payload = getSetContentPayload();
+    expect(payload).not.toBeNull();
+    expect(payload?.scrollTo).toEqual({ line: 42, matchStart: 6, matchEnd: 9 });
+  });
+
+  it('includes scrollTo as null when tab has no scrollTo', async () => {
+    const tab = makeTab({ path: '/workspace/src/plain.ts', name: 'plain.ts', language: 'typescript' });
+    renderEditor([tab], tab.path);
+    await waitFor(() => expect(capturedInjectJS).toBeDefined());
+    await waitFor(() => expect(capturedInjectJS?.mock.calls.length).toBeGreaterThan(0));
+    const payload = getSetContentPayload();
+    expect(payload).not.toBeNull();
+    expect(payload?.scrollTo).toBeNull();
+  });
+});

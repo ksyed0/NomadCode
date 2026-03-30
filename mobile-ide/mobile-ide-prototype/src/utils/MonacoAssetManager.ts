@@ -154,6 +154,9 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
     #loading-bar      { height: 100%; width: 0%; background: #2563eb; border-radius: 2px;
                         transition: width 0.2s ease; }
 
+    /* ── Search match highlight ────────────────────────────────────────── */
+    .search-match-highlight { background: rgba(37,99,235,0.4); border-radius: 2px; }
+
     /* ── Multi-cursor overlay ──────────────────────────────────────────── */
     #mc-overlay {
       display: none; position: absolute; inset: 0; z-index: 5;
@@ -338,6 +341,14 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
                 });
               }
             }
+            if (msg.scrollTo) {
+              editor.revealLineInCenter(msg.scrollTo.line);
+              var sdec = editor.deltaDecorations([], [{
+                range: new monaco.Range(msg.scrollTo.line, msg.scrollTo.matchStart, msg.scrollTo.line, msg.scrollTo.matchEnd),
+                options: { inlineClassName: 'search-match-highlight' }
+              }]);
+              setTimeout(function() { editor.deltaDecorations(sdec, []); }, 4000);
+            }
             break;
           }
           case 'format':
@@ -394,6 +405,16 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
                 autoClosingQuotes:   msg.rules.autoClose.autoClosingQuotes,
               });
             }
+            break;
+          }
+          case 'scrollToLine': {
+            if (!editor || !msg.line) break;
+            editor.revealLineInCenter(msg.line);
+            var dec2 = editor.deltaDecorations([], [{
+              range: new monaco.Range(msg.line, msg.matchStart || 1, msg.line, msg.matchEnd || 1),
+              options: { inlineClassName: 'search-match-highlight' }
+            }]);
+            setTimeout(function() { editor.deltaDecorations(dec2, []); }, 4000);
             break;
           }
           default:
