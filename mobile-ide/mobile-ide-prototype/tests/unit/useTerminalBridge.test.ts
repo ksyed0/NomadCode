@@ -305,4 +305,30 @@ describe('useTerminalBridge', () => {
     (global as Record<string, unknown>).__DEV__ = prevDev;
     consoleSpy.mockRestore();
   });
+
+  // 16. BUG-0045 — onMessage uses the updated callback after rerender with new onCommandComplete
+  it('onMessage calls the latest onCommandComplete after rerender (BUG-0045)', () => {
+    const callbackA = jest.fn();
+    const callbackB = jest.fn();
+
+    const { result, rerender } = renderHook(
+      ({ cb }: { cb: (exitCode: number) => void }) =>
+        useTerminalBridge({ onCommandComplete: cb }),
+      { initialProps: { cb: callbackA } },
+    );
+
+    // Switch to callbackB before sending the message.
+    rerender({ cb: callbackB });
+
+    act(() => {
+      result.current.onMessage(
+        makeMessageEvent({ type: 'COMMAND_COMPLETE', exitCode: 42 }),
+      );
+    });
+
+    // callbackB is the current callback and must be invoked.
+    expect(callbackB).toHaveBeenCalledWith(42);
+    // callbackA is stale and must NOT be invoked.
+    expect(callbackA).not.toHaveBeenCalled();
+  });
 });
