@@ -9,7 +9,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import Editor, { EditorTab, buildPreviewHtml, canPreview, getLanguageForFile, detectLanguageFromContent } from '../../src/components/Editor';
+import Editor, { EditorTab, buildPreviewHtml, canPreview, getLanguageForFile, detectLanguageFromContent, TOOLBAR_ITEMS } from '../../src/components/Editor';
 
 // ---------------------------------------------------------------------------
 // Mock theme tokens
@@ -281,10 +281,46 @@ describe('canPreview', () => {
 });
 
 describe('buildPreviewHtml', () => {
-  it('returns markdown preview HTML for markdown language', () => {
+  // BUG-0036: markdown preview must not load marked.js from a CDN
+  it('does not load any script from a CDN (BUG-0036)', () => {
     const html = buildPreviewHtml('markdown', '# Hello');
-    expect(html).toContain('marked.parse');
-    expect(html).toContain('Hello');
+    expect(html).not.toContain('cdn.');
+    expect(html).not.toContain('jsdelivr');
+    expect(html).not.toContain('<script src=');
+  });
+
+  // BUG-0036: markdown is pre-rendered to real HTML on the JS side
+  it('pre-renders markdown headings to HTML elements (BUG-0036)', () => {
+    const html = buildPreviewHtml('markdown', '# Hello World');
+    expect(html).toContain('<h1>');
+    expect(html).toContain('Hello World');
+  });
+
+  it('pre-renders markdown bold text to HTML (BUG-0036)', () => {
+    const html = buildPreviewHtml('markdown', '**bold**');
+    expect(html).toContain('<strong>');
+  });
+
+  // BUG-0038: markdown preview CSS must use theme tokens (nomad-dark defaults)
+  it('uses theme background color in markdown preview CSS (BUG-0038)', () => {
+    const html = buildPreviewHtml('markdown', '# Test');
+    expect(html).toContain('#0F172A'); // nomad-dark bg
+  });
+
+  it('uses theme text color in markdown preview CSS (BUG-0038)', () => {
+    const html = buildPreviewHtml('markdown', '# Test');
+    expect(html).toContain('#E2E8F0'); // nomad-dark text
+  });
+
+  // BUG-0039: JSON preview CSS must use theme tokens (nomad-dark defaults)
+  it('uses theme background color in JSON preview CSS (BUG-0039)', () => {
+    const html = buildPreviewHtml('json', '{"key":"value"}');
+    expect(html).toContain('#0F172A'); // nomad-dark bg
+  });
+
+  it('uses theme text color in JSON preview CSS (BUG-0039)', () => {
+    const html = buildPreviewHtml('json', '{"key":"value"}');
+    expect(html).toContain('#E2E8F0'); // nomad-dark text
   });
 
   it('returns HTML preview HTML for html language', () => {
@@ -306,6 +342,18 @@ describe('buildPreviewHtml', () => {
   it('returns no-preview message for unsupported language', () => {
     const html = buildPreviewHtml('typescript', 'const x = 1;');
     expect(html).toContain('No preview available');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BUG-0047: toolbar preview label must not be an emoji character
+// ---------------------------------------------------------------------------
+
+describe('TOOLBAR_ITEMS', () => {
+  it('preview toolbar item label is not an emoji character (BUG-0047)', () => {
+    const previewItem = TOOLBAR_ITEMS.find((i) => i.id === 'preview');
+    expect(previewItem).toBeDefined();
+    expect(previewItem!.label).not.toMatch(/\p{Emoji_Presentation}/u);
   });
 });
 
