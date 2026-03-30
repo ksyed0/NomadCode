@@ -113,8 +113,6 @@ describe('useSearch', () => {
   it('sets error when searchFiles generator throws and search was not aborted', async () => {
     async function* throwingGen() {
       throw new Error('disk read failure');
-      // eslint-disable-next-line no-unreachable
-      yield { filePath: 'a.ts', matches: [] };
     }
     mockSearchFiles.mockReturnValue(throwingGen());
 
