@@ -673,8 +673,6 @@ export default function Editor({
 const TAB_HEIGHT     = 36;
 const TOOLBAR_HEIGHT = 40;
 
-import type { ThemeTokens } from '../theme/tokens';
-
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     container:      { flex: 1, backgroundColor: t.bg },
