@@ -269,4 +269,14 @@ describe('buildMonacoHtml()', () => {
     // The setContent handler should reference scrollTo
     expect(html).toContain('msg.scrollTo');
   });
+
+  it('TC-0370: setContent message calls editor.focus() after setting content', () => {
+    const html = buildMonacoHtml(CDN);
+    // The setContent case must call editor.focus() so the Android soft keyboard
+    // receives key events immediately after content is loaded.
+    const setContentIdx = html.indexOf("case 'setContent':");
+    const nextCaseIdx = html.indexOf("case 'format':", setContentIdx);
+    const setContentBlock = html.slice(setContentIdx, nextCaseIdx);
+    expect(setContentBlock).toContain('editor.focus()');
+  });
 });

@@ -104,7 +104,10 @@ android {
     }
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
+            // Use project-local keystore if present; fall back to the Android SDK default.
+            // The project-local debug.keystore is gitignored — fresh checkouts use the SDK default.
+            def localKeystore = file('debug.keystore')
+            storeFile localKeystore.exists() ? localKeystore : new File(System.getProperty('user.home') + '/.android/debug.keystore')
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'

@@ -349,6 +349,7 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
               }]);
               setTimeout(function() { editor.deltaDecorations(sdec, []); }, 4000);
             }
+            editor.focus();
             break;
           }
           case 'format':

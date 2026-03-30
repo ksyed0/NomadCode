@@ -623,3 +623,181 @@ describe('dispatch — git friendly errors (AC-0135)', () => {
     );
   });
 });
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0367 — getToken() timeout (BUG-0025)                                   */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0367: git push when TOKEN_RESULT is never sent → timeout error (BUG-0025)', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('resolves with exitCode 1 and output matching /timed out/i after 30 s', async () => {
+    // Bridge responds normally to all VFS messages but never sends TOKEN_RESULT.
+    // We achieve this by using a custom postMessage mock that responds to FILE_* messages
+    // but ignores GET_TOKEN entirely.
+    (window as unknown as Record<string, unknown>).ReactNativeWebView = {
+      postMessage: jest.fn((data: string) => {
+        const msg = JSON.parse(data) as Record<string, unknown>;
+        if (msg.type === 'GET_TOKEN') {
+          // Deliberately never respond — simulates network failure / app backgrounded.
+          return;
+        }
+        // Respond to all other messages normally (FILE_READ, FILE_WRITE, etc.)
+        const requestId = msg.requestId as string;
+        (window as unknown as Record<string, (s: string) => void>).receiveFromRN(
+          JSON.stringify({ type: 'FILE_RESULT', requestId, result: null, error: undefined }),
+        );
+      }),
+    };
+
+    // Start the git push — it will call getToken() which will hang until timeout.
+    const resultPromise = dispatch('git push origin main');
+
+    // Advance fake timers past the 30 s threshold to trigger the timeout.
+    jest.advanceTimersByTime(31_000);
+
+    const result = await resultPromise;
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toMatch(/timed out/i);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0361 / TC-0362 — git status statusMatrix condition ordering (BUG-0026) */
+/* -------------------------------------------------------------------------- */
+
+describe('dispatch — git status statusMatrix condition ordering (BUG-0026)', () => {
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockStatusMatrix = (jest.requireMock('isomorphic-git') as { default: { statusMatrix: jest.Mock } }).default.statusMatrix;
+    mockStatusMatrix.mockClear();
+  });
+
+  // TC-0361: staged new file [0,2,2] shows A  not ??
+  it('TC-0361: staged new file [head=0,workdir=2,stage=2] shows "A " not "??"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['newfile.ts', 0, 2, 2],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('A  newfile.ts');
+    expect(result.output).not.toContain('?? newfile.ts');
+  });
+
+  // TC-0362: untracked file [0,2,0] shows ??
+  it('TC-0362: untracked file [head=0,workdir=2,stage=0] shows "??"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['untracked.ts', 0, 2, 0],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('?? untracked.ts');
+    expect(result.output).not.toContain('A  untracked.ts');
+  });
+
+  // TC-0363: modified + staged [1,2,2] shows M
+  it('TC-0363: modified+staged file [head=1,workdir=2,stage=2] shows "M "', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['modified.ts', 1, 2, 2],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('M  modified.ts');
+    expect(result.output).not.toContain('?? modified.ts');
+  });
+
+  // TC-0364: modified unstaged [1,2,1] shows _M (space M)
+  it('TC-0364: modified unstaged file [head=1,workdir=2,stage=1] shows " M"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['unstaged.ts', 1, 2, 1],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain(' M unstaged.ts');
+    expect(result.output).not.toContain('M  unstaged.ts');
+  });
+
+  // TC-0365: deleted unstaged [1,0,0] shows _D
+  it('TC-0365: deleted unstaged file [head=1,workdir=0,stage=0] shows " D"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['deleted.ts', 1, 0, 0],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain(' D deleted.ts');
+    expect(result.output).not.toContain('D  deleted.ts');
+  });
+
+  // TC-0366: deleted + staged [1,0,1] shows D
+  it('TC-0366: deleted+staged file [head=1,workdir=0,stage=1] shows "D "', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['staged-delete.ts', 1, 0, 1],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('D  staged-delete.ts');
+    expect(result.output).not.toContain(' D staged-delete.ts');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0368 / TC-0369 — git error scope (BUG-0027, BUG-0028)                 */
+/* -------------------------------------------------------------------------- */
+
+describe('dispatch — git error handling scope (BUG-0027, BUG-0028)', () => {
+  let mockInit: jest.Mock;
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const gitMock = (jest.requireMock('isomorphic-git') as { default: { init: jest.Mock; statusMatrix: jest.Mock } }).default;
+    mockInit = gitMock.init;
+    mockStatusMatrix = gitMock.statusMatrix;
+    mockInit.mockClear();
+    mockStatusMatrix.mockClear();
+  });
+
+  // TC-0368: git init failure shows init-specific error, not "not a git repository"
+  it('TC-0368: git init ENOENT failure shows raw error, not paradoxical "not a git repository"', async () => {
+    mockInit.mockRejectedValue(
+      new Error("ENOENT: no such file or directory, '.git/objects'"),
+    );
+
+    const result = await dispatch('git init');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).not.toContain('not a git repository');
+  });
+
+  // TC-0369: ENOENT in non-.git path does not show "not a git repository"
+  it('TC-0369: ENOENT in non-.git path (src/foo.ts) does not trigger "not a git repository"', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error("readAsStringAsync failed for 'src/foo.ts'"),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.output).not.toContain('not a git repository');
+  });
+});

@@ -92,7 +92,7 @@ Dependencies: EPIC-0001
 EPIC-0014: Global Search — Find in Files
 Description: Cross-project full-text search panel with result grouping by file, line preview, and navigate-to-line.
 Release Target: Release 1.1 (Post-Launch)
-Status: In Progress
+Status: Done
 Branch: feature/EPIC-0014-global-search
 Dependencies: EPIC-0001, EPIC-0002
 
@@ -685,7 +685,8 @@ Dependencies: US-0041
 US-0043 (EPIC-0014): As a developer, I want to search across all project files, so that I can find any symbol or string quickly.
 Priority: Medium (P1)
 Estimate: L
-Status: In Progress
+Status: Done
+Branch: feature/EPIC-0014-global-search
 Acceptance Criteria:
   - [ ] AC-0113: A global search panel can be opened via the command palette or a dedicated toolbar button
   - [ ] AC-0114: Entering a query returns all matching lines across the project file tree
@@ -695,7 +696,8 @@ Dependencies: EPIC-0001, EPIC-0002
 US-0044 (EPIC-0014): As a developer, I want to navigate to a search result, so that I can jump directly to the relevant code.
 Priority: Medium (P1)
 Estimate: S
-Status: In Progress
+Status: Done
+Branch: feature/EPIC-0014-global-search
 Acceptance Criteria:
   - [ ] AC-0116: Tapping a search result opens the file and scrolls to the matching line
   - [ ] AC-0117: The matching text is highlighted in the editor after navigation
