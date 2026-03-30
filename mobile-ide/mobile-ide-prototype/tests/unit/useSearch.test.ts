@@ -112,6 +112,7 @@ describe('useSearch', () => {
 
   it('sets error when searchFiles generator throws and search was not aborted', async () => {
     async function* throwingGen() {
+      yield { filePath: 'a.ts', matches: [] };
       throw new Error('disk read failure');
     }
     mockSearchFiles.mockReturnValue(throwingGen());

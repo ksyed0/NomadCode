@@ -29,13 +29,13 @@ jest.mock('../../src/hooks/useSearch', () => ({
   }),
 }));
 
-jest.mock('../../src/components/GlobalSearch', () => ({
-  GlobalSearch: () => {
-    const React = require('react');
-    const { TextInput } = require('react-native');
-    return React.createElement(TextInput, { placeholder: 'Search', testID: 'global-search-input' });
-  },
-}));
+jest.mock('../../src/components/GlobalSearch', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { TextInput } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    GlobalSearch: () => React.createElement(TextInput, { placeholder: 'Search', testID: 'global-search-input' }),
+  };
+});
 
 // Mock useTheme so FileExplorer can render without a real Zustand store
 jest.mock('../../src/theme/tokens', () => ({
