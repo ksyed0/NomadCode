@@ -26,17 +26,22 @@ const ROOT = path.join(__dirname, '..');
 // ---------------------------------------------------------------------------
 // --capture-baseline mode: snapshot stats-cache at session start
 // ---------------------------------------------------------------------------
+// Uses a temp file instead of a session-keyed JSON file because PreToolUse
+// hooks do not receive a session_id — only the Stop hook does via stdin.
+// The temp file is written on the first tool call and deleted by the Stop hook.
+// A stale file (>8 h old, from a crashed session) is treated as absent.
+const TEMP_BASELINE_PATH = path.join(os.tmpdir(), '.nomadcode-cost-baseline.json');
+
 if (process.argv.includes('--capture-baseline')) {
-  const sessionId = process.env.CLAUDE_SESSION_ID ?? 'unknown';
   const statsPath = path.join(os.homedir(), '.claude', 'stats-cache.json');
-  const baselinePath = path.join(ROOT, 'docs', 'cost-baseline.json');
-  let baselines = {};
-  try { baselines = JSON.parse(fs.readFileSync(baselinePath, 'utf8')); } catch {}
-  if (!baselines[sessionId]) {
+  const STALE_MS = 8 * 60 * 60 * 1000; // 8 hours
+  let isStale = false;
+  try { isStale = (Date.now() - fs.statSync(TEMP_BASELINE_PATH).mtimeMs) > STALE_MS; } catch {}
+  const exists = !isStale && fs.existsSync(TEMP_BASELINE_PATH);
+  if (!exists) {
     try {
       const stats = JSON.parse(fs.readFileSync(statsPath, 'utf8'));
-      baselines[sessionId] = stats.modelUsage ?? {};
-      fs.writeFileSync(baselinePath, JSON.stringify(baselines, null, 2));
+      fs.writeFileSync(TEMP_BASELINE_PATH, JSON.stringify(stats.modelUsage ?? {}));
     } catch {}
   }
   process.exit(0);
@@ -151,21 +156,16 @@ async function main() {
   try { branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim(); } catch {}
 
   // Load stats-cache baseline and current snapshot to compute token delta.
-  const BASELINE_PATH = path.join(ROOT, 'docs', 'cost-baseline.json');
+  // Baseline is read from the temp file written by --capture-baseline (PreToolUse hook).
   const STATS_PATH = path.join(os.homedir(), '.claude', 'stats-cache.json');
-  const sessionId = data.session_id ?? null;
 
   let baselineModelUsage = null;
   let hasBaseline = false;
-  if (sessionId) {
-    try {
-      const baselines = JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8'));
-      if (baselines[sessionId]) {
-        baselineModelUsage = baselines[sessionId];
-        hasBaseline = true;
-      }
-    } catch { /* baseline file may not exist yet */ }
-  }
+  try {
+    baselineModelUsage = JSON.parse(fs.readFileSync(TEMP_BASELINE_PATH, 'utf8'));
+    hasBaseline = true;
+    fs.unlinkSync(TEMP_BASELINE_PATH); // clean up so next session gets a fresh baseline
+  } catch { /* temp baseline may not exist if PreToolUse hook never ran */ }
 
   let currentModelUsage = null;
   try {
@@ -198,7 +198,7 @@ async function main() {
 }
 
 // Export for unit tests.  Guard main() so it doesn't run on require().
-if (typeof module !== 'undefined') module.exports = { buildRow, diffModelUsage };
+if (typeof module !== 'undefined') module.exports = { buildRow, diffModelUsage, TEMP_BASELINE_PATH };
 if (require.main === module) {
   main().catch(err => process.stderr.write(`[capture-cost] Error: ${err.message}\n`));
 }

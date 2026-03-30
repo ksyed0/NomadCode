@@ -1,5 +1,7 @@
 'use strict';
-const { buildRow, diffModelUsage } = require('../../tools/capture-cost');
+const os = require('os');
+const path = require('path');
+const { buildRow, diffModelUsage, TEMP_BASELINE_PATH } = require('../../tools/capture-cost');
 
 const DATE = '2026-03-27';
 const BRANCH = 'bugfix/BUG-0031-stop-hook';
@@ -141,5 +143,11 @@ describe('diffModelUsage', () => {
     const current = { 'claude-sonnet-4-6': { inputTokens: 100, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 } };
     const r = diffModelUsage(baseline, current);
     expect(r.inputTokens).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('TEMP_BASELINE_PATH', () => {
+  it('is located in os.tmpdir()', () => {
+    expect(TEMP_BASELINE_PATH).toBe(path.join(os.tmpdir(), '.nomadcode-cost-baseline.json'));
   });
 });
