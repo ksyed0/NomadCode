@@ -623,3 +623,95 @@ describe('dispatch — git friendly errors (AC-0135)', () => {
     );
   });
 });
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0361 / TC-0362 — git status statusMatrix condition ordering (BUG-0026) */
+/* -------------------------------------------------------------------------- */
+
+describe('dispatch — git status statusMatrix condition ordering (BUG-0026)', () => {
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockStatusMatrix = (jest.requireMock('isomorphic-git') as { default: { statusMatrix: jest.Mock } }).default.statusMatrix;
+    mockStatusMatrix.mockClear();
+  });
+
+  // TC-0361: staged new file [0,2,2] shows A  not ??
+  it('TC-0361: staged new file [head=0,workdir=2,stage=2] shows "A " not "??"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['newfile.ts', 0, 2, 2],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('A  newfile.ts');
+    expect(result.output).not.toContain('?? newfile.ts');
+  });
+
+  // TC-0362: untracked file [0,2,0] shows ??
+  it('TC-0362: untracked file [head=0,workdir=2,stage=0] shows "??"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['untracked.ts', 0, 2, 0],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('?? untracked.ts');
+    expect(result.output).not.toContain('A  untracked.ts');
+  });
+
+  // TC-0363: modified + staged [1,2,2] shows M
+  it('TC-0363: modified+staged file [head=1,workdir=2,stage=2] shows "M "', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['modified.ts', 1, 2, 2],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('M  modified.ts');
+    expect(result.output).not.toContain('?? modified.ts');
+  });
+
+  // TC-0364: modified unstaged [1,2,1] shows _M (space M)
+  it('TC-0364: modified unstaged file [head=1,workdir=2,stage=1] shows " M"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['unstaged.ts', 1, 2, 1],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain(' M unstaged.ts');
+    expect(result.output).not.toContain('M  unstaged.ts');
+  });
+
+  // TC-0365: deleted unstaged [1,0,0] shows _D
+  it('TC-0365: deleted unstaged file [head=1,workdir=0,stage=0] shows " D"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['deleted.ts', 1, 0, 0],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain(' D deleted.ts');
+    expect(result.output).not.toContain('D  deleted.ts');
+  });
+
+  // TC-0366: deleted + staged [1,0,1] shows D
+  it('TC-0366: deleted+staged file [head=1,workdir=0,stage=1] shows "D "', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['staged-delete.ts', 1, 0, 1],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('D  staged-delete.ts');
+    expect(result.output).not.toContain(' D staged-delete.ts');
+  });
+});

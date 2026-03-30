@@ -202,11 +202,13 @@ async function handleGit(
           return { output: 'nothing to commit, working tree clean', exitCode: 0 };
         }
         const lines = statusMatrix.map(([filepath, head, workdir, stage]: [string, number, number, number]) => {
-          if (head === 0 && workdir === 2) return `?? ${filepath}`;
-          if (head === 1 && workdir === 2 && stage === 2) return `M  ${filepath}`;
-          if (head === 1 && workdir === 2 && stage === 1) return ` M ${filepath}`;
-          if (head === 0 && workdir === 2 && stage === 2) return `A  ${filepath}`;
-          if (head === 1 && workdir === 0) return ` D ${filepath}`;
+          if (head === 0 && workdir === 2 && stage === 2) return `A  ${filepath}`;  // staged new — BEFORE untracked
+          if (head === 0 && workdir === 2 && stage === 0) return `?? ${filepath}`;  // untracked
+          if (head === 1 && workdir === 2 && stage === 2) return `M  ${filepath}`;  // modified + staged
+          if (head === 1 && workdir === 2 && stage === 1) return ` M ${filepath}`;  // modified unstaged
+          if (head === 1 && workdir === 2 && stage === 0) return ` M ${filepath}`;  // modified, not staged (stage absent)
+          if (head === 1 && workdir === 0 && stage === 0) return ` D ${filepath}`;  // deleted
+          if (head === 1 && workdir === 0 && stage === 1) return `D  ${filepath}`;  // deleted + staged
           return `   ${filepath}`;
         });
         return { output: lines.join('\n'), exitCode: 0 };
