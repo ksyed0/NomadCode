@@ -164,9 +164,14 @@ async function vfsMove(src: string, dest: string): Promise<void> {
 /* -------------------------------------------------------------------------- */
 
 async function getToken(): Promise<string | null> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const requestId = generateId();
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId);
+      reject(new Error('getToken timed out after 30 s — TOKEN_RESULT not received'));
+    }, 30_000);
     pendingRequests.set(requestId, (result) => {
+      clearTimeout(timer);
       resolve(result); // result is the token string or null
     });
     sendToRN({ type: 'GET_TOKEN', requestId });
@@ -303,6 +308,10 @@ async function handleGit(
     }
   } catch (e) {
     const errMsg = (e as Error).message ?? '';
+    // Detect authentication token timeout.
+    if (errMsg.includes('timed out')) {
+      return { output: `fatal: authentication timed out — check network and try again`, exitCode: 1 };
+    }
     // Detect "not a git repository" — isomorphic-git surfaces Expo FileSystem
     // ENOENT when the .git directory doesn't exist.
     if (

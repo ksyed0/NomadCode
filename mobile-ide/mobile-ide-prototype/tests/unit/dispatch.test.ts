@@ -625,6 +625,51 @@ describe('dispatch — git friendly errors (AC-0135)', () => {
 });
 
 /* -------------------------------------------------------------------------- */
+/*  TC-0367 — getToken() timeout (BUG-0025)                                   */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0367: git push when TOKEN_RESULT is never sent → timeout error (BUG-0025)', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('resolves with exitCode 1 and output matching /timed out/i after 30 s', async () => {
+    // Bridge responds normally to all VFS messages but never sends TOKEN_RESULT.
+    // We achieve this by using a custom postMessage mock that responds to FILE_* messages
+    // but ignores GET_TOKEN entirely.
+    (window as unknown as Record<string, unknown>).ReactNativeWebView = {
+      postMessage: jest.fn((data: string) => {
+        const msg = JSON.parse(data) as Record<string, unknown>;
+        if (msg.type === 'GET_TOKEN') {
+          // Deliberately never respond — simulates network failure / app backgrounded.
+          return;
+        }
+        // Respond to all other messages normally (FILE_READ, FILE_WRITE, etc.)
+        const requestId = msg.requestId as string;
+        (window as unknown as Record<string, (s: string) => void>).receiveFromRN(
+          JSON.stringify({ type: 'FILE_RESULT', requestId, result: null, error: undefined }),
+        );
+      }),
+    };
+
+    // Start the git push — it will call getToken() which will hang until timeout.
+    const resultPromise = dispatch('git push origin main');
+
+    // Advance fake timers past the 30 s threshold to trigger the timeout.
+    jest.advanceTimersByTime(31_000);
+
+    const result = await resultPromise;
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toMatch(/timed out/i);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
 /*  TC-0361 / TC-0362 — git status statusMatrix condition ordering (BUG-0026) */
 /* -------------------------------------------------------------------------- */
 
