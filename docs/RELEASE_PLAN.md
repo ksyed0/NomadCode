@@ -726,6 +726,71 @@ Dependencies: US-0045
 
 ---
 
+### EPIC-0018: Foldable Device Support
+
+```
+US-0064 (EPIC-0018): As a developer using a foldable device (Samsung Galaxy Z Fold, Pixel Fold), I want the app to automatically expand to the full split-pane IDE layout when I unfold the device, so that I can use the entire inner display as a tablet workspace.
+Priority: High (P0)
+Estimate: M
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0182: When the device is unfolded and the inner display width is ≥ 768 dp, the app renders the split-pane layout (file explorer | editor | terminal) automatically
+  - [ ] AC-0183: When the device is folded and the cover display width is < 768 dp, the app renders the single-pane layout automatically
+  - [ ] AC-0184: The transition between folded and unfolded states occurs without an app restart — the layout reflows within the same session
+  - [ ] AC-0185: Open files, unsaved editor content, and active terminal session are fully preserved across a fold/unfold transition
+  - [ ] AC-0186: The app respects the device orientation in both folded and unfolded states — no forced landscape lock is applied (resolves BUG-0034)
+Dependencies: EPIC-0001, EPIC-0002
+
+US-0065 (EPIC-0018): As a developer, I want the foldable layout to be tested against real device form factors, so that the split-pane expansion works correctly on all major foldable profiles.
+Priority: Medium (P1)
+Estimate: S
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0187: Layout renders correctly on Samsung Galaxy Z Fold 6 inner display (7.6", ~882 × 2176 px)
+  - [ ] AC-0188: Layout renders correctly on Google Pixel Fold inner display (7.6", ~1840 × 2208 px)
+  - [ ] AC-0189: Layout renders correctly on Samsung Galaxy Z Flip 6 cover display (3.4") and main display (6.7") — single-pane on both
+  - [ ] AC-0190: `TabletResponsive` unit tests cover width breakpoints at 767 dp (single-pane), 768 dp (split-pane), and a mid-transition resize event
+Dependencies: US-0064
+```
+
+---
+
+### EPIC-0016: Project Templates
+
+```
+US-0062 (EPIC-0016): As a developer, I want to create a new project from a starter template, so that I can start coding a common project type immediately without manual scaffolding.
+Priority: Medium (P1)
+Estimate: M
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0172: A "New Project from Template" option is available from the file explorer header and the command palette
+  - [ ] AC-0173: At least 5 templates are offered: React Native (Expo), Node.js, Python, HTML/CSS/JS, and Blank
+  - [ ] AC-0174: Selecting a template creates a new directory in the workspace with the appropriate starter files
+  - [ ] AC-0175: The new project directory is immediately visible in the file tree after creation
+  - [ ] AC-0176: Template scaffolding works fully offline — no network calls are made at project creation time
+Dependencies: EPIC-0002
+```
+
+---
+
+### EPIC-0017: SSH / Remote Terminal
+
+```
+US-0063 (EPIC-0017): As a developer, I want to connect to a remote Linux server over SSH from the terminal panel, so that I can administer servers and run commands remotely from my mobile device.
+Priority: Medium (P1)
+Estimate: L
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0177: The terminal panel provides a "New SSH Connection" option
+  - [ ] AC-0178: The user can configure hostname, port, username, and authentication method (password or private key)
+  - [ ] AC-0179: SSH credentials are stored in the platform keychain (iOS Keychain / Android Keystore) — never in plain app storage or logs
+  - [ ] AC-0180: The SSH session streams stdout and stderr to the terminal panel in real time
+  - [ ] AC-0181: Closing the terminal tab or tapping "Disconnect" cleanly terminates the SSH session on the server
+Dependencies: EPIC-0003
+```
+
+---
+
 ### EPIC-0013: Multi-Language Editor Support
 
 ```
@@ -811,3 +876,4 @@ Notes: develop branch created; branch protection on main and develop enabled at 
 | v0.5 Public Beta | Full feature set for TestFlight/Play Beta | EPIC-0003, EPIC-0004 | TBD |
 | v1.0 GA | Extensions, auth, git, IAP, AI, App Store launch | EPIC-0005, EPIC-0007, EPIC-0008, EPIC-0009, EPIC-0010, EPIC-0011 | TBD |
 | v1.1 Post-Launch | Cloud sync, multi-language, global search, observability | EPIC-0012, EPIC-0013, EPIC-0014, EPIC-0015 | TBD |
+| v1.2 | Foldable device support, project templates, SSH/remote terminal | EPIC-0016, EPIC-0017, EPIC-0018 | TBD |

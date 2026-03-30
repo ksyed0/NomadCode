@@ -1646,6 +1646,158 @@
       ]
     },
     {
+      "id": "US-0064",
+      "epicId": "EPIC-0018",
+      "title": "As a developer using a foldable device (Samsung Galaxy Z Fold, Pixel Fold), I want the app to automatically expand to the full split-pane IDE layout when I unfold the device, so that I can use the entire inner display as a tablet workspace.",
+      "priority": "P0",
+      "estimate": "M",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0182",
+          "text": "When the device is unfolded and the inner display width is ≥ 768 dp, the app renders the split-pane layout (file explorer | editor | terminal) automatically",
+          "done": false
+        },
+        {
+          "id": "AC-0183",
+          "text": "When the device is folded and the cover display width is < 768 dp, the app renders the single-pane layout automatically",
+          "done": false
+        },
+        {
+          "id": "AC-0184",
+          "text": "The transition between folded and unfolded states occurs without an app restart — the layout reflows within the same session",
+          "done": false
+        },
+        {
+          "id": "AC-0185",
+          "text": "Open files, unsaved editor content, and active terminal session are fully preserved across a fold/unfold transition",
+          "done": false
+        },
+        {
+          "id": "AC-0186",
+          "text": "The app respects the device orientation in both folded and unfolded states — no forced landscape lock is applied (resolves BUG-0034)",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0001",
+        "EPIC-0002"
+      ]
+    },
+    {
+      "id": "US-0065",
+      "epicId": "EPIC-0018",
+      "title": "As a developer, I want the foldable layout to be tested against real device form factors, so that the split-pane expansion works correctly on all major foldable profiles.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0187",
+          "text": "Layout renders correctly on Samsung Galaxy Z Fold 6 inner display (7.6\", ~882 × 2176 px)",
+          "done": false
+        },
+        {
+          "id": "AC-0188",
+          "text": "Layout renders correctly on Google Pixel Fold inner display (7.6\", ~1840 × 2208 px)",
+          "done": false
+        },
+        {
+          "id": "AC-0189",
+          "text": "Layout renders correctly on Samsung Galaxy Z Flip 6 cover display (3.4\") and main display (6.7\") — single-pane on both",
+          "done": false
+        },
+        {
+          "id": "AC-0190",
+          "text": "`TabletResponsive` unit tests cover width breakpoints at 767 dp (single-pane), 768 dp (split-pane), and a mid-transition resize event",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0064"
+      ]
+    },
+    {
+      "id": "US-0062",
+      "epicId": "EPIC-0016",
+      "title": "As a developer, I want to create a new project from a starter template, so that I can start coding a common project type immediately without manual scaffolding.",
+      "priority": "P1",
+      "estimate": "M",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0172",
+          "text": "A \"New Project from Template\" option is available from the file explorer header and the command palette",
+          "done": false
+        },
+        {
+          "id": "AC-0173",
+          "text": "At least 5 templates are offered: React Native (Expo), Node.js, Python, HTML/CSS/JS, and Blank",
+          "done": false
+        },
+        {
+          "id": "AC-0174",
+          "text": "Selecting a template creates a new directory in the workspace with the appropriate starter files",
+          "done": false
+        },
+        {
+          "id": "AC-0175",
+          "text": "The new project directory is immediately visible in the file tree after creation",
+          "done": false
+        },
+        {
+          "id": "AC-0176",
+          "text": "Template scaffolding works fully offline — no network calls are made at project creation time",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0002"
+      ]
+    },
+    {
+      "id": "US-0063",
+      "epicId": "EPIC-0017",
+      "title": "As a developer, I want to connect to a remote Linux server over SSH from the terminal panel, so that I can administer servers and run commands remotely from my mobile device.",
+      "priority": "P1",
+      "estimate": "L",
+      "status": "Deferred",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0177",
+          "text": "The terminal panel provides a \"New SSH Connection\" option",
+          "done": false
+        },
+        {
+          "id": "AC-0178",
+          "text": "The user can configure hostname, port, username, and authentication method (password or private key)",
+          "done": false
+        },
+        {
+          "id": "AC-0179",
+          "text": "SSH credentials are stored in the platform keychain (iOS Keychain / Android Keystore) — never in plain app storage or logs",
+          "done": false
+        },
+        {
+          "id": "AC-0180",
+          "text": "The SSH session streams stdout and stderr to the terminal panel in real time",
+          "done": false
+        },
+        {
+          "id": "AC-0181",
+          "text": "Closing the terminal tab or tapping \"Disconnect\" cleanly terminates the SSH session on the server",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "EPIC-0003"
+      ]
+    },
+    {
       "id": "US-0059",
       "epicId": "EPIC-0013",
       "title": "As a developer, I want the editor to apply language-appropriate indentation settings automatically when I open a file, so that code I type is formatted consistently with the conventions of that language.",
@@ -3900,6 +4052,30 @@
       "inputTokens": 0,
       "outputTokens": 0
     },
+    "US-0064": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0065": {
+      "projectedUsd": 400,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0062": {
+      "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0063": {
+      "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
     "US-0059": {
       "projectedUsd": 400,
       "costUsd": 0,
@@ -4517,6 +4693,34 @@
       "openCriticalBug": false,
       "isAtRisk": true
     },
+    "US-0064": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0065": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0062": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0063": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
     "US-0059": {
       "missingTCs": true,
       "noBranch": false,
@@ -4605,9 +4809,9 @@
       "date": "2026-03-20"
     }
   ],
-  "generatedAt": "2026-03-29T22:58:36.166Z",
-  "commitSha": "6f2b61e",
-  "buildNumber": "199",
+  "generatedAt": "2026-03-30T01:09:41.672Z",
+  "commitSha": "d8a75a2",
+  "buildNumber": "201",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
