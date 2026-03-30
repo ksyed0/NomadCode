@@ -238,4 +238,35 @@ describe('buildMonacoHtml()', () => {
     const html = buildMonacoHtml(CDN);
     expect(html).toContain('default:');
   });
+
+  it('includes scrollToLine case in the message handler', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('scrollToLine');
+  });
+
+  it('scrollToLine handler calls revealLineInCenter', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('revealLineInCenter');
+  });
+
+  it('scrollToLine handler calls deltaDecorations', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('deltaDecorations');
+  });
+
+  it('scrollToLine handler sets a cleanup timeout', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('setTimeout');
+  });
+
+  it('injects search-match-highlight CSS class', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('search-match-highlight');
+  });
+
+  it('setContent message with scrollTo calls revealLineInCenter', () => {
+    const html = buildMonacoHtml(CDN);
+    // The setContent handler should reference scrollTo
+    expect(html).toContain('msg.scrollTo');
+  });
 });

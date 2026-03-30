@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { FileSystemBridge, FileEntry } from '../utils/FileSystemBridge';
 import { useTheme } from '../theme/tokens';
+import { GlobalSearch } from './GlobalSearch';
 
 interface FileExplorerProps {
   rootPath: string;
@@ -25,6 +26,9 @@ interface FileExplorerProps {
   /** Set true externally to open the new-file modal (e.g. from command palette). Reset via onNewFileDismissed. */
   triggerNewFile?: boolean;
   onNewFileDismissed?: () => void;
+  sidebarTab: 'files' | 'search';
+  onSidebarTabChange: (tab: 'files' | 'search') => void;
+  onSearchNavigate: (filePath: string, lineNumber: number, matchStart: number, matchEnd: number) => void;
 }
 
 interface TreeNode extends FileEntry {
@@ -86,6 +90,9 @@ export default function FileExplorer({
   onFileMove,
   triggerNewFile,
   onNewFileDismissed,
+  sidebarTab,
+  onSidebarTabChange,
+  onSearchNavigate,
 }: FileExplorerProps) {
   const t = useTheme();
   const [nodes, setNodes] = useState<TreeNode[]>([]);
@@ -407,47 +414,69 @@ export default function FileExplorer({
   // Loading / render
   // ---------------------------------------------------------------------------
 
-  if (loading) {
-    return (
-      <View style={[styles.center, { backgroundColor: t.bgElevated }]}>
-        <ActivityIndicator testID="activity-indicator" color={t.accent} />
-      </View>
-    );
-  }
-
   const nameConfirmDisabled = nameInputValue.trim() === '';
   const moveConfirmDisabled = pickerSelectedPath === null;
 
   return (
     <View style={[styles.container, { backgroundColor: t.bgElevated }]}>
-      <View style={[styles.header, { borderBottomColor: t.border }]}>
-        <Text style={[styles.headerText, { color: t.textMuted }]}>EXPLORER</Text>
-        <View style={styles.headerActions}>
+      {/* Tab bar */}
+      <View style={[styles.tabBar, { borderBottomColor: t.border }]}>
+        {(['files', 'search'] as const).map((tab) => (
           <TouchableOpacity
-            testID="header-new-file"
-            onPress={handleHeaderNewFile}
-            style={styles.headerBtn}
-            accessibilityLabel="New file"
+            key={tab}
+            style={[styles.tab, sidebarTab === tab && { borderBottomColor: t.accent, borderBottomWidth: 2 }]}
+            onPress={() => onSidebarTabChange(tab)}
           >
-            <Text style={[styles.headerBtnText, { color: t.textMuted }]}>+</Text>
+            <Text style={[styles.tabLabel, { color: sidebarTab === tab ? t.accent : t.textMuted }]}>
+              {tab === 'files' ? 'Files' : 'Search'}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            testID="header-new-folder"
-            onPress={handleHeaderNewFolder}
-            style={styles.headerBtn}
-            accessibilityLabel="New folder"
-          >
-            <Text style={[styles.headerBtnText, { color: t.textMuted }]}>⊞</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
       </View>
-      <FlatList
-        data={nodes}
-        keyExtractor={(item) => item.path}
-        renderItem={renderNode}
-        removeClippedSubviews
-        initialNumToRender={30}
-      />
+
+      {/* Panel content */}
+      {sidebarTab === 'search' ? (
+        <GlobalSearch workspaceRoot={rootPath} onNavigate={onSearchNavigate} />
+      ) : (
+        <View style={styles.treeContainer}>
+          {loading ? (
+            <View style={[styles.center, { backgroundColor: t.bgElevated }]}>
+              <ActivityIndicator testID="activity-indicator" color={t.accent} />
+            </View>
+          ) : (
+            <>
+              <View style={[styles.header, { borderBottomColor: t.border }]}>
+                <Text style={[styles.headerText, { color: t.textMuted }]}>EXPLORER</Text>
+                <View style={styles.headerActions}>
+                  <TouchableOpacity
+                    testID="header-new-file"
+                    onPress={handleHeaderNewFile}
+                    style={styles.headerBtn}
+                    accessibilityLabel="New file"
+                  >
+                    <Text style={[styles.headerBtnText, { color: t.textMuted }]}>+</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    testID="header-new-folder"
+                    onPress={handleHeaderNewFolder}
+                    style={styles.headerBtn}
+                    accessibilityLabel="New folder"
+                  >
+                    <Text style={[styles.headerBtnText, { color: t.textMuted }]}>⊞</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <FlatList
+                data={nodes}
+                keyExtractor={(item) => item.path}
+                renderItem={renderNode}
+                removeClippedSubviews
+                initialNumToRender={30}
+              />
+            </>
+          )}
+        </View>
+      )}
 
       {/* ------------------------------------------------------------------ */}
       {/* Context menu modal                                                   */}
@@ -599,6 +628,22 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  tabLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  treeContainer: {
     flex: 1,
   },
   header: {

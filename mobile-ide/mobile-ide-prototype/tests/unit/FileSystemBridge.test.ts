@@ -472,6 +472,30 @@ describe('requestWorkspacePermission — iOS', () => {
 // GitBridge (stub implementations)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// getFileSize
+// ---------------------------------------------------------------------------
+
+describe('getFileSize', () => {
+  it('returns file size when file exists', async () => {
+    mockGetInfoAsync.mockResolvedValue({ exists: true, size: 1234, isDirectory: false, uri: 'file:///x' });
+    const size = await FileSystemBridge.getFileSize('file:///x');
+    expect(size).toBe(1234);
+  });
+
+  it('returns 0 when file does not exist', async () => {
+    mockGetInfoAsync.mockResolvedValue({ exists: false, uri: 'file:///x' });
+    const size = await FileSystemBridge.getFileSize('file:///x');
+    expect(size).toBe(0);
+  });
+
+  it('returns 0 when size is undefined', async () => {
+    mockGetInfoAsync.mockResolvedValue({ exists: true, uri: 'file:///x' });
+    const size = await FileSystemBridge.getFileSize('file:///x');
+    expect(size).toBe(0);
+  });
+});
+
 describe('GitBridge', () => {
   it('clone throws not-implemented', async () => {
     await expect(GitBridge.clone('https://example.com/repo', '/dir')).rejects.toThrow('not yet implemented');
