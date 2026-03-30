@@ -30,9 +30,9 @@ export function globToRegex(glob: string): RegExp {
   if (!glob) return /.*/;
   const escaped = glob
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*/g, '\x00DS\x00')
+    .replace(/\*\*/g, '__DOUBLESTAR__')
     .replace(/\*/g, '[^/]*')
-    .replace(/\x00DS\x00/g, '.*')
+    .replace(/__DOUBLESTAR__/g, '.*')
     .replace(/\?/g, '[^/]');
   return new RegExp(`^${escaped}$`);
 }
