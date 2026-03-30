@@ -11,13 +11,64 @@
  * visually distinguishable from real entries.  The raw payload is always
  * saved to docs/capture-cost-debug.json so the actual hook contract can be
  * verified after any Claude Code upgrade.
+ *
+ * Token counts are derived by diffing ~/.claude/stats-cache.json snapshots
+ * taken at session start (via --capture-baseline) and session end.
  */
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { execSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
+
+// ---------------------------------------------------------------------------
+// --capture-baseline mode: snapshot stats-cache at session start
+// ---------------------------------------------------------------------------
+if (process.argv.includes('--capture-baseline')) {
+  const sessionId = process.env.CLAUDE_SESSION_ID ?? 'unknown';
+  const statsPath = path.join(os.homedir(), '.claude', 'stats-cache.json');
+  const baselinePath = path.join(ROOT, 'docs', 'cost-baseline.json');
+  let baselines = {};
+  try { baselines = JSON.parse(fs.readFileSync(baselinePath, 'utf8')); } catch {}
+  if (!baselines[sessionId]) {
+    try {
+      const stats = JSON.parse(fs.readFileSync(statsPath, 'utf8'));
+      baselines[sessionId] = stats.modelUsage ?? {};
+      fs.writeFileSync(baselinePath, JSON.stringify(baselines, null, 2));
+    } catch {}
+  }
+  process.exit(0);
+}
+
+// ---------------------------------------------------------------------------
+// diffModelUsage — compute per-session token delta from two modelUsage maps
+// ---------------------------------------------------------------------------
+
+/**
+ * Diff two modelUsage snapshots from stats-cache.json and return the
+ * aggregate token delta across all models.
+ *
+ * @param {object|null} baseline - modelUsage at session start
+ * @param {object|null} current  - modelUsage at session end
+ * @returns {{ inputTokens: number, outputTokens: number, cacheReadTokens: number, cacheCreationTokens: number }}
+ */
+function diffModelUsage(baseline, current) {
+  const zero = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheCreationTokens: 0 };
+  if (!baseline || !current) return zero;
+  const result = { ...zero };
+  for (const model of Object.keys(current)) {
+    const c = current[model] ?? {};
+    const b = baseline[model] ?? {};
+    result.inputTokens         += (c.inputTokens              ?? 0) - (b.inputTokens              ?? 0);
+    result.outputTokens        += (c.outputTokens             ?? 0) - (b.outputTokens             ?? 0);
+    result.cacheReadTokens     += (c.cacheReadInputTokens     ?? 0) - (b.cacheReadInputTokens     ?? 0);
+    result.cacheCreationTokens += (c.cacheCreationInputTokens ?? 0) - (b.cacheCreationInputTokens ?? 0);
+  }
+  for (const k of Object.keys(result)) result[k] = Math.max(0, result[k]);
+  return result;
+}
 
 const DEFAULTS = {
   docs: { costLog: 'docs/AI_COST_LOG.md' },
@@ -43,21 +94,27 @@ const HEADER =
  * Build a single markdown table row from parsed Stop-hook payload data.
  * Exported for unit testing.
  *
- * @param {object} data   - Parsed JSON from Stop-hook stdin (may be empty)
- * @param {string} branch - Current git branch
- * @param {string} date   - ISO date string (YYYY-MM-DD)
+ * @param {object} data        - Parsed JSON from Stop-hook stdin (may be empty)
+ * @param {string} branch      - Current git branch
+ * @param {string} date        - ISO date string (YYYY-MM-DD)
+ * @param {object} [delta]     - Optional token delta from diffModelUsage()
+ * @param {boolean} [hasBaseline] - Whether a baseline snapshot was available
  * @returns {{ row: string, hasData: boolean }}
  */
-function buildRow(data, branch, date) {
+function buildRow(data, branch, date, delta, hasBaseline) {
   const costUsd = (data.cost_usd || data.total_cost || 0);
   const usage = data.usage || {};
-  const inputTokens = usage.input_tokens || 0;
-  const outputTokens = usage.output_tokens || 0;
-  const cacheRead = usage.cache_read_input_tokens || 0;
+
+  // Prefer stats-cache delta when available; fall back to Stop-hook payload fields.
+  const inputTokens  = (delta && delta.inputTokens  > 0) ? delta.inputTokens  : (usage.input_tokens  || 0);
+  const outputTokens = (delta && delta.outputTokens > 0) ? delta.outputTokens : (usage.output_tokens || 0);
+  const cacheRead    = (delta && delta.cacheReadTokens > 0) ? delta.cacheReadTokens : (usage.cache_read_input_tokens || 0);
 
   // Detect payloads that contain no real cost or token data (e.g. older Claude
   // Code versions that only send { session_id, stop_hook_active }).
-  const hasData = costUsd > 0 || inputTokens > 0 || outputTokens > 0;
+  // Only tag [NO_DATA] when there is truly nothing — i.e., no baseline was
+  // found AND the payload fields are also empty.
+  const hasData = costUsd > 0 || inputTokens > 0 || outputTokens > 0 || (hasBaseline === true);
 
   const sessionId = data.session_id
     ? (hasData ? data.session_id : `${data.session_id} [NO_DATA]`)
@@ -93,7 +150,32 @@ async function main() {
   let branch = 'unknown';
   try { branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim(); } catch {}
 
-  const { row, hasData } = buildRow(data, branch, date);
+  // Load stats-cache baseline and current snapshot to compute token delta.
+  const BASELINE_PATH = path.join(ROOT, 'docs', 'cost-baseline.json');
+  const STATS_PATH = path.join(os.homedir(), '.claude', 'stats-cache.json');
+  const sessionId = data.session_id ?? null;
+
+  let baselineModelUsage = null;
+  let hasBaseline = false;
+  if (sessionId) {
+    try {
+      const baselines = JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8'));
+      if (baselines[sessionId]) {
+        baselineModelUsage = baselines[sessionId];
+        hasBaseline = true;
+      }
+    } catch { /* baseline file may not exist yet */ }
+  }
+
+  let currentModelUsage = null;
+  try {
+    const stats = JSON.parse(fs.readFileSync(STATS_PATH, 'utf8'));
+    currentModelUsage = stats.modelUsage ?? null;
+  } catch { /* stats-cache may be absent */ }
+
+  const delta = diffModelUsage(baselineModelUsage, currentModelUsage);
+
+  const { row, hasData } = buildRow(data, branch, date, delta, hasBaseline);
 
   const fd = fs.openSync(LOG_PATH, 'a');
   try {
@@ -116,7 +198,7 @@ async function main() {
 }
 
 // Export for unit tests.  Guard main() so it doesn't run on require().
-if (typeof module !== 'undefined') module.exports = { buildRow };
+if (typeof module !== 'undefined') module.exports = { buildRow, diffModelUsage };
 if (require.main === module) {
   main().catch(err => process.stderr.write(`[capture-cost] Error: ${err.message}\n`));
 }

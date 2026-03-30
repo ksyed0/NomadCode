@@ -5,6 +5,17 @@
     "supabase@claude-plugins-official": false
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/Kamal_Syed/Projects/NomadCode/tools/capture-cost.js --capture-baseline"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "",

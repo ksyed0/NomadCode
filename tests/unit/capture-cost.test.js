@@ -1,5 +1,5 @@
 'use strict';
-const { buildRow } = require('../../tools/capture-cost');
+const { buildRow, diffModelUsage } = require('../../tools/capture-cost');
 
 const DATE = '2026-03-27';
 const BRANCH = 'bugfix/BUG-0031-stop-hook';
@@ -97,5 +97,49 @@ describe('buildRow — tokens present but cost absent', () => {
     const { row } = buildRow(data, BRANCH, DATE);
     expect(row).not.toContain('[NO_DATA]');
     expect(row).toContain('0.0000');
+  });
+});
+
+describe('diffModelUsage', () => {
+  it('computes session token delta from two modelUsage snapshots', () => {
+    const baseline = {
+      'claude-sonnet-4-6': { inputTokens: 10000, outputTokens: 500, cacheReadInputTokens: 2000, cacheCreationInputTokens: 100 }
+    };
+    const current = {
+      'claude-sonnet-4-6': { inputTokens: 15000, outputTokens: 800, cacheReadInputTokens: 3000, cacheCreationInputTokens: 200 }
+    };
+    const r = diffModelUsage(baseline, current);
+    expect(r.inputTokens).toBe(5000);
+    expect(r.outputTokens).toBe(300);
+    expect(r.cacheReadTokens).toBe(1000);
+    expect(r.cacheCreationTokens).toBe(100);
+  });
+
+  it('returns zeros when either snapshot is null or missing', () => {
+    const zero = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheCreationTokens: 0 };
+    expect(diffModelUsage(null, null)).toEqual(zero);
+    expect(diffModelUsage(null, {})).toEqual(zero);
+    expect(diffModelUsage({}, null)).toEqual(zero);
+  });
+
+  it('handles multiple models correctly by summing across all', () => {
+    const baseline = {
+      'claude-sonnet-4-6': { inputTokens: 5000, outputTokens: 200, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 },
+      'claude-haiku-4-5': { inputTokens: 1000, outputTokens: 50, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 }
+    };
+    const current = {
+      'claude-sonnet-4-6': { inputTokens: 8000, outputTokens: 400, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 },
+      'claude-haiku-4-5': { inputTokens: 2000, outputTokens: 100, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 }
+    };
+    const r = diffModelUsage(baseline, current);
+    expect(r.inputTokens).toBe(4000);
+    expect(r.outputTokens).toBe(250);
+  });
+
+  it('clamps negative values to zero (cross-session drift)', () => {
+    const baseline = { 'claude-sonnet-4-6': { inputTokens: 5000, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 } };
+    const current = { 'claude-sonnet-4-6': { inputTokens: 100, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 } };
+    const r = diffModelUsage(baseline, current);
+    expect(r.inputTokens).toBeGreaterThanOrEqual(0);
   });
 });
