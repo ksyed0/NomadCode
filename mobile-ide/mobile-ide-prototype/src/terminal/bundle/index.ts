@@ -164,9 +164,14 @@ async function vfsMove(src: string, dest: string): Promise<void> {
 /* -------------------------------------------------------------------------- */
 
 async function getToken(): Promise<string | null> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const requestId = generateId();
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId);
+      reject(new Error('getToken timed out after 30 s — TOKEN_RESULT not received'));
+    }, 30_000);
     pendingRequests.set(requestId, (result) => {
+      clearTimeout(timer);
       resolve(result); // result is the token string or null
     });
     sendToRN({ type: 'GET_TOKEN', requestId });
@@ -202,11 +207,13 @@ async function handleGit(
           return { output: 'nothing to commit, working tree clean', exitCode: 0 };
         }
         const lines = statusMatrix.map(([filepath, head, workdir, stage]: [string, number, number, number]) => {
-          if (head === 0 && workdir === 2) return `?? ${filepath}`;
-          if (head === 1 && workdir === 2 && stage === 2) return `M  ${filepath}`;
-          if (head === 1 && workdir === 2 && stage === 1) return ` M ${filepath}`;
-          if (head === 0 && workdir === 2 && stage === 2) return `A  ${filepath}`;
-          if (head === 1 && workdir === 0) return ` D ${filepath}`;
+          if (head === 0 && workdir === 2 && stage === 2) return `A  ${filepath}`;  // staged new — BEFORE untracked
+          if (head === 0 && workdir === 2 && stage === 0) return `?? ${filepath}`;  // untracked
+          if (head === 1 && workdir === 2 && stage === 2) return `M  ${filepath}`;  // modified + staged
+          if (head === 1 && workdir === 2 && stage === 1) return ` M ${filepath}`;  // modified unstaged
+          if (head === 1 && workdir === 2 && stage === 0) return ` M ${filepath}`;  // modified, not staged (stage absent)
+          if (head === 1 && workdir === 0 && stage === 0) return ` D ${filepath}`;  // deleted
+          if (head === 1 && workdir === 0 && stage === 1) return `D  ${filepath}`;  // deleted + staged
           return `   ${filepath}`;
         });
         return { output: lines.join('\n'), exitCode: 0 };
@@ -301,15 +308,23 @@ async function handleGit(
     }
   } catch (e) {
     const errMsg = (e as Error).message ?? '';
-    // Detect "not a git repository" — isomorphic-git surfaces Expo FileSystem
-    // ENOENT when the .git directory doesn't exist.
-    if (
-      errMsg.includes('ENOENT') ||
-      errMsg.includes('Could not find git repo') ||
-      errMsg.includes('is not readable') ||
-      errMsg.includes("'readAsStringAsync'") ||
-      errMsg.includes("'readDirectoryAsync'")
-    ) {
+    // Detect authentication token timeout.
+    if (errMsg.includes('timed out')) {
+      return { output: `fatal: authentication timed out — check network and try again`, exitCode: 1 };
+    }
+    // Map ENOENT-style errors to "not a git repository" only when:
+    //  1. Not a git init failure (paradoxical to say "run git init" after git init itself fails)
+    //  2. The error relates to a .git path (not arbitrary project files)
+    const isGitDirMissing =
+      subcommand !== 'init' &&
+      (errMsg.includes('Could not find git repo') ||
+        ((errMsg.includes('ENOENT') ||
+          errMsg.includes('is not readable') ||
+          errMsg.includes("'readAsStringAsync'") ||
+          errMsg.includes("'readDirectoryAsync'")) &&
+          errMsg.includes('.git')));
+
+    if (isGitDirMissing) {
       return {
         output: `fatal: not a git repository (or any of the parent directories): .git\nRun 'git init' to create one.`,
         exitCode: 128,

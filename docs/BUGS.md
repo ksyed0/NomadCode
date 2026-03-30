@@ -428,6 +428,22 @@ Fix Branch: bugfix/batch-open-bugs
 Notes: Implemented stats-cache baseline diff via temp file at os.tmpdir()/.nomadcode-cost-baseline.json; PreToolUse hook snapshots modelUsage on first tool call; Stop hook diffs and computes per-session token delta.
 Lesson Encoded: No
 
+BUG-0035: [FIXED] editor.focus() not called after setContent — Android soft keyboard input silently dropped (EDITOR-1)
+Severity: High
+Related Story:
+Related Task:
+Steps to Reproduce:
+  1. Open a file on Android (triggers setContent message to Monaco WebView)
+  2. Tap on the editor area to bring up the soft keyboard
+  3. Type characters
+Expected: Characters appear in the editor
+Actual: Characters are silently dropped; the soft keyboard is visible but key events are not received by the editor
+Root Cause: The setContent message handler in MonacoAssetManager.ts did not call editor.focus() after applying content, view state, and language rules. On Android, if the editor element does not explicitly hold focus when the soft keyboard activates, key events are silently dropped.
+Status: Fixed
+Fix Branch: bugfix/batch-open-bugs
+Lesson Encoded: No
+**Fix applied:** Added editor.focus() at end of setContent case in MonacoAssetManager.ts — ensures Monaco editor holds focus when content is set, allowing soft keyboard input to be received immediately.
+
 BUG-0032: docs/LESSONS.md missing — plan visualizer Lessons tab always empty (TOOL-2)
 Severity: Low
 Related Story:
