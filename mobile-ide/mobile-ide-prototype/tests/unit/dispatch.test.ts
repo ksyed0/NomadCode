@@ -760,3 +760,44 @@ describe('dispatch — git status statusMatrix condition ordering (BUG-0026)', (
     expect(result.output).not.toContain(' D staged-delete.ts');
   });
 });
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0368 / TC-0369 — git error scope (BUG-0027, BUG-0028)                 */
+/* -------------------------------------------------------------------------- */
+
+describe('dispatch — git error handling scope (BUG-0027, BUG-0028)', () => {
+  let mockInit: jest.Mock;
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const gitMock = (jest.requireMock('isomorphic-git') as { default: { init: jest.Mock; statusMatrix: jest.Mock } }).default;
+    mockInit = gitMock.init;
+    mockStatusMatrix = gitMock.statusMatrix;
+    mockInit.mockClear();
+    mockStatusMatrix.mockClear();
+  });
+
+  // TC-0368: git init failure shows init-specific error, not "not a git repository"
+  it('TC-0368: git init ENOENT failure shows raw error, not paradoxical "not a git repository"', async () => {
+    mockInit.mockRejectedValue(
+      new Error("ENOENT: no such file or directory, '.git/objects'"),
+    );
+
+    const result = await dispatch('git init');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).not.toContain('not a git repository');
+  });
+
+  // TC-0369: ENOENT in non-.git path does not show "not a git repository"
+  it('TC-0369: ENOENT in non-.git path (src/foo.ts) does not trigger "not a git repository"', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error("readAsStringAsync failed for 'src/foo.ts'"),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.output).not.toContain('not a git repository');
+  });
+});

@@ -312,15 +312,19 @@ async function handleGit(
     if (errMsg.includes('timed out')) {
       return { output: `fatal: authentication timed out — check network and try again`, exitCode: 1 };
     }
-    // Detect "not a git repository" — isomorphic-git surfaces Expo FileSystem
-    // ENOENT when the .git directory doesn't exist.
-    if (
-      errMsg.includes('ENOENT') ||
-      errMsg.includes('Could not find git repo') ||
-      errMsg.includes('is not readable') ||
-      errMsg.includes("'readAsStringAsync'") ||
-      errMsg.includes("'readDirectoryAsync'")
-    ) {
+    // Map ENOENT-style errors to "not a git repository" only when:
+    //  1. Not a git init failure (paradoxical to say "run git init" after git init itself fails)
+    //  2. The error relates to a .git path (not arbitrary project files)
+    const isGitDirMissing =
+      subcommand !== 'init' &&
+      (errMsg.includes('Could not find git repo') ||
+        ((errMsg.includes('ENOENT') ||
+          errMsg.includes('is not readable') ||
+          errMsg.includes("'readAsStringAsync'") ||
+          errMsg.includes("'readDirectoryAsync'")) &&
+          errMsg.includes('.git')));
+
+    if (isGitDirMissing) {
       return {
         output: `fatal: not a git repository (or any of the parent directories): .git\nRun 'git init' to create one.`,
         exitCode: 128,
