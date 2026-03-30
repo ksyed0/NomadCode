@@ -497,26 +497,26 @@ describe('getFileSize', () => {
 });
 
 describe('GitBridge', () => {
-  it('clone throws not-implemented', async () => {
-    await expect(GitBridge.clone('https://example.com/repo', '/dir')).rejects.toThrow('not yet implemented');
+  it('clone resolves without rejection (BUG-0041)', async () => {
+    await expect(GitBridge.clone('https://example.com/repo', '/dir')).resolves.toBeUndefined();
   });
 
-  it('commit throws not-implemented', async () => {
+  it('commit resolves with empty string (BUG-0041)', async () => {
     await expect(
       GitBridge.commit('/dir', 'msg', { name: 'Dev', email: 'dev@example.com' }),
-    ).rejects.toThrow('not yet implemented');
+    ).resolves.toBe('');
   });
 
-  it('push throws not-implemented', async () => {
-    await expect(GitBridge.push('/dir')).rejects.toThrow('not yet implemented');
+  it('push resolves without rejection (BUG-0041)', async () => {
+    await expect(GitBridge.push('/dir')).resolves.toBeUndefined();
   });
 
-  it('pull throws not-implemented', async () => {
-    await expect(GitBridge.pull('/dir')).rejects.toThrow('not yet implemented');
+  it('pull resolves without rejection (BUG-0041)', async () => {
+    await expect(GitBridge.pull('/dir')).resolves.toBeUndefined();
   });
 
-  it('checkout throws not-implemented', async () => {
-    await expect(GitBridge.checkout('/dir', 'feature')).rejects.toThrow('not yet implemented');
+  it('checkout resolves without rejection (BUG-0041)', async () => {
+    await expect(GitBridge.checkout('/dir', 'feature')).resolves.toBeUndefined();
   });
 
   it('status returns a default status object', async () => {
@@ -528,5 +528,26 @@ describe('GitBridge', () => {
   it('branches returns ["main"]', async () => {
     const b = await GitBridge.branches('/dir');
     expect(b).toEqual(['main']);
+  });
+});
+
+// BUG-0041 — stub methods should resolve gracefully, not reject
+describe('GitBridge (BUG-0041 — graceful stubs)', () => {
+  it('clone resolves without rejection (BUG-0041)', async () => {
+    await expect(GitBridge.clone('https://example.com/repo', '/dir')).resolves.toBeUndefined();
+  });
+  it('commit resolves with empty string (BUG-0041)', async () => {
+    await expect(
+      GitBridge.commit('/dir', 'msg', { name: 'Dev', email: 'dev@example.com' }),
+    ).resolves.toBe('');
+  });
+  it('push resolves without rejection (BUG-0041)', async () => {
+    await expect(GitBridge.push('/dir')).resolves.toBeUndefined();
+  });
+  it('pull resolves without rejection (BUG-0041)', async () => {
+    await expect(GitBridge.pull('/dir')).resolves.toBeUndefined();
+  });
+  it('checkout resolves without rejection (BUG-0041)', async () => {
+    await expect(GitBridge.checkout('/dir', 'feature')).resolves.toBeUndefined();
   });
 });

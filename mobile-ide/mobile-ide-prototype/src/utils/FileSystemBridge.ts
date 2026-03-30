@@ -292,22 +292,23 @@ export interface GitStatus {
 export const GitBridge = {
   /** Clone a remote repository into the document directory. */
   async clone(_url: string, _dir: string, _token?: string): Promise<void> {
-    throw new Error('GitBridge.clone: not yet implemented — integrate isomorphic-git');
+    console.warn('GitBridge.clone: not yet implemented — integrate isomorphic-git');
   },
 
   /** Stage all modified files and create a commit. */
   async commit(_dir: string, _message: string, _author: { name: string; email: string }): Promise<string> {
-    throw new Error('GitBridge.commit: not yet implemented');
+    console.warn('GitBridge.commit: not yet implemented');
+    return '';
   },
 
   /** Push local commits to the remote origin. */
   async push(_dir: string, _token?: string): Promise<void> {
-    throw new Error('GitBridge.push: not yet implemented');
+    console.warn('GitBridge.push: not yet implemented');
   },
 
   /** Pull latest changes from origin. */
   async pull(_dir: string, _token?: string): Promise<void> {
-    throw new Error('GitBridge.pull: not yet implemented');
+    console.warn('GitBridge.pull: not yet implemented');
   },
 
   /** Return current branch name + working-tree status. */
@@ -322,6 +323,6 @@ export const GitBridge = {
 
   /** Switch branch (checkout). */
   async checkout(_dir: string, _branch: string): Promise<void> {
-    throw new Error('GitBridge.checkout: not yet implemented');
+    console.warn('GitBridge.checkout: not yet implemented');
   },
 };

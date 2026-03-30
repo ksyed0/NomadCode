@@ -36,7 +36,7 @@ const useSettingsStore = create<SettingsState>()(
       fontSize: 14,
       workspacePath: '',
       workspaceUri: '',
-      workspaceUriType: 'file' as WorkspaceUriType,
+      workspaceUriType: 'file',
       workspaceDisplayName: '',
       hasCompletedSetup: false,
       installedExtensions: [],

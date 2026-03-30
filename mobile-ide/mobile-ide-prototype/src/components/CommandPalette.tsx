@@ -91,7 +91,7 @@ export function CommandPalette({
     onClose();
   }, [onClose]);
 
-  const styles = StyleSheet.create({
+  const styles = useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.6)',
@@ -150,7 +150,7 @@ export function CommandPalette({
     },
     shortcutText: { color: t.textMuted, fontSize: 11, fontFamily: 'JetBrains Mono' },
     empty: { color: t.textMuted, textAlign: 'center', padding: 20, fontSize: 14 },
-  });
+  }), [t]);
 
   const renderItem = useCallback(({ item, index }: { item: Command; index: number }) => {
     const isSelected = index === clampedIndex;

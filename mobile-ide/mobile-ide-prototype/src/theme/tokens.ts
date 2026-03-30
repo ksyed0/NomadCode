@@ -5,7 +5,7 @@
  *            5 light (nomad-light, github-light, solarized-light, catppuccin-latte, night-owl-light)
  *
  * useTheme() reads the active theme from useSettingsStore and returns its token map.
- * getMonacoTheme() maps a ThemeId to Monaco's 'vs-dark' | 'vs' values.
+ * getMonacoTheme() returns the ThemeId for use as a Monaco custom theme name.
  *
  * error (#EF4444) and success (#22C55E) are fixed across all themes — semantic colours.
  */
@@ -128,6 +128,6 @@ export function useTheme(): ThemeTokens {
   return THEMES[themeId];
 }
 
-export function getMonacoTheme(id: ThemeId): 'vs-dark' | 'vs' {
-  return THEMES[id].mode === 'dark' ? 'vs-dark' : 'vs';
+export function getMonacoTheme(id: ThemeId): ThemeId {
+  return id;
 }

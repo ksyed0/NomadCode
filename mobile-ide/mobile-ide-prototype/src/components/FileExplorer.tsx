@@ -277,11 +277,11 @@ export default function FileExplorer({
 
   useEffect(() => {
     if (triggerNewFile) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      handleHeaderNewFile();
+      setNameInputValue('');
+      setNameModal({ visible: true, mode: 'create-file', initialValue: '', targetNode: null });
       onNewFileDismissed?.();
     }
-  }, [triggerNewFile, handleHeaderNewFile, onNewFileDismissed]);
+  }, [triggerNewFile, onNewFileDismissed]);
 
   const handleContextMove = useCallback(async () => {
     const target = contextTarget!;
