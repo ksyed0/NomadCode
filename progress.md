@@ -4,6 +4,77 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 11 — 2026-03-30 (Bug-fix sprint)
+
+### What Was Done
+
+**Context:** Session recovered from a mid-session crash. Resumed from the plan to commit outstanding EPIC-0014 docs, merge PR #52, resolve open PRs, and fix all 13 open bugs in 3 grouped branches.
+
+#### PRs resolved (pre-existing)
+- **PR #52** (EPIC-0014 Global Search) — already merged before crash recovery
+- **PR #53** (batch-close BUG-0024–0035) — merged; rebased onto develop, resolved conflicts in 18 files, test count 871 → 881
+- **PR #54** (bump actions/deploy-pages 4→5) — merged
+- **PR #55/56/57/59** (Expo SDK 53/55 dependency bumps) — **closed** as incompatible with Expo SDK 52; deferred to SDK upgrade
+- **PR #58** (TypeScript 5→6) — merged after fixing `tsconfig.json` (`moduleResolution: bundler`, `ignoreDeprecations: "6.0"`) and regenerating lockfile
+
+#### Bug-fix branches (3 grouped PRs, all merged into develop)
+
+**PR #60 — `bugfix/editor-preview-bugs`** (BUG-0036, 0037, 0038, 0039, 0047)
+- Added `marked@^12` npm dep; `buildMarkdownPreviewHtml` now uses `marked.parse()` offline (no CDN)
+- Removed `allowUniversalAccessFromFileURLs`; narrowed `originWhitelist` on both WebViews
+- `buildMarkdownPreviewHtml` and `buildJsonPreviewHtml` accept `ThemeTokens`; all CSS colors are theme-derived
+- Preview toolbar icon changed from `'👁'` emoji to `'⊙'` (platform-consistent glyph)
+- Fixed duplicate `import type { ThemeTokens }` (TS2300) that caused CI lint failure
+- +8 new TDD tests
+
+**PR #61 — `bugfix/terminal-bridge-bugs`** (BUG-0040, 0045)
+- Deleted deprecated `Terminal.tsx` and `Terminal.test.tsx` (prototype stub superseded by `TerminalWebView`)
+- `useTerminalBridge`: destructured `onCommandComplete`/`onGetToken` from `options` at hook entry; dep array is now `[onCommandComplete, onGetToken, sendToWebView]` — no `eslint-disable` needed
+- +1 new TDD regression test (TC: callback update on rerender)
+
+**PR #62 — `bugfix/misc-bugs`** (BUG-0041, 0043, 0044, 0048, 0049 fixed; BUG-0042 deferred)
+- `GitBridge` stubs: replaced `throw` with `console.warn` + graceful return (void or `''`)
+- `CommandPalette`: wrapped `StyleSheet.create` in `useMemo(() => ..., [t])`
+- `getMonacoTheme()`: return type changed from `'vs-dark' | 'vs'` → `ThemeId`; returns `id` directly
+- `useSettingsStore`: removed `'file' as WorkspaceUriType` cast
+- `AndroidManifest.xml`: removed `android:screenOrientation="landscape"`; added `smallestScreenSize` to `configChanges`
+- BUG-0042 (FileExplorer `eslint-disable` for setState-in-effect) **deferred** — `react-hooks/set-state-in-effect` fires on any `set*` call in an effect body, inlining setters doesn't resolve it; requires architectural refactor
+- +16 new TDD tests (BUG-0041 graceful stubs ×5, BUG-0044 ThemeId returns ×11)
+
+### Current State
+- Branch: `develop` — all 3 bug-fix PRs merged and clean
+- All mobile unit tests: **884 tests, 0 failures** (26 suites)
+- TypeScript: 0 errors
+- ESLint: 0 errors
+
+### Test Status
+- 884 mobile tests passing, 0 failing (up from 881 before this session's fixes)
+- Terminal.test.tsx removed (26 tests for deleted deprecated component)
+- Net new tests added: ~25 across 4 test files
+
+### Key Files Modified
+- `mobile-ide/mobile-ide-prototype/src/components/Editor.tsx` — offline markdown preview, theme-aware CSS, WebView security, toolbar icon
+- `mobile-ide/mobile-ide-prototype/src/components/CommandPalette.tsx` — useMemo for styles
+- `mobile-ide/mobile-ide-prototype/src/hooks/useTerminalBridge.ts` — destructured options, clean deps
+- `mobile-ide/mobile-ide-prototype/src/utils/FileSystemBridge.ts` — GitBridge graceful stubs
+- `mobile-ide/mobile-ide-prototype/src/theme/tokens.ts` — getMonacoTheme returns ThemeId
+- `mobile-ide/mobile-ide-prototype/src/stores/useSettingsStore.ts` — removed unsafe cast
+- `mobile-ide/mobile-ide-prototype/android/app/src/main/AndroidManifest.xml` — orientation unlocked
+- `mobile-ide/mobile-ide-prototype/src/components/Terminal.tsx` — **DELETED**
+- `mobile-ide/mobile-ide-prototype/tests/unit/Terminal.test.tsx` — **DELETED**
+- `mobile-ide/mobile-ide-prototype/package.json` — added `marked@^12.0.0`
+- `docs/BUGS.md` — 12 bugs marked Fixed, BUG-0042 marked Deferred
+
+### Open Bugs Remaining
+- **BUG-0042** — `react-hooks/set-state-in-effect` in FileExplorer: Deferred; requires replacing prop-based trigger with ref/callback pattern
+
+### Next Session Pick-up
+1. **Next EPIC**: EPIC-0015 (Crash Reporting & Observability) or EPIC-0016 (Multi-Device Sync) per `RELEASE_PLAN.md`
+2. **BUG-0042 refactor**: Replace `triggerNewFile` boolean prop with a stable callback/ref pattern in `FileExplorer` to eliminate the `eslint-disable` without triggering `react-hooks/set-state-in-effect`
+3. Confirm `develop` is green on CI before starting new EPIC branch
+
+---
+
 ## Session 10 — 2026-03-27
 
 ### What Was Done
