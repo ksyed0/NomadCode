@@ -84,11 +84,16 @@ describe('useTheme', () => {
 });
 
 describe('getMonacoTheme', () => {
-  it.each(DARK_THEME_IDS)('returns vs-dark for dark theme %s', (id) => {
-    expect(getMonacoTheme(id)).toBe('vs-dark');
+  it.each(ALL_THEME_IDS)('returns ThemeId %s for Monaco custom theme name (BUG-0044)', (id) => {
+    expect(getMonacoTheme(id)).toBe(id);
   });
+});
 
-  it.each(LIGHT_THEME_IDS)('returns vs for light theme %s', (id) => {
-    expect(getMonacoTheme(id)).toBe('vs');
+describe('getMonacoTheme (BUG-0044)', () => {
+  it.each(DARK_THEME_IDS)('returns ThemeId for dark theme %s (BUG-0044)', (id) => {
+    expect(getMonacoTheme(id)).toBe(id);
+  });
+  it.each(LIGHT_THEME_IDS)('returns ThemeId for light theme %s (BUG-0044)', (id) => {
+    expect(getMonacoTheme(id)).toBe(id);
   });
 });

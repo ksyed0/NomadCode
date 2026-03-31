@@ -514,8 +514,9 @@ Steps to Reproduce:
 Expected: Preview renders offline using bundled library
 Actual: Preview fails to load — requests https://cdn.jsdelivr.net/npm/marked@12/marked.min.js
 Root Cause: Editor.tsx line 184 loads marked.js from CDN instead of bundling it locally
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/editor-preview-bugs
+Notes: Added marked@^12 as npm dependency; buildMarkdownPreviewHtml now uses marked.parse() server-side and inlines the HTML.
 Lesson Encoded: No
 
 BUG-0037: WebView security settings overly permissive (ED-2)
@@ -527,8 +528,9 @@ Steps to Reproduce:
 Expected: Minimal file access permissions
 Actual: allowFileAccess, allowFileAccessFromFileURLs, allowUniversalAccessFromFileURLs, originWhitelist={['*']}
 Root Cause: WebView configured with excessive permissions enabling potential XSS attacks
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/editor-preview-bugs
+Notes: Removed allowUniversalAccessFromFileURLs; narrowed originWhitelist to ['file://', 'about:*'] for Monaco WebView and ['about:*', 'data:*'] for preview WebView.
 Lesson Encoded: No
 
 BUG-0038: Hardcoded colors in Editor.tsx break light theme support (ED-3)
@@ -540,8 +542,9 @@ Steps to Reproduce:
   2. Observe editor toolbar badge colors
 Expected: Colors adapt to theme
 Actual: color: '#FFF' hardcoded in mcBadgeText/mcBadgeClose (lines 750-751)
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/editor-preview-bugs
+Notes: buildMarkdownPreviewHtml and buildJsonPreviewHtml now accept ThemeTokens and use t.bg / t.text for CSS.
 Lesson Encoded: No
 
 BUG-0039: JSON preview uses hardcoded theme colors instead of dynamic values (ED-4)
@@ -553,8 +556,9 @@ Steps to Reproduce:
   2. Toggle preview with light theme active
 Expected: Preview uses theme-consistent colors
 Actual: Hardcoded #0f172a, #e2e8f0, etc. in buildJsonPreviewHtml (line 239)
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/editor-preview-bugs
+Notes: buildJsonPreviewHtml updated to use theme token values for all CSS color properties.
 Lesson Encoded: No
 
 BUG-0040: Dead code — Terminal.tsx marked @deprecated but still exists (TERM-11)
@@ -566,8 +570,9 @@ Steps to Reproduce:
 Expected: Only TerminalWebView is used
 Actual: Both Terminal.tsx (deprecated stub) and TerminalWebView exist; Terminal.tsx exports still present
 Root Cause: Deprecated component not removed after TerminalWebView was implemented
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/terminal-bridge-bugs
+Notes: Deleted Terminal.tsx and Terminal.test.tsx; nothing else imported from Terminal.tsx.
 Lesson Encoded: No
 
 BUG-0041: GitBridge stub implementations throw errors at runtime (FS-1)
@@ -579,8 +584,9 @@ Steps to Reproduce:
 Expected: Method executes or returns graceful error
 Actual: Methods throw 'not yet implemented' Error — could crash app if called
 Root Cause: GitBridge in FileSystemBridge.ts lines 294-327 contains stub implementations that throw
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/misc-bugs
+Notes: Replaced throw with console.warn + graceful return (void or ''); old rejects tests updated to resolves.
 Lesson Encoded: No
 
 BUG-0042: ESLint-disable comment in FileExplorer.tsx indicates code smell (FE-1)
@@ -592,8 +598,9 @@ Steps to Reproduce:
 Expected: No eslint-disable comments needed
 Actual: Line 280 has // eslint-disable-next-line react-hooks/set-state-in-effect
 Root Cause: triggerNewFile useEffect calls handleHeaderNewFile directly — should be refactored
-Status: Open
+Status: Deferred
 Fix Branch:
+Notes: The react-hooks/set-state-in-effect rule fires on any set* call in an effect (direct or via a callback). Inlining the setters doesn't resolve it — a proper fix requires replacing the prop-based trigger pattern with a ref/callback design that avoids setState in effects. Deferred to a dedicated refactor story.
 Lesson Encoded: No
 
 BUG-0043: StyleSheet created inside CommandPalette render (CP-6)
@@ -605,8 +612,9 @@ Steps to Reproduce:
 Expected: Styles memoized, not recreated each render
 Actual: const styles = StyleSheet.create(...) inside component body (line 94)
 Root Cause: StyleSheet.create() called on every render; should be moved outside component
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/misc-bugs
+Notes: Wrapped StyleSheet.create in useMemo(() => ..., [t]) so styles are only recreated on theme change.
 Lesson Encoded: No
 
 BUG-0044: getMonacoTheme() returns only vs-dark/vs instead of named themes (THEME-1)
@@ -619,8 +627,9 @@ Steps to Reproduce:
 Expected: Monaco uses matching named theme
 Actual: Monaco always uses vs-dark or vs; themes like 'dracula', 'monokai' not mapped
 Root Cause: tokens.ts lines 131-132 only map to generic vs-dark/vs
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/misc-bugs
+Notes: getMonacoTheme() now returns ThemeId directly; return type changed from 'vs-dark'|'vs' to ThemeId.
 Lesson Encoded: No
 
 BUG-0045: useTerminalBridge missing sendToWebView in dependency array (TERM-12)
@@ -632,8 +641,9 @@ Steps to Reproduce:
 Expected: No hook dependency warnings
 Actual: sendToWebView excluded from deps with eslint-disable comment (lines 100-101)
 Root Cause: Callback dependency array has intentional exclusion; risky pattern
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/terminal-bridge-bugs
+Notes: Destructured onCommandComplete/onGetToken at hook entry; dep array is now [onCommandComplete, onGetToken, sendToWebView] — no eslint-disable needed.
 Lesson Encoded: No
 
 BUG-0046: Duplicate BUGS.md files — root and docs/ (DUP-1)
@@ -659,8 +669,9 @@ Steps to Reproduce:
 Expected: Consistent icon rendering
 Actual: label: '👁' (line 282) uses emoji that may render differently across platforms
 Root Cause: Unicode emoji used instead of icon component or consistent glyph
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/editor-preview-bugs
+Notes: Changed label from '👁' emoji to '⊙' (CIRCLED DOT OPERATOR) which renders consistently across platforms.
 Lesson Encoded: No
 
 BUG-0048: Unsafe type assertion in useSettingsStore (SET-1)
@@ -672,8 +683,9 @@ Steps to Reproduce:
 Expected: No unsafe casts
 Actual: Line 39 has workspaceUriType: 'file' as WorkspaceUriType — unsafe cast
 Root Cause: Type assertion bypasses proper type checking
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/misc-bugs
+Notes: Removed 'as WorkspaceUriType' cast; 'file' literal is already assignable to WorkspaceUriType = 'file' | 'saf'.
 Lesson Encoded: No
 
 BUG-0049: App does not resize to fill screen on orientation change in Android emulator (LAYOUT-1)
@@ -686,6 +698,7 @@ Steps to Reproduce:
 Expected: App layout fills the full screen after rotation
 Actual: Large black bands appear at top and bottom; app UI occupies only a letterboxed portion of the screen; layout does not reflow to match new dimensions
 Root Cause: Suspected: React Native window dimensions not updating on rotation, or the root view is not re-measuring after configuration change. Possibly related to BUG-0034 residue — the previous landscape orientation lock may have left the Android activity's configChanges or screenOrientation attribute in a state that prevents proper reflow. Could also be a known issue with React Native's useWindowDimensions() not triggering a re-layout when the emulator reports a new screen size.
-Status: Open
-Fix Branch:
+Status: Fixed
+Fix Branch: bugfix/misc-bugs
+Notes: Removed android:screenOrientation="landscape" from AndroidManifest.xml; added smallestScreenSize to configChanges so layout reflows correctly on orientation change.
 Lesson Encoded: No
