@@ -598,9 +598,9 @@ Steps to Reproduce:
 Expected: No eslint-disable comments needed
 Actual: Line 280 has // eslint-disable-next-line react-hooks/set-state-in-effect
 Root Cause: triggerNewFile useEffect calls handleHeaderNewFile directly — should be refactored
-Status: Fixed
-Fix Branch: bugfix/misc-bugs
-Notes: Inlined setNameInputValue + setNameModal calls in the effect; removed eslint-disable and handleHeaderNewFile dep.
+Status: Deferred
+Fix Branch:
+Notes: The react-hooks/set-state-in-effect rule fires on any set* call in an effect (direct or via a callback). Inlining the setters doesn't resolve it — a proper fix requires replacing the prop-based trigger pattern with a ref/callback design that avoids setState in effects. Deferred to a dedicated refactor story.
 Lesson Encoded: No
 
 BUG-0043: StyleSheet created inside CommandPalette render (CP-6)
