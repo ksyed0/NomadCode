@@ -255,6 +255,16 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
           post({ type: 'cursorAdded', count: existing.length });
         });
 
+        // Android: Monaco's internal click handler doesn't reliably trigger
+        // focus through React Native's WebView touch system. An explicit
+        // pointerdown on the container ensures the soft keyboard appears.
+        // window.focus() additionally requests Android View-level focus so that
+        // hardware keyboard KeyEvents are routed to this WebView (not just IME).
+        document.getElementById('container').addEventListener('pointerdown', function () {
+          window.focus();
+          editor.focus();
+        }, { passive: true });
+
         post({ type: 'ready', offline: ${safeBase}.startsWith('file') });
         setLoadPct(100);
       });
@@ -349,6 +359,9 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
               }]);
               setTimeout(function() { editor.deltaDecorations(sdec, []); }, 4000);
             }
+            // window.focus() claims Android View-level focus so hardware keyboard
+            // KeyEvents reach the WebView immediately after content is loaded.
+            window.focus();
             editor.focus();
             break;
           }

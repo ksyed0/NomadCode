@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 const mockSetTheme = jest.fn();
 const mockSetFontSize = jest.fn();
@@ -39,10 +39,14 @@ jest.mock('expo-document-picker', () => ({
 
 jest.mock('expo-file-system', () => ({
   documentDirectory: 'file:///mock-docs/',
+  StorageAccessFramework: {
+    requestDirectoryPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false })),
+  },
 }));
 
 import SetupWizard from '../../src/components/SetupWizard';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ExpoFS from 'expo-file-system';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -50,6 +54,7 @@ beforeEach(() => {
   mockFontSize = 14;
   mockTheme = 'nomad-dark';
   mockWorkspacePath = '';
+  (ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock).mockResolvedValue({ granted: false });
 });
 
 describe('SetupWizard — visibility', () => {
@@ -210,7 +215,7 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
     expect(screen.getByTestId('btn-browse')).toBeTruthy();
   });
 
-  it('Browse button calls DocumentPicker.getDocumentAsync', async () => {
+  it('Browse button (iOS) calls DocumentPicker.getDocumentAsync', async () => {
     goToStep3();
     await fireEvent.press(screen.getByTestId('btn-browse'));
     expect(DocumentPicker.getDocumentAsync).toHaveBeenCalledWith({
@@ -219,7 +224,7 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
     });
   });
 
-  it('Browse button calls setWorkspacePath with picked URI', async () => {
+  it('Browse button (iOS) calls setWorkspacePath with picked URI', async () => {
     (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValueOnce({
       canceled: false,
       assets: [{ uri: 'file:///picked-folder/' }],
@@ -227,5 +232,57 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
     goToStep3();
     await fireEvent.press(screen.getByTestId('btn-browse'));
     expect(mockSetWorkspacePath).toHaveBeenCalledWith('file:///picked-folder/');
+  });
+
+  it('Browse button (Android) calls StorageAccessFramework.requestDirectoryPermissionsAsync', async () => {
+    const Platform = require('react-native').Platform;
+    const originalOS = Platform.OS;
+    Platform.OS = 'android';
+    try {
+      goToStep3();
+      await fireEvent.press(screen.getByTestId('btn-browse'));
+      expect((ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock)).toHaveBeenCalled();
+      expect(DocumentPicker.getDocumentAsync).not.toHaveBeenCalled();
+    } finally {
+      Platform.OS = originalOS;
+    }
+  });
+
+  it('Browse button (Android) calls setWorkspacePath when permission granted', async () => {
+    const Platform = require('react-native').Platform;
+    const originalOS = Platform.OS;
+    Platform.OS = 'android';
+    (ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock).mockResolvedValueOnce({
+      granted: true,
+      directoryUri: 'content://com.android.externalstorage.documents/tree/primary%3AProjects',
+    });
+    try {
+      goToStep3();
+      fireEvent.press(screen.getByTestId('btn-browse'));
+      await waitFor(() => {
+        expect(mockSetWorkspacePath).toHaveBeenCalledWith(
+          'content://com.android.externalstorage.documents/tree/primary%3AProjects',
+        );
+      });
+    } finally {
+      Platform.OS = originalOS;
+    }
+  });
+
+  it('Browse button (Android) does not call setWorkspacePath when permission denied', async () => {
+    const Platform = require('react-native').Platform;
+    const originalOS = Platform.OS;
+    Platform.OS = 'android';
+    (ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock).mockResolvedValueOnce({ granted: false });
+    try {
+      goToStep3();
+      fireEvent.press(screen.getByTestId('btn-browse'));
+      await waitFor(() => {
+        expect((ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock)).toHaveBeenCalled();
+      });
+      expect(mockSetWorkspacePath).not.toHaveBeenCalled();
+    } finally {
+      Platform.OS = originalOS;
+    }
   });
 });
