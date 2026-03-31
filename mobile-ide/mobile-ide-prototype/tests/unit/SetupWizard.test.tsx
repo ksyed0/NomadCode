@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 
 const mockSetTheme = jest.fn();
 const mockSetFontSize = jest.fn();
@@ -235,7 +236,6 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
   });
 
   it('Browse button (Android) calls StorageAccessFramework.requestDirectoryPermissionsAsync', async () => {
-    const Platform = require('react-native').Platform;
     const originalOS = Platform.OS;
     Platform.OS = 'android';
     try {
@@ -249,7 +249,6 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
   });
 
   it('Browse button (Android) calls setWorkspacePath when permission granted', async () => {
-    const Platform = require('react-native').Platform;
     const originalOS = Platform.OS;
     Platform.OS = 'android';
     (ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock).mockResolvedValueOnce({
@@ -270,7 +269,6 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
   });
 
   it('Browse button (Android) does not call setWorkspacePath when permission denied', async () => {
-    const Platform = require('react-native').Platform;
     const originalOS = Platform.OS;
     Platform.OS = 'android';
     (ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock).mockResolvedValueOnce({ granted: false });
