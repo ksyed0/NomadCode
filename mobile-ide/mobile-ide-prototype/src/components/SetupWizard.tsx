@@ -10,7 +10,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import {
-  Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput,
+  Modal, Platform, View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
@@ -49,12 +49,20 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
 
   const handleBrowse = useCallback(async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'public.folder',
-        copyToCacheDirectory: false,
-      });
-      if (!result.canceled && result.assets?.[0]?.uri) {
-        setWorkspacePath(result.assets[0].uri);
+      if (Platform.OS === 'android') {
+        // Android SAF directory picker — DocumentPicker doesn't support
+        // folder selection on Android (public.folder is an iOS-only UTI).
+        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (!permissions.granted) return;
+        setWorkspacePath(permissions.directoryUri);
+      } else {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: 'public.folder',
+          copyToCacheDirectory: false,
+        });
+        if (!result.canceled && result.assets?.[0]?.uri) {
+          setWorkspacePath(result.assets[0].uri);
+        }
       }
     } catch (e) {
       if (__DEV__) console.warn('[SetupWizard] browse error:', e);
@@ -76,7 +84,7 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
 
         {/* ── Step 1: Theme ─────────────────────────────────────────────── */}
         {step === 1 && (
-          <ScrollView>
+          <ScrollView style={styles.scrollFlex} contentContainerStyle={styles.scrollContent}>
             <Text style={[styles.title, { color: t.text }]}>Choose your theme</Text>
             <View style={styles.modeRow}>
               <TouchableOpacity
@@ -124,7 +132,7 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
 
         {/* ── Step 2: Font Size ─────────────────────────────────────────── */}
         {step === 2 && (
-          <View>
+          <ScrollView style={styles.scrollFlex} contentContainerStyle={styles.scrollContent}>
             <Text style={[styles.title, { color: t.text }]}>Choose font size</Text>
             <Text style={[styles.preview, { fontSize, color: t.text }]}>{'const hello = "world";'}</Text>
             <View style={styles.fontRow}>
@@ -147,12 +155,12 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
                 <Text style={styles.btnText}>Next</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
         )}
 
         {/* ── Step 3: Workspace ─────────────────────────────────────────── */}
         {step === 3 && (
-          <View>
+          <ScrollView style={styles.scrollFlex} contentContainerStyle={styles.scrollContent}>
             <Text style={[styles.title, { color: t.text }]}>Set workspace folder</Text>
             <Text style={[styles.hint, { color: t.textMuted }]}>You can change this later in Settings.</Text>
             <TextInput
@@ -183,7 +191,7 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
                 <Text style={styles.btnText}>Get Started</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
         )}
       </View>
     </Modal>
@@ -192,6 +200,11 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
 
 const styles = StyleSheet.create({
   container:    { flex: 1, padding: 24, backgroundColor: '#0F172A' },
+  // flex: 1 constrains the ScrollView to the available space so it scrolls
+  // rather than overflowing. contentContainerStyle adds bottom clearance so
+  // the last button is never clipped on small or unusual-aspect screens.
+  scrollFlex:    { flex: 1 },
+  scrollContent: { paddingBottom: 24 },
   progress:     { color: '#64748B', fontSize: 13, textAlign: 'right', marginBottom: 8 },
   title:        { color: '#E2E8F0', fontSize: 22, fontWeight: '700', marginBottom: 16 },
   modeRow:      { flexDirection: 'row', gap: 12, marginBottom: 16 },
