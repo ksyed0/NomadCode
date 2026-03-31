@@ -30,9 +30,11 @@ import {
   View,
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
+import { marked } from 'marked';
 import { buildMonacoHtml, MonacoAssetManager } from '../utils/MonacoAssetManager';
 import { getLanguageRules } from '../utils/languageRules';
-import { useTheme, getMonacoTheme } from '../theme/tokens';
+import { useTheme, getMonacoTheme, THEMES } from '../theme/tokens';
+import type { ThemeTokens } from '../theme/tokens';
 import useSettingsStore from '../stores/useSettingsStore';
 
 // ---------------------------------------------------------------------------
@@ -159,31 +161,27 @@ export function canPreview(language: string): boolean {
 // Preview HTML builders
 // ---------------------------------------------------------------------------
 
-function buildMarkdownPreviewHtml(markdown: string): string {
-  const safe = JSON.stringify(markdown);
+function buildMarkdownPreviewHtml(markdown: string, theme: ThemeTokens): string {
+  const rendered = marked.parse(markdown) as string;
   return `<!DOCTYPE html><html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  body{font:15px/1.6 -apple-system,sans-serif;color:#e2e8f0;background:#0f172a;
+  body{font:15px/1.6 -apple-system,sans-serif;color:${theme.text};background:${theme.bg};
        padding:16px 20px;margin:0;}
-  h1,h2,h3,h4{color:#f1f5f9;margin:1em 0 .4em;}
-  a{color:#60a5fa;}
-  pre{background:#1e293b;border-radius:6px;padding:12px;overflow-x:auto;}
-  code{font-family:'JetBrains Mono',monospace;font-size:13px;color:#7dd3fc;}
-  pre code{color:#e2e8f0;}
-  blockquote{border-left:3px solid #334155;margin:0;padding-left:16px;color:#94a3b8;}
+  h1,h2,h3,h4{color:${theme.text};margin:1em 0 .4em;}
+  a{color:${theme.accent};}
+  pre{background:${theme.bgElevated};border-radius:6px;padding:12px;overflow-x:auto;}
+  code{font-family:'JetBrains Mono',monospace;font-size:13px;color:${theme.accent};}
+  pre code{color:${theme.text};}
+  blockquote{border-left:3px solid ${theme.border};margin:0;padding-left:16px;color:${theme.textMuted};}
   table{border-collapse:collapse;width:100%;}
-  th,td{border:1px solid #334155;padding:6px 10px;text-align:left;}
-  th{background:#1e293b;}
+  th,td{border:1px solid ${theme.border};padding:6px 10px;text-align:left;}
+  th{background:${theme.bgElevated};}
   img{max-width:100%;}
-  hr{border:none;border-top:1px solid #334155;}
+  hr{border:none;border-top:1px solid ${theme.border};}
 </style>
-</head><body>
-<div id="out">Rendering…</div>
-<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-<script>document.getElementById('out').innerHTML=marked.parse(${safe});</script>
-</body></html>`;
+</head><body>${rendered}</body></html>`;
 }
 
 function buildHtmlPreviewHtml(htmlSource: string): string {
@@ -198,7 +196,7 @@ iframe{width:100%;height:100%;border:none;}</style>
 </body></html>`;
 }
 
-function buildJsonPreviewHtml(jsonSource: string): string {
+function buildJsonPreviewHtml(jsonSource: string, theme: ThemeTokens): string {
   let parsed: unknown;
   let parseError: string | null = null;
   try { parsed = JSON.parse(jsonSource); } catch (e) { parseError = String(e); }
@@ -236,24 +234,29 @@ function buildJsonPreviewHtml(jsonSource: string): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  body{font:13px/1.5 'JetBrains Mono',monospace;background:#0f172a;color:#e2e8f0;
+  body{font:13px/1.5 'JetBrains Mono',monospace;background:${theme.bg};color:${theme.text};
        padding:12px;margin:0;}
   details>summary{cursor:pointer;list-style:none;outline:none;user-select:none;}
   details>summary::-webkit-details-marker{display:none;}
-  .item,.row{padding-left:16px;border-left:1px solid #1e293b;}
-  .key{color:#93c5fd;} .str{color:#86efac;} .num{color:#fbbf24;}
-  .bool{color:#f472b6;} .null{color:#94a3b8;} .arr,.obj{color:#7dd3fc;}
-  .err{color:#f87171;white-space:pre-wrap;} pre{margin:0;}
+  .item,.row{padding-left:16px;border-left:1px solid ${theme.bgElevated};}
+  .key{color:${theme.accent};} .str{color:${theme.string};} .num{color:${theme.keyword};}
+  .bool{color:${theme.keyword};} .null{color:${theme.textMuted};} .arr,.obj{color:${theme.accent};}
+  .err{color:${theme.error};white-space:pre-wrap;} pre{margin:0;}
 </style>
 </head><body>${content}</body></html>`;
 }
 
-export function buildPreviewHtml(language: string, content: string): string {
+export function buildPreviewHtml(
+  language: string,
+  content: string,
+  theme: ThemeTokens = THEMES['nomad-dark'],
+): string {
   switch (language) {
-    case 'markdown': return buildMarkdownPreviewHtml(content);
+    case 'markdown': return buildMarkdownPreviewHtml(content, theme);
     case 'html':     return buildHtmlPreviewHtml(content);
-    case 'json':     return buildJsonPreviewHtml(content);
-    default:         return '<body style="background:#0f172a;color:#94a3b8;padding:16px">No preview available</body>';
+    case 'json':     return buildJsonPreviewHtml(content, theme);
+    default:
+      return `<body style="background:${theme.bg};color:${theme.textMuted};padding:16px">No preview available</body>`;
   }
 }
 
@@ -269,7 +272,7 @@ interface ToolbarItem {
   toggle?: boolean;
 }
 
-const TOOLBAR_ITEMS: ToolbarItem[] = [
+export const TOOLBAR_ITEMS: ToolbarItem[] = [
   { id: 'undo',        label: '↩',   title: 'Undo',             action: 'undo' },
   { id: 'redo',        label: '↪',   title: 'Redo',             action: 'redo' },
   { id: 'dedent',      label: '⇤',   title: 'Decrease indent',  action: 'dedent' },
@@ -279,7 +282,7 @@ const TOOLBAR_ITEMS: ToolbarItem[] = [
   { id: 'format',      label: '✦',   title: 'Format document',  action: 'format' },
   { id: 'select',      label: '⊞',   title: 'Select all',       action: 'selectAll' },
   { id: 'multicursor', label: '⊕',   title: 'Add cursor mode',  action: 'multicursor', toggle: true },
-  { id: 'preview',     label: '👁',  title: 'Toggle preview',   action: 'preview',     toggle: true },
+  { id: 'preview',     label: '⊙',   title: 'Toggle preview',   action: 'preview',     toggle: true },
 ];
 
 const FONT_DEC_ID = 'font-dec';
@@ -469,7 +472,7 @@ export default function Editor({
   }
 
   const previewHtml = (showPreview && activeTab && previewEnabled)
-    ? buildPreviewHtml(activeTab.language, activeTab.content)
+    ? buildPreviewHtml(activeTab.language, activeTab.content, t)
     : null;
 
   return (
@@ -544,8 +547,7 @@ export default function Editor({
               domStorageEnabled
               allowFileAccess
               allowFileAccessFromFileURLs
-              allowUniversalAccessFromFileURLs
-              originWhitelist={['*']}
+              originWhitelist={['file://', 'about:*']}
               keyboardDisplayRequiresUserAction={false}
               bounces={false}
               scrollEnabled={false}
@@ -563,7 +565,7 @@ export default function Editor({
               source={{ html: previewHtml }}
               style={styles.webView}
               javaScriptEnabled
-              originWhitelist={['*']}
+              originWhitelist={['about:*', 'data:*']}
               bounces={false}
             />
           </View>
@@ -670,8 +672,6 @@ export default function Editor({
 
 const TAB_HEIGHT     = 36;
 const TOOLBAR_HEIGHT = 40;
-
-import type { ThemeTokens } from '../theme/tokens';
 
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
