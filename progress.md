@@ -4,6 +4,75 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 12 — 2026-03-30 (EPIC-0018: Foldable Device Support)
+
+### What Was Done
+
+**Context:** Planning + full implementation of EPIC-0018 in a single session. Followed TDD strictly — failing tests written before every implementation step.
+
+#### Planning
+- Read RELEASE_PLAN.md, ID_REGISTRY.md, progress.md, full codebase exploration
+- Discovered key architectural issue: dual-return structure in `TabletResponsive.tsx` causes terminal WebView to remount on fold/unfold (different tree positions = unmount + remount = terminal session lost)
+- Designed single-return fix: terminal always at `root→child[1]→child[1]`, resize handle uses `display:none` in phone mode to keep tree position stable
+
+#### Implementation (5 commits, branch `feature/EPIC-0018-foldable-device-support`)
+
+**Commit 1 — Fix breakpoint boundary (AC-0182/0183/0190)**
+- Changed `width > TABLET_BREAKPOINT` → `width >= TABLET_BREAKPOINT` in `TabletResponsive.tsx:37`
+- Updated JSDoc comment (≥ / <)
+- Updated existing width=768 test (false → true), added 767dp boundary test
+- Tests: 40 → 41 passing
+
+**Commit 2 — Terminal preservation refactor (AC-0184/0185)**
+- Wrote 3 mount-counter tests (TDD: `Expected: 1, Received: 2` confirmed the bug)
+- Refactored `TabletResponsive` to single-return path — terminal always at stable tree position
+- Resize handle always in tree, hidden via `display: 'none'` in phone mode
+- Added `hidden` style to `StyleSheet.create`
+- Tests: 41 → 44 passing (all 3 AC-0185 mount-counter tests green)
+
+**Commit 3 — Form-factor tests (AC-0187/0188/0189)**
+- Added 4 device form-factor tests: Z Fold 6 inner (882dp), Pixel Fold (1840dp), Z Flip 6 cover (260dp), Z Flip 6 main portrait (412dp)
+- Tests: 44 → 48 passing
+
+**Commit 4 — Android Manifest (AC-0184)**
+- Added `android:resizeableActivity="true"` to `<activity>` in `AndroidManifest.xml`
+- Enables Android to deliver window-resize events on fold/unfold without activity restart
+
+**Commit 5 — Docs (EPIC-0018 Done)**
+- Marked US-0064 + US-0065 `Status: Done`
+- Checked AC-0182 through AC-0190 in RELEASE_PLAN.md
+- Regenerated plan dashboard (15 epics, 62 stories)
+
+### Current State
+- Branch: `feature/EPIC-0018-foldable-device-support` — 5 commits, PR pending
+- All mobile unit tests: **892 tests, 0 failures** (26 suites)
+- TypeScript: 0 errors
+- EPIC-0018: **Done** (both US-0064 and US-0065 fully implemented and tested)
+
+### Test Status
+- 892 mobile tests passing, 0 failing (up from 884 before this session)
+- Net new: 8 tests added across TabletResponsive.test.tsx
+  - 1 boundary test (767dp, AC-0190)
+  - 3 mount-counter tests (AC-0185 + mid-transition AC-0190)
+  - 4 device form-factor tests (AC-0187/0188/0189)
+
+### Key Files Modified
+- `mobile-ide/mobile-ide-prototype/src/layout/TabletResponsive.tsx` — breakpoint fix + single-return refactor + hidden style
+- `mobile-ide/mobile-ide-prototype/tests/unit/TabletResponsive.test.tsx` — 8 new tests
+- `mobile-ide/mobile-ide-prototype/android/app/src/main/AndroidManifest.xml` — resizeableActivity=true
+- `docs/RELEASE_PLAN.md` — EPIC-0018 ACs AC-0182–AC-0190 checked, US-0064/0065 Done
+- `docs/plan-status.json` / `docs/plan-status.html` — dashboard regenerated
+
+### AC-0186 Note
+Already satisfied — `android:screenOrientation="landscape"` was removed in Session 11 (BUG-0034 fix). Verified and closed.
+
+### Next Session Pick-up
+1. **Next EPIC: EPIC-0008 (Git Integration)** — highest-priority unblocked EPIC on the GA (v1.0) path; depends on EPIC-0007 (Auth, done); `GitBridge` stubs already exist in `FileSystemBridge.ts`
+2. EPIC-0009 (IAP/Monetization) — also unblocked; can follow EPIC-0008
+3. BUG-0042 — `react-hooks/set-state-in-effect` in FileExplorer still deferred (architectural refactor needed)
+
+---
+
 ## Session 11 — 2026-03-30 (Bug-fix sprint)
 
 ### What Was Done

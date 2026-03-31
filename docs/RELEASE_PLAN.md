@@ -734,24 +734,24 @@ Dependencies: US-0045
 US-0064 (EPIC-0018): As a developer using a foldable device (Samsung Galaxy Z Fold, Pixel Fold), I want the app to automatically expand to the full split-pane IDE layout when I unfold the device, so that I can use the entire inner display as a tablet workspace.
 Priority: High (P0)
 Estimate: M
-Status: Deferred
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0182: When the device is unfolded and the inner display width is ≥ 768 dp, the app renders the split-pane layout (file explorer | editor | terminal) automatically
-  - [ ] AC-0183: When the device is folded and the cover display width is < 768 dp, the app renders the single-pane layout automatically
-  - [ ] AC-0184: The transition between folded and unfolded states occurs without an app restart — the layout reflows within the same session
-  - [ ] AC-0185: Open files, unsaved editor content, and active terminal session are fully preserved across a fold/unfold transition
-  - [ ] AC-0186: The app respects the device orientation in both folded and unfolded states — no forced landscape lock is applied (resolves BUG-0034)
+  - [x] AC-0182: When the device is unfolded and the inner display width is ≥ 768 dp, the app renders the split-pane layout (file explorer | editor | terminal) automatically
+  - [x] AC-0183: When the device is folded and the cover display width is < 768 dp, the app renders the single-pane layout automatically
+  - [x] AC-0184: The transition between folded and unfolded states occurs without an app restart — the layout reflows within the same session
+  - [x] AC-0185: Open files, unsaved editor content, and active terminal session are fully preserved across a fold/unfold transition
+  - [x] AC-0186: The app respects the device orientation in both folded and unfolded states — no forced landscape lock is applied (resolves BUG-0034)
 Dependencies: EPIC-0001, EPIC-0002
 
 US-0065 (EPIC-0018): As a developer, I want the foldable layout to be tested against real device form factors, so that the split-pane expansion works correctly on all major foldable profiles.
 Priority: Medium (P1)
 Estimate: S
-Status: Deferred
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0187: Layout renders correctly on Samsung Galaxy Z Fold 6 inner display (7.6", ~882 × 2176 px)
-  - [ ] AC-0188: Layout renders correctly on Google Pixel Fold inner display (7.6", ~1840 × 2208 px)
-  - [ ] AC-0189: Layout renders correctly on Samsung Galaxy Z Flip 6 cover display (3.4") and main display (6.7") — single-pane on both
-  - [ ] AC-0190: `TabletResponsive` unit tests cover width breakpoints at 767 dp (single-pane), 768 dp (split-pane), and a mid-transition resize event
+  - [x] AC-0187: Layout renders correctly on Samsung Galaxy Z Fold 6 inner display (7.6", ~882 × 2176 px)
+  - [x] AC-0188: Layout renders correctly on Google Pixel Fold inner display (7.6", ~1840 × 2208 px)
+  - [x] AC-0189: Layout renders correctly on Samsung Galaxy Z Flip 6 cover display (3.4") and main display (6.7") — single-pane on both
+  - [x] AC-0190: `TabletResponsive` unit tests cover width breakpoints at 767 dp (single-pane), 768 dp (split-pane), and a mid-transition resize event
 Dependencies: US-0064
 ```
 

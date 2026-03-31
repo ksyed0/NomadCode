@@ -1651,33 +1651,33 @@
       "title": "As a developer using a foldable device (Samsung Galaxy Z Fold, Pixel Fold), I want the app to automatically expand to the full split-pane IDE layout when I unfold the device, so that I can use the entire inner display as a tablet workspace.",
       "priority": "P0",
       "estimate": "M",
-      "status": "Deferred",
+      "status": "Done",
       "branch": "",
       "acs": [
         {
           "id": "AC-0182",
           "text": "When the device is unfolded and the inner display width is ≥ 768 dp, the app renders the split-pane layout (file explorer | editor | terminal) automatically",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0183",
           "text": "When the device is folded and the cover display width is < 768 dp, the app renders the single-pane layout automatically",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0184",
           "text": "The transition between folded and unfolded states occurs without an app restart — the layout reflows within the same session",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0185",
           "text": "Open files, unsaved editor content, and active terminal session are fully preserved across a fold/unfold transition",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0186",
           "text": "The app respects the device orientation in both folded and unfolded states — no forced landscape lock is applied (resolves BUG-0034)",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -1691,28 +1691,28 @@
       "title": "As a developer, I want the foldable layout to be tested against real device form factors, so that the split-pane expansion works correctly on all major foldable profiles.",
       "priority": "P1",
       "estimate": "S",
-      "status": "Deferred",
+      "status": "Done",
       "branch": "",
       "acs": [
         {
           "id": "AC-0187",
           "text": "Layout renders correctly on Samsung Galaxy Z Fold 6 inner display (7.6\", ~882 × 2176 px)",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0188",
           "text": "Layout renders correctly on Google Pixel Fold inner display (7.6\", ~1840 × 2208 px)",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0189",
           "text": "Layout renders correctly on Samsung Galaxy Z Flip 6 cover display (3.4\") and main display (6.7\") — single-pane on both",
-          "done": false
+          "done": true
         },
         {
           "id": "AC-0190",
           "text": "`TabletResponsive` unit tests cover width breakpoints at 767 dp (single-pane), 768 dp (split-pane), and a mid-transition resize event",
-          "done": false
+          "done": true
         }
       ],
       "dependencies": [
@@ -3523,17 +3523,6 @@
       "estimatedCostUsd": 0
     },
     {
-      "id": "BUG-0034",
-      "title": "App forces landscape orientation on all devices; ignores user/device preference on foldables and phones (COMPAT-1)",
-      "severity": "Medium",
-      "relatedStory": "",
-      "relatedTask": "",
-      "status": "Fixed",
-      "fixBranch": "bugfix/batch-open-bugs",
-      "lessonEncoded": "No",
-      "estimatedCostUsd": 0
-    },
-    {
       "id": "BUG-0009",
       "title": "Landscape-locked app crashes on iPhone simulator when SetupWizard Modal is presented (SIM-1)",
       "severity": "Medium",
@@ -3710,6 +3699,83 @@
       "estimatedCostUsd": 0
     },
     {
+      "id": "BUG-0024",
+      "title": "android/app/debug.keystore committed to version control (SEC-1)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0025",
+      "title": "getToken() has no reject path or timeout — git push/git clone hang forever (TERM-11)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0026",
+      "title": "git status reports newly-staged files as ?? (untracked) instead of A  (added) (TERM-12)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0027",
+      "title": "git init failure is misreported as \"not a git repository\" (TERM-13)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0028",
+      "title": "ENOENT error masking too broad — corrupted repos return wrong diagnostic (TERM-14)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0029",
+      "title": "Plan visualizer dashboard not updated since 2026-03-13 (DASH-1)",
+      "severity": "Low",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0030",
+      "title": "version-bump workflow fails with \"Invalid format '0.1.1'\" on GITHUB_OUTPUT (CI-1)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/version-bump-output-format",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
       "id": "BUG-0031",
       "title": "capture-cost.js Stop hook records zero tokens and cost for every session (TOOL-1)",
       "severity": "Medium",
@@ -3739,6 +3805,193 @@
       "relatedTask": "",
       "status": "Fixed",
       "fixBranch": "bugfix/version-bump-output-format",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0033",
+      "title": "applyLanguageRules message handler in MonacoAssetManager.ts is untested dead code (LANG-1)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/EPIC-0013-multi-language-editor",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0034",
+      "title": "App forces landscape orientation on all devices — breaks foldables and phones (COMPAT-1)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0035",
+      "title": "Soft keyboard types but characters do not appear in Monaco editor after creating a new file (EDITOR-1)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/batch-open-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0036",
+      "title": "Markdown preview loads marked.js from CDN violating offline-first architecture (ED-1)",
+      "severity": "Critical",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/editor-preview-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0037",
+      "title": "WebView security settings overly permissive (ED-2)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/editor-preview-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0038",
+      "title": "Hardcoded colors in Editor.tsx break light theme support (ED-3)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/editor-preview-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0039",
+      "title": "JSON preview uses hardcoded theme colors instead of dynamic values (ED-4)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/editor-preview-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0040",
+      "title": "Dead code — Terminal.tsx marked @deprecated but still exists (TERM-11)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/terminal-bridge-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0041",
+      "title": "GitBridge stub implementations throw errors at runtime (FS-1)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/misc-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0042",
+      "title": "ESLint-disable comment in FileExplorer.tsx indicates code smell (FE-1)",
+      "severity": "Low",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Deferred",
+      "fixBranch": "",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0043",
+      "title": "StyleSheet created inside CommandPalette render (CP-6)",
+      "severity": "Low",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/misc-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0044",
+      "title": "getMonacoTheme() returns only vs-dark/vs instead of named themes (THEME-1)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/misc-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0045",
+      "title": "useTerminalBridge missing sendToWebView in dependency array (TERM-12)",
+      "severity": "Medium",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/terminal-bridge-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0046",
+      "title": "Duplicate BUGS.md files — root and docs/ (DUP-1)",
+      "severity": "Low",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/EPIC-0014-global-search",
+      "lessonEncoded": "Yes",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0047",
+      "title": "Emoji in toolbar icon causes potential rendering issues (ED-5)",
+      "severity": "Low",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/editor-preview-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0048",
+      "title": "Unsafe type assertion in useSettingsStore (SET-1)",
+      "severity": "Low",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/misc-bugs",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0049",
+      "title": "App does not resize to fill screen on orientation change in Android emulator (LAYOUT-1)",
+      "severity": "High",
+      "relatedStory": "",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "bugfix/misc-bugs",
       "lessonEncoded": "No",
       "estimatedCostUsd": 0
     }
@@ -4178,14 +4431,6 @@
         "isEstimated": false,
         "projectedUsd": 400
       },
-      "BUG-0034": {
-        "costUsd": 0,
-        "inputTokens": 0,
-        "outputTokens": 0,
-        "sessions": 0,
-        "isEstimated": false,
-        "projectedUsd": 400
-      },
       "BUG-0009": {
         "costUsd": 0,
         "inputTokens": 0,
@@ -4246,7 +4491,7 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 92,
+        "sessions": 95,
         "isEstimated": false,
         "projectedUsd": 1600
       },
@@ -4254,7 +4499,7 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 92,
+        "sessions": 95,
         "isEstimated": false,
         "projectedUsd": 800
       },
@@ -4262,7 +4507,7 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 92,
+        "sessions": 95,
         "isEstimated": false,
         "projectedUsd": 400
       },
@@ -4270,7 +4515,7 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 92,
+        "sessions": 95,
         "isEstimated": false,
         "projectedUsd": 400
       },
@@ -4278,7 +4523,7 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 92,
+        "sessions": 95,
         "isEstimated": false,
         "projectedUsd": 400
       },
@@ -4286,7 +4531,7 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 92,
+        "sessions": 95,
         "isEstimated": false,
         "projectedUsd": 800
       },
@@ -4294,7 +4539,7 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 92,
+        "sessions": 95,
         "isEstimated": false,
         "projectedUsd": 400
       },
@@ -4302,7 +4547,7 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 92,
+        "sessions": 95,
         "isEstimated": false,
         "projectedUsd": 400
       },
@@ -4310,9 +4555,65 @@
         "costUsd": 0,
         "inputTokens": 0,
         "outputTokens": 0,
-        "sessions": 92,
+        "sessions": 95,
         "isEstimated": false,
         "projectedUsd": 1600
+      },
+      "BUG-0024": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0025": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0026": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0027": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0028": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0029": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0030": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 40,
+        "isEstimated": false,
+        "projectedUsd": 800
       },
       "BUG-0031": {
         "costUsd": 0,
@@ -4337,6 +4638,134 @@
         "sessions": 40,
         "isEstimated": false,
         "projectedUsd": 400
+      },
+      "BUG-0033": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0034": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0036": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 1600
+      },
+      "BUG-0037": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0038": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0039": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0040": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0041": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 1,
+        "isEstimated": false,
+        "projectedUsd": 800
+      },
+      "BUG-0042": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0043": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 1,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0044": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 1,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0045": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0046": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0047": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0048": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 1,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0049": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 1,
+        "isEstimated": false,
+        "projectedUsd": 800
       },
       "_totals": {
         "costUsd": 0,
@@ -4705,14 +5134,14 @@
     },
     "US-0043": {
       "missingTCs": false,
-      "noBranch": true,
+      "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
       "isAtRisk": false
     },
     "US-0044": {
       "missingTCs": false,
-      "noBranch": true,
+      "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
       "isAtRisk": false
@@ -4736,14 +5165,14 @@
       "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
-      "isAtRisk": true
+      "isAtRisk": false
     },
     "US-0065": {
       "missingTCs": true,
       "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
-      "isAtRisk": true
+      "isAtRisk": false
     },
     "US-0062": {
       "missingTCs": true,
@@ -4792,6 +5221,11 @@
   },
   "recentActivity": [
     {
+      "sessionNum": "11",
+      "date": "2026-03-30",
+      "summary": "**Context:** Session recovered from a mid-session crash. Resumed from the plan to commit outstanding EPIC-0014 docs, merge PR #52, resolve open PRs, and fix all 13 open bugs in 3 grouped branches."
+    },
+    {
       "sessionNum": "10",
       "date": "2026-03-27",
       "summary": "**Started EPIC-0013: Multi-Language Editor Support** on `feature/EPIC-0013-multi-language` branched from `develop` (post PR #48 merge); **Fixed diverged local develop**: local `develop` had 1 stale commit; hard-reset to `origin/develop`; **Created `src/utils/languageRules.ts`**: 40+ language rules map (tabSize, insertSpaces, autoClosingBrackets/Quotes) matching VS Code / community style conventions; `getLanguageRules(languageId)` pure function; `detectIndentation: false` enforced as literal type"
@@ -4810,11 +5244,6 @@
       "sessionNum": "6",
       "date": "2026-03-25",
       "summary": "**Android runtime audit**: reviewed all requirements for iOS/Android build environment; **Fixed RUNNING.md** (5 issues): Node ≥20 LTS, removed deprecated expo-cli row, Monaco CDN → App Store compliance warning (§2.5.2), Offline Monaco section marked required, Detox config updated to `ios.ipad.debug`; **Created eas.json**: development/preview/production build profiles"
-    },
-    {
-      "sessionNum": "5",
-      "date": "2026-03-17",
-      "summary": "Fixed CI failures on Dependabot PRs:;   - PR #30 (eslint-plugin-react-hooks 4→7): fixed `react-hooks/set-state-in-effect` in CommandPalette.tsx (moved setState to render-time derived value); fixed `react-hooks/refs` in TabletResponsive.tsx (eslint-disable on PanResponder spread);   - PR #31 (zustand 5.0.11→5.0.12): regenerated lock file via `npm install`; merged"
     }
   ],
   "lessons": [
@@ -4847,9 +5276,9 @@
       "date": "2026-03-20"
     }
   ],
-  "generatedAt": "2026-03-30T01:09:41.672Z",
-  "commitSha": "d8a75a2",
-  "buildNumber": "201",
+  "generatedAt": "2026-03-31T02:16:52.313Z",
+  "commitSha": "a8248da",
+  "buildNumber": "200",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
@@ -5605,6 +6034,22 @@
     },
     {
       "date": "2026-03-27",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-31",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-31",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-31",
+      "cumCost": 10.91
+    },
+    {
+      "date": "2026-03-31",
       "cumCost": 10.91
     }
   ],
