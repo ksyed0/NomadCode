@@ -259,3 +259,10 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | develop | 0 | 0 | 0 | 0.0000 |
 | 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
 | 2026-03-30 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 [NO_DATA] | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
