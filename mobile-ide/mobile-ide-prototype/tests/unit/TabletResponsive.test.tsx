@@ -550,3 +550,43 @@ describe('TabletResponsive — AC-0185 terminal preserved across fold/unfold', (
     expect(mountCount).toBe(1); // exactly 1 mount throughout
   });
 });
+
+// ---------------------------------------------------------------------------
+// AC-0187/0188/0189: Device form-factor tests (US-0065)
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — foldable device form factors', () => {
+  afterEach(() => setWidth(1024)); // reset to tablet default after each test
+
+  // AC-0187: Samsung Galaxy Z Fold 6 inner display — unfolded landscape, ~882dp wide
+  it('AC-0187: renders split-pane on Z Fold 6 inner display (width=882)', () => {
+    setWidth(882);
+    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<Terminal />} />);
+    expect(screen.getByTestId('sidebar')).toBeTruthy();
+    expect(screen.queryByText('☰')).toBeNull();
+  });
+
+  // AC-0188: Google Pixel Fold inner display — unfolded, ~1840dp wide
+  it('AC-0188: renders split-pane on Pixel Fold inner display (width=1840)', () => {
+    setWidth(1840);
+    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<Terminal />} />);
+    expect(screen.getByTestId('sidebar')).toBeTruthy();
+    expect(screen.queryByText('☰')).toBeNull();
+  });
+
+  // AC-0189: Samsung Galaxy Z Flip 6 cover display — portrait, ~260dp wide
+  it('AC-0189: renders single-pane on Z Flip 6 cover display (width=260)', () => {
+    setWidth(260);
+    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<Terminal />} />);
+    expect(screen.queryByTestId('sidebar')).toBeNull();
+    expect(screen.getByText('☰')).toBeTruthy();
+  });
+
+  // AC-0189: Samsung Galaxy Z Flip 6 main display — portrait, ~412dp wide
+  it('AC-0189: renders single-pane on Z Flip 6 main portrait display (width=412)', () => {
+    setWidth(412);
+    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<Terminal />} />);
+    expect(screen.queryByTestId('sidebar')).toBeNull();
+    expect(screen.getByText('☰')).toBeTruthy();
+  });
+});
