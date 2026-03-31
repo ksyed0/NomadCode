@@ -141,80 +141,79 @@ export default function TabletResponsive({
     </TouchableOpacity>
   );
 
-  // ── Tablet layout ──────────────────────────────────────────────────────────
-  if (isTablet) {
-    return (
-      <View style={[styles.root, { backgroundColor: t.bg }]}>
-        {/* Main row: sidebar + editor */}
-        <View style={styles.row}>
+  // ── SINGLE RETURN — terminal always at root→child[1]→child[1] ──────────────
+  // Both tablet and phone modes render the same tree shape. Only styles change
+  // on fold/unfold, so React reconciles (updates) rather than remounting the
+  // terminal WebView. This preserves the active WASM terminal session (AC-0185).
+  return (
+    <View style={[styles.root, { backgroundColor: t.bg }]}>
+      {/* child[0] — content area; type is always View, style changes only */}
+      <View style={isTablet ? styles.row : styles.phoneMainArea}>
+        {isTablet && (
           <View style={[styles.sidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
             {gearButton}
             {sidebar}
           </View>
-          <View style={styles.mainArea}>
-            {swipeZoneView}
-            {main}
-          </View>
-        </View>
-
-        {/* Terminal strip at bottom */}
-        {showTerminal && (
-          <>
-            <View
-              testID="terminal-resize-handle"
-              style={[styles.resizeHandle, { backgroundColor: t.bgElevated, borderTopColor: t.border }]}
-              // eslint-disable-next-line react-hooks/refs
-              {...panResponder.current.panHandlers}
-            />
-            <View style={[styles.terminalStrip, { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg }]}>
-              {terminal}
-            </View>
-          </>
         )}
-      </View>
-    );
-  }
-
-  // ── Phone layout ───────────────────────────────────────────────────────────
-  return (
-    <View style={[styles.root, { backgroundColor: t.bg }]}>
-      {/* Editor fills the top area */}
-      <View style={styles.phoneMainArea}>
-        {swipeZoneView}
-        {main}
+        <View style={styles.mainArea}>
+          {swipeZoneView}
+          {main}
+        </View>
       </View>
 
-      {/* Terminal slides up from the bottom */}
+      {/* child[1] — terminal strip; always a View at the same tree position.
+          This guarantees React reconciles on layout switch instead of remounting. */}
       {showTerminal && (
-        <View style={[styles.phoneTerminal, { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg }]}>
+        <View
+          style={[
+            isTablet ? styles.terminalStrip : styles.phoneTerminal,
+            { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg },
+          ]}
+        >
+          {/* Resize handle: present in tree on both modes so terminal stays at
+              child[1]. Hidden via display:none on phone — no visual impact. */}
+          <View
+            testID="terminal-resize-handle"
+            style={[
+              styles.resizeHandle,
+              { backgroundColor: t.bgElevated, borderTopColor: t.border },
+              !isTablet && styles.hidden,
+            ]}
+            // eslint-disable-next-line react-hooks/refs
+            {...panResponder.current.panHandlers}
+          />
+          {/* terminal is always child[1] here — stable position → no remount */}
           {terminal}
         </View>
       )}
 
-      {/* Floating sidebar toggle button (bottom-left) */}
-      <TouchableOpacity
-        style={[styles.phoneSidebarToggle, { backgroundColor: t.accent }]}
-        onPress={() => setPhoneSidebarOpen((v) => !v)}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.phoneSidebarToggleIcon}>{phoneSidebarOpen ? '✕' : '☰'}</Text>
-      </TouchableOpacity>
-
-      {/* Sidebar drawer overlay */}
-      {phoneSidebarOpen && (
+      {/* children[2+] — phone-only sidebar toggle + drawer overlay */}
+      {!isTablet && (
         <>
-          {/* Scrim — tap to close */}
           <TouchableOpacity
-            testID="sidebar-scrim"
-            style={styles.scrim}
-            activeOpacity={1}
-            onPress={() => setPhoneSidebarOpen(false)}
-          />
-          {/* Drawer panel */}
-          <Animated.View style={[styles.phoneSidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
-            {gearButton}
-            {sidebar}
-          </Animated.View>
+            style={[styles.phoneSidebarToggle, { backgroundColor: t.accent }]}
+            onPress={() => setPhoneSidebarOpen((v) => !v)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.phoneSidebarToggleIcon}>{phoneSidebarOpen ? '✕' : '☰'}</Text>
+          </TouchableOpacity>
+
+          {phoneSidebarOpen && (
+            <>
+              {/* Scrim — tap to close */}
+              <TouchableOpacity
+                testID="sidebar-scrim"
+                style={styles.scrim}
+                activeOpacity={1}
+                onPress={() => setPhoneSidebarOpen(false)}
+              />
+              {/* Drawer panel */}
+              <Animated.View style={[styles.phoneSidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
+                {gearButton}
+                {sidebar}
+              </Animated.View>
+            </>
+          )}
         </>
       )}
     </View>
@@ -295,4 +294,7 @@ const styles = StyleSheet.create({
   },
   gearBtn: { padding: 10, alignItems: 'center', justifyContent: 'center' },
   gearIcon: { fontSize: 18 },
+  // Hides the resize handle in phone mode while keeping it in the React tree,
+  // so terminal stays at a stable child index regardless of layout mode.
+  hidden: { display: 'none' },
 });

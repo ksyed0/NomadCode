@@ -482,3 +482,71 @@ describe('TabletResponsive — settings gear icon', () => {
     expect(() => fireEvent.press(screen.getByTestId('settings-gear'))).not.toThrow();
   });
 });
+
+// ---------------------------------------------------------------------------
+// AC-0185: Terminal component identity preserved across fold/unfold (US-0064)
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — AC-0185 terminal preserved across fold/unfold', () => {
+  it('does not remount terminal when transitioning phone → tablet width', () => {
+    let mountCount = 0;
+    const CountingTerminal = () => {
+      React.useEffect(() => { mountCount += 1; }, []);
+      return <Text testID="terminal">Terminal</Text>;
+    };
+
+    setWidth(375);
+    const { rerender } = render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1);
+
+    setWidth(1024); // unfold
+    rerender(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1); // must NOT remount
+  });
+
+  it('does not remount terminal when transitioning tablet → phone width', () => {
+    let mountCount = 0;
+    const CountingTerminal = () => {
+      React.useEffect(() => { mountCount += 1; }, []);
+      return <Text testID="terminal">Terminal</Text>;
+    };
+
+    setWidth(1024);
+    const { rerender } = render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1);
+
+    setWidth(375); // fold
+    rerender(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1); // must NOT remount
+  });
+
+  it('AC-0190: terminal stays mounted through mid-transition resize 767→768→412', () => {
+    let mountCount = 0;
+    const CountingTerminal = () => {
+      React.useEffect(() => { mountCount += 1; }, []);
+      return <Text testID="terminal">Terminal</Text>;
+    };
+
+    setWidth(767);
+    const { rerender } = render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1);
+
+    setWidth(768); // crosses breakpoint up
+    rerender(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />);
+    expect(mountCount).toBe(1);
+
+    setWidth(412); // crosses breakpoint back down
+    rerender(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />);
+    expect(mountCount).toBe(1); // exactly 1 mount throughout
+  });
+});
