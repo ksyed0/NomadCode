@@ -251,3 +251,6 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-30 | d07a4b00-6fa5-4f27-95d0-fa94cdac13bc [NO_DATA] | feature/EPIC-0014-global-search | 0 | 0 | 0 | 0.0000 |
 | 2026-03-30 | d07a4b00-6fa5-4f27-95d0-fa94cdac13bc [NO_DATA] | feature/EPIC-0014-global-search | 0 | 0 | 0 | 0.0000 |
 | 2026-03-30 | d07a4b00-6fa5-4f27-95d0-fa94cdac13bc [NO_DATA] | feature/EPIC-0014-global-search | 0 | 0 | 0 | 0.0000 |
+| 2026-03-30 | d07a4b00-6fa5-4f27-95d0-fa94cdac13bc [NO_DATA] | bugfix/misc-bugs | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | d07a4b00-6fa5-4f27-95d0-fa94cdac13bc [NO_DATA] | bugfix/misc-bugs | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | d07a4b00-6fa5-4f27-95d0-fa94cdac13bc | bugfix/misc-bugs | 0 | 0 | 0 | 0.0000 |
