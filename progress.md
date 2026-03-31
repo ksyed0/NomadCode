@@ -4,6 +4,57 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 13 — 2026-03-31 (Android Device Testing + Bug-Fix Sprint)
+
+### What Was Done
+
+**Context:** Device testing session on Pixel Fold emulator (API 35) and iPad Pro 13-inch M5 simulator. Three Android-specific bugs found and fixed. Fold layout behaviour investigated and documented.
+
+#### Bug Fixes (1 commit, `feature/EPIC-0018-foldable-device-support`)
+
+**BUG: Editor hardware keyboard not working on Android**
+- Root cause: `editor.focus()` (JavaScript DOM focus) activates the IME (`InputConnection`) so the on-screen keyboard works, but does NOT call `WebView.requestFocus()` at the Android View level. Hardware `KeyEvent`s are dispatched by Android to the focused *View*, not the focused *DOM element*. The terminal WebView worked because the terminal's `<input>` element is tapped directly — Android grants hardware keyboard focus automatically when a native input element is touched.
+- Fix: Added `window.focus()` before `editor.focus()` in both the `pointerdown` handler and the `setContent` handler in `MonacoAssetManager.ts`. `window.focus()` from JavaScript triggers `WebView.requestFocus()` at the native Android level, routing hardware `KeyEvent`s to Monaco.
+
+**BUG: SetupWizard content clipped/not scrolling on foldable (small screens)**
+- Root cause: `ScrollView` without `flex: 1` renders at full content height in React Native, overflowing the screen and clipping instead of scrolling.
+- Fix: Added `flex: 1` + `paddingBottom: 24` (`scrollFlex` + `scrollContent` styles) to all three step ScrollViews.
+
+**BUG: Browse button (Android) shows debugger warning, doesn't open folder picker**
+- Root cause: `DocumentPicker.getDocumentAsync({ type: 'public.folder' })` uses an iOS-only UTI. Android has no equivalent folder picker in expo-document-picker.
+- Fix: On Android, use `FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync()` (Android SAF). On iOS, keep the existing DocumentPicker path. Added `Platform` import to SetupWizard.
+
+**Investigation: Fold layout not adjusting between OPEN/HALF_OPENED/CLOSED**
+- Finding: Android emulator reports identical window dimensions for both OPENED (2208×1840, ~840dp) and HALF_OPENED (2208×1840, ~840dp). `useWindowDimensions` sees no difference — no layout change between them is expected. CLOSED (1080×2092, ~411dp) correctly triggers single-pane layout.
+- Conclusion: CLOSED ↔ OPENED transition works correctly. HALF_OPENED showing split-pane is correct per Android's window reporting (full inner display active in tabletop mode). Different HALF_OPENED behaviour would require Jetpack WindowManager `FoldingFeature` API — out of scope for EPIC-0018.
+
+#### Infrastructure
+- Created Pixel Fold API 35 AVD with correct `google_apis_playstore` (non-tablet) system image; `google_apis_playstore_tablet` does not support foldable hinge sensors
+- App installed and running on both `Pixel_Fold_API35` and `Pixel_Tablet_API35`
+- APK (`NomadCode-debug.apk`) and iOS app (`NomadCode.app`) copied to Desktop
+
+### Current State
+- Branch: `feature/EPIC-0018-foldable-device-support` — 6 commits, PR open targeting `develop`
+- All mobile unit tests: **895 tests, 0 failures** (26 suites)
+- TypeScript: 0 errors
+
+### Test Status
+- 895 mobile tests passing (up from 892 after session 12)
+- +3 SetupWizard Android Browse tests (SAF permission granted/denied/not-called paths)
+
+### Key Files Modified
+- `mobile-ide/mobile-ide-prototype/src/utils/MonacoAssetManager.ts` — `window.focus()` for hardware keyboard
+- `mobile-ide/mobile-ide-prototype/src/components/SetupWizard.tsx` — scroll fix + Android SAF browse
+- `mobile-ide/mobile-ide-prototype/tests/unit/SetupWizard.test.tsx` — 3 new Android Browse tests
+
+### Next Session Pick-up
+1. **Merge PR** for `feature/EPIC-0018-foldable-device-support` → `develop` after CI green
+2. **Next EPIC: EPIC-0008 (Git Integration)** — highest-priority unblocked EPIC on GA path; `GitBridge` stubs exist in `FileSystemBridge.ts`
+3. EPIC-0009 (IAP/Monetization) — also unblocked; can follow EPIC-0008
+4. BUG-0042 — `react-hooks/set-state-in-effect` in FileExplorer still deferred
+
+---
+
 ## Session 12 — 2026-03-30 (EPIC-0018: Foldable Device Support)
 
 ### What Was Done
