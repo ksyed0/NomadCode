@@ -1,8 +1,8 @@
 /**
  * TabletResponsive — adaptive three-pane IDE layout.
  *
- * Tablet  (width > 768):  [Sidebar | Editor ] + [Terminal bottom strip]
- * Phone   (width ≤ 768):  [Editor] with collapsible sidebar drawer + bottom terminal
+ * Tablet  (width ≥ 768):  [Sidebar | Editor ] + [Terminal bottom strip]
+ * Phone   (width < 768):  [Editor] with collapsible sidebar drawer + bottom terminal
  *
  * The sidebar width and terminal height are configurable via props.
  */
@@ -34,7 +34,7 @@ const TERMINAL_HEIGHT = 220;
 
 export function useIsTablet(): boolean {
   const { width } = useWindowDimensions();
-  return width > TABLET_BREAKPOINT;
+  return width >= TABLET_BREAKPOINT;
 }
 
 // ---------------------------------------------------------------------------

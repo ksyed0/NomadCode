@@ -62,10 +62,10 @@ describe('useIsTablet', () => {
     expect(result.current).toBe(true);
   });
 
-  it('returns false when width === 768', () => {
+  it('returns true when width === 768 (AC-0182 boundary)', () => {
     setWidth(768);
     const { result } = renderHook(() => useIsTablet());
-    expect(result.current).toBe(false);
+    expect(result.current).toBe(true);
   });
 
   it('returns false when width < 768', () => {
@@ -78,6 +78,12 @@ describe('useIsTablet', () => {
     setWidth(769);
     const { result } = renderHook(() => useIsTablet());
     expect(result.current).toBe(true);
+  });
+
+  it('AC-0190: returns false at width 767 (just below split-pane threshold)', () => {
+    setWidth(767);
+    const { result } = renderHook(() => useIsTablet());
+    expect(result.current).toBe(false);
   });
 });
 
