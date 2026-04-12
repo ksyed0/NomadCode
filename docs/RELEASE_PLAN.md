@@ -477,6 +477,8 @@ Acceptance Criteria:
   - [ ] AC-0071: User can enter a GitHub repository URL and initiate a clone to local storage
   - [ ] AC-0072: Clone progress is shown via a progress indicator; errors surface a readable message
   - [ ] AC-0073: Cloned repo appears in the file explorer immediately on completion
+  - [ ] AC-0191: If the repository requires authentication and no GitHub token is stored, the user sees a clear message and a path to sign in (e.g. Settings)
+  - [ ] AC-0192: When the network is unavailable or clone fails transiently, the user sees an actionable message; transient failures retry with exponential backoff up to three times (per AGENTS.md)
 Dependencies: EPIC-0007
 
 US-0026 (EPIC-0008): As a developer, I want to stage and commit changes, so that I can record my work in git history.
@@ -487,6 +489,7 @@ Acceptance Criteria:
   - [ ] AC-0074: Modified files are listed in the git status panel with staged/unstaged indicators
   - [ ] AC-0075: Tapping a file checkbox toggles it between staged and unstaged
   - [ ] AC-0076: Entering a commit message and confirming creates a local commit
+  - [ ] AC-0193: Git status panel interactive controls have accessibility labels and minimum 44pt touch targets (WCAG-minded)
 Dependencies: US-0025
 
 US-0027 (EPIC-0008): As a developer, I want to push and pull from remote, so that I can collaborate with my team.
@@ -496,6 +499,8 @@ Status: Planned
 Acceptance Criteria:
   - [ ] AC-0077: Tapping Push sends local commits to the remote using the stored OAuth token
   - [ ] AC-0078: Tapping Pull fetches and merges remote changes into the working directory
+  - [ ] AC-0194: If push or pull requires authentication and no GitHub token is stored, the user sees a clear message and a path to sign in (e.g. Settings)
+  - [ ] AC-0195: When offline or push/pull fails transiently, the user sees an actionable message; transient failures retry with exponential backoff up to three times (per AGENTS.md)
 Dependencies: US-0026
 
 US-0028 (EPIC-0008): As a developer, I want to view file diffs, so that I can review changes before committing.
