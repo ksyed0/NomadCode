@@ -266,3 +266,13 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
 | 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
 | 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | feature/EPIC-0018-foldable-device-support | 0 | 0 | 0 | 0.0000 |
+| 2026-03-31 | fb0a5ea8-eeae-433f-af21-a48087b75342 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-05 | 762603c1-9cae-47bb-851e-e37494560470 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-05 | 762603c1-9cae-47bb-851e-e37494560470 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-09 | 25757044-2379-487a-b8db-5911735130de | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-12 | sess_1776036916532 [NO_DATA] | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-12 | sess_1776036969932 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-12 | sess_1776037121014 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-12 | sess_1776037328142 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-12 | sess_1776037348229 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-12 | sess_1776037462736 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |

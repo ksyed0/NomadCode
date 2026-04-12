@@ -1,0 +1,94 @@
+<h2>Where should the Search panel live?</h2>
+<p class="subtitle">This sets the core UX pattern for EPIC-0014. Pick the layout that feels most natural on a tablet.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0F172A;padding:12px;font-family:monospace;font-size:11px;color:#94a3b8;">
+      <div style="display:flex;height:180px;">
+        <div style="width:220px;background:#1e293b;border-right:1px solid #334155;padding:8px;">
+          <div style="color:#2563EB;font-weight:bold;font-size:10px;margin-bottom:6px;">🔍 SEARCH</div>
+          <div style="background:#0F172A;border:1px solid #334155;border-radius:3px;padding:4px 6px;color:#e2e8f0;margin-bottom:6px;">useTerminalBridge▌</div>
+          <div style="font-size:9px;color:#64748b;margin-bottom:4px;">2 files, 3 results</div>
+          <div style="background:#1e293b;border-radius:3px;padding:4px;margin-bottom:2px;">
+            <div style="color:#0D9488;font-size:9px;">hooks/useTerminalBridge.ts</div>
+            <div style="color:#94a3b8;font-size:9px;padding-left:8px;">14: export function <span style="background:#1d4ed8;color:white;padding:0 2px;">useTerminalBridge</span>()</div>
+          </div>
+          <div style="background:#1e293b;border-radius:3px;padding:4px;">
+            <div style="color:#0D9488;font-size:9px;">tests/useTerminalBridge.ts</div>
+            <div style="color:#94a3b8;font-size:9px;padding-left:8px;">3: import { <span style="background:#1d4ed8;color:white;padding:0 2px;">useTerminalBridge</span> }</div>
+            <div style="color:#94a3b8;font-size:9px;padding-left:8px;">22: describe('<span style="background:#1d4ed8;color:white;padding:0 2px;">useTerminalBridge</span>')</div>
+          </div>
+        </div>
+        <div style="flex:1;background:#0F172A;padding:8px;">
+          <div style="color:#94a3b8;font-size:9px;margin-bottom:4px;">Editor.tsx — line 14</div>
+          <div style="color:#e2e8f0;font-size:9px;">import React, { useState } from 'react';</div>
+          <div style="color:#e2e8f0;font-size:9px;">import { WebView } from 'react-native-webview';</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Left Sidebar Panel</h3>
+      <p>Search panel replaces the file explorer in the left pane. Results stay visible while you navigate. Familiar from VS Code's sidebar search.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Results stay visible alongside editor</li><li>VS Code muscle memory</li><li>Ideal for tablet landscape</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Hides file tree while searching</li><li>Needs a toggle to switch back</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0F172A;padding:12px;font-family:monospace;font-size:11px;color:#94a3b8;">
+      <div style="height:180px;position:relative;">
+        <div style="display:flex;height:120px;opacity:0.4;">
+          <div style="width:160px;background:#1e293b;border-right:1px solid #334155;padding:8px;font-size:9px;color:#64748b;">File Explorer</div>
+          <div style="flex:1;background:#0F172A;padding:8px;font-size:9px;color:#e2e8f0;">Editor content...</div>
+        </div>
+        <div style="position:absolute;top:20px;left:20px;right:20px;background:#1e293b;border:1px solid #2563EB;border-radius:6px;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,0.6);">
+          <div style="color:#2563EB;font-weight:bold;font-size:10px;margin-bottom:6px;">🔍 Find in Files</div>
+          <div style="background:#0F172A;border:1px solid #334155;border-radius:3px;padding:4px 6px;color:#e2e8f0;margin-bottom:8px;">useTerminalBridge▌</div>
+          <div style="font-size:9px;color:#64748b;margin-bottom:4px;">3 results in 2 files</div>
+          <div style="color:#0D9488;font-size:9px;">hooks/useTerminalBridge.ts:14</div>
+          <div style="color:#94a3b8;font-size:9px;padding-left:8px;margin-bottom:2px;">export function <span style="background:#1d4ed8;color:white;padding:0 2px;">useTerminalBridge</span>()</div>
+          <div style="color:#0D9488;font-size:9px;">tests/useTerminalBridge.ts:3</div>
+          <div style="color:#94a3b8;font-size:9px;padding-left:8px;">import { <span style="background:#1d4ed8;color:white;padding:0 2px;">useTerminalBridge</span> }</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Floating Modal</h3>
+      <p>Full-width modal overlay, centred on screen. Dismissed with Escape or tapping outside. Results shown inline. Works the same on phone and tablet.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Consistent with CommandPalette pattern already in app</li><li>Works well at all screen sizes</li><li>Fast to open/close</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Covers editor while browsing results</li><li>Must navigate away to see file context</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0F172A;padding:12px;font-family:monospace;font-size:11px;color:#94a3b8;">
+      <div style="height:180px;position:relative;">
+        <div style="display:flex;height:100px;opacity:0.4;">
+          <div style="width:160px;background:#1e293b;border-right:1px solid #334155;padding:8px;font-size:9px;color:#64748b;">File Explorer</div>
+          <div style="flex:1;background:#0F172A;padding:8px;font-size:9px;color:#e2e8f0;">Editor content...</div>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;background:#1e293b;border-top:2px solid #2563EB;border-radius:8px 8px 0 0;padding:10px;">
+          <div style="color:#2563EB;font-weight:bold;font-size:10px;margin-bottom:5px;">🔍 Find in Files</div>
+          <div style="background:#0F172A;border:1px solid #334155;border-radius:3px;padding:3px 6px;color:#e2e8f0;margin-bottom:5px;font-size:9px;">useTerminalBridge▌</div>
+          <div style="display:flex;gap:8px;font-size:9px;">
+            <div style="color:#94a3b8;"><span style="color:#0D9488;">hooks/useTerminalBridge.ts:14</span> — export function...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Bottom Sheet</h3>
+      <p>Slides up from the bottom, like the terminal. Search bar at top of sheet, results scrollable below. More mobile-native feel.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Native mobile UX pattern</li><li>Editor still partially visible above</li><li>Consistent with terminal panel</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Less screen real estate for results</li><li>Not as familiar for developers</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
