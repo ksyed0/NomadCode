@@ -276,3 +276,4 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-04-12 | sess_1776037328142 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
 | 2026-04-12 | sess_1776037348229 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
 | 2026-04-12 | sess_1776037462736 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-12 | sess_1776037603283 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
