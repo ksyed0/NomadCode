@@ -1,0 +1,4 @@
+# Expo prebuild-generated native directories — exported-activity is required
+# for the main launcher activity (android:exported="true" on MainActivity).
+mobile-ide/mobile-ide-prototype/android/
+mobile-ide/mobile-ide-prototype/ios/
