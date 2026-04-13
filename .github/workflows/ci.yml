@@ -102,7 +102,7 @@ jobs:
           CI: true
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: coverage-report
@@ -110,7 +110,7 @@ jobs:
           retention-days: 14
 
       - name: Upload JUnit results
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: test-results
@@ -327,7 +327,7 @@ jobs:
           CI: true
 
       - name: Upload E2E artifacts on failure
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         if: failure()
         with:
           name: detox-artifacts-ios
@@ -419,7 +419,7 @@ jobs:
           script: cd mobile-ide/mobile-ide-prototype && npm run test:e2e:android
 
       - name: Upload E2E artifacts on failure
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         if: failure()
         with:
           name: detox-artifacts-android
@@ -481,7 +481,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create draft release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
