@@ -307,7 +307,7 @@ export default function Editor({
   onSave,
   onTabScrollConsumed,
 }: EditorProps) {
-  const webViewRef    = useRef<WebView>(null);
+  const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
 
   const t = useTheme();
@@ -332,7 +332,7 @@ export default function Editor({
     MonacoAssetManager.resolve().then(({ baseUrl, isOffline: offline }) => {
       setMonacoHtml(buildMonacoHtml(baseUrl));
       setIsOffline(offline);
-    });
+    }).catch(console.error);
   }, []);
 
   // ── Tooltip helpers ──────────────────────────────────────────────────────

@@ -40,7 +40,7 @@ jest.mock('isomorphic-git/http/web', () => ({}));
 const mockMakeDirectoryAsync = jest.fn();
 const mockReadAsStringAsync = jest.fn();
 
-jest.mock('expo-file-system', () => ({
+jest.mock('expo-file-system/legacy', () => ({
   makeDirectoryAsync: (...a: unknown[]) => mockMakeDirectoryAsync(...a),
   readAsStringAsync: (...a: unknown[]) => mockReadAsStringAsync(...a),
   EncodingType: { UTF8: 'utf8', Base64: 'base64' },

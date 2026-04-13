@@ -38,7 +38,7 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
   ),
 }));
 
-jest.mock('expo-file-system', () => ({
+jest.mock('expo-file-system/legacy', () => ({
   documentDirectory: 'file:///mock-docs/',
   StorageAccessFramework: {
     requestDirectoryPermissionsAsync: jest.fn(),

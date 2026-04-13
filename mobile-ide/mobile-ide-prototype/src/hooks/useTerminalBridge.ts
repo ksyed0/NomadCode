@@ -39,7 +39,7 @@ export interface UseTerminalBridgeOptions {
 }
 
 export interface UseTerminalBridgeResult {
-  webViewRef: React.RefObject<WebView>;
+  webViewRef: React.RefObject<WebView | null>;
   sendToWebView: (msg: RNToWebView) => void;
   onMessage: (event: WebViewMessageEvent) => void;
 }
@@ -51,7 +51,7 @@ export interface UseTerminalBridgeResult {
 export function useTerminalBridge(
   options?: UseTerminalBridgeOptions,
 ): UseTerminalBridgeResult {
-  const webViewRef = useRef<WebView>(null);
+  const webViewRef = useRef<WebView | null>(null);
   const { onCommandComplete, onGetToken } = options ?? {};
 
   const sendToWebView = useCallback((msg: RNToWebView): void => {

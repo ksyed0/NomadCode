@@ -120,7 +120,7 @@ jest.mock('expo-document-picker', () => ({
 }));
 
 // Mock expo-file-system (not available in Jest environment)
-jest.mock('expo-file-system', () => ({
+jest.mock('expo-file-system/legacy', () => ({
   documentDirectory: 'file:///mock-docs/',
   readAsStringAsync: jest.fn().mockResolvedValue(''),
   writeAsStringAsync: jest.fn().mockResolvedValue(undefined),

@@ -54,7 +54,7 @@ jest.mock('../../src/git/gitBridge', () => ({
   categorizeStatusMatrix: jest.fn(() => ({ modified: [], staged: [], untracked: [] })),
 }));
 
-jest.mock('expo-file-system', () => ({
+jest.mock('expo-file-system/legacy', () => ({
   getInfoAsync: (...args: unknown[]) => mockGetInfoAsync(...args),
   readDirectoryAsync: (...args: unknown[]) => mockReadDirectoryAsync(...args),
   readAsStringAsync: (...args: unknown[]) => mockReadAsStringAsync(...args),
