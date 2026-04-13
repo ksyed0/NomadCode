@@ -60,7 +60,16 @@ export default function GitCloneModal({
     setProgress(0);
     setCloneProgress(0);
     try {
-      if (!authToken && u.includes('github.com')) {
+      let isGitHubHost = false;
+      try {
+        const parsed = new URL(u);
+        const host = parsed.hostname.toLowerCase();
+        isGitHubHost = host === 'github.com' || host.endsWith('.github.com');
+      } catch {
+        isGitHubHost = false;
+      }
+
+      if (!authToken && isGitHubHost) {
         // Public may still work; private will fail with mapped error
       }
       await GitBridge.clone(u, dest, authToken ?? undefined, {
