@@ -29,7 +29,7 @@ const mockDeleteAsync = jest.fn();
 const mockCopyAsync = jest.fn();
 const mockMoveAsync = jest.fn();
 
-jest.mock('expo-file-system', () => ({
+jest.mock('expo-file-system/legacy', () => ({
   readAsStringAsync: (...args: unknown[]) => mockReadAsStringAsync(...args),
   writeAsStringAsync: (...args: unknown[]) => mockWriteAsStringAsync(...args),
   readDirectoryAsync: (...args: unknown[]) => mockReadDirectoryAsync(...args),

@@ -14,7 +14,7 @@
  *  - GitHub integration: add `cloneRepo`, `fetchRemote` via GitBridge (see below)
  */
 
-import * as ExpoFS from 'expo-file-system';
+import * as ExpoFS from 'expo-file-system/legacy';
 import DocumentPicker from 'react-native-document-picker';
 import { Platform } from 'react-native';
 import type { WorkspaceRoot, WorkspaceUriType } from '../types/workspace';

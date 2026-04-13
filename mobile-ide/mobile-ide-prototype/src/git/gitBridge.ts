@@ -5,7 +5,7 @@
 
 import git from 'isomorphic-git';
 import http from 'isomorphic-git/http/web';
-import * as ExpoFS from 'expo-file-system';
+import * as ExpoFS from 'expo-file-system/legacy';
 import { buildExpoGitFs, type ExpoGitFs } from './expoGitFs';
 import { createGithubOnAuth } from './gitHubAuth';
 import { withNetworkRetry } from './networkRetry';
