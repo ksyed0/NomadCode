@@ -3,7 +3,7 @@
  * readFile/writeFile support binary (git objects) via Base64.
  */
 
-import * as ExpoFS from 'expo-file-system';
+import * as ExpoFS from 'expo-file-system/legacy';
 
 interface StatResult {
   isFile: () => boolean;

@@ -6,7 +6,7 @@
  * rather than thrown, so the WebView always receives a structured response.
  */
 
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import type { WebViewToRN, RNToWebView } from './protocol';
 
 export type FileResult = { result: string | null; error?: string };

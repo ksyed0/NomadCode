@@ -332,7 +332,7 @@ export default function Editor({
     MonacoAssetManager.resolve().then(({ baseUrl, isOffline: offline }) => {
       setMonacoHtml(buildMonacoHtml(baseUrl));
       setIsOffline(offline);
-    });
+    }).catch(console.error);
   }, []);
 
   // ── Tooltip helpers ──────────────────────────────────────────────────────

@@ -38,7 +38,7 @@ jest.mock('expo-document-picker', () => ({
   getDocumentAsync: jest.fn(() => Promise.resolve({ canceled: true })),
 }));
 
-jest.mock('expo-file-system', () => ({
+jest.mock('expo-file-system/legacy', () => ({
   documentDirectory: 'file:///mock-docs/',
   StorageAccessFramework: {
     requestDirectoryPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false })),
@@ -47,7 +47,7 @@ jest.mock('expo-file-system', () => ({
 
 import SetupWizard from '../../src/components/SetupWizard';
 import * as DocumentPicker from 'expo-document-picker';
-import * as ExpoFS from 'expo-file-system';
+import * as ExpoFS from 'expo-file-system/legacy';
 
 beforeEach(() => {
   jest.clearAllMocks();
