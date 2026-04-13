@@ -50,6 +50,7 @@ export default function GitCloneModal({
   const onClone = useCallback(async () => {
     const u = url.trim();
     if (!u) {
+      setErrorText('Enter a repository URL.');
       setLastError('Enter a repository URL.');
       return;
     }
@@ -86,6 +87,7 @@ export default function GitCloneModal({
       setSubfolder('');
       onClose();
     } catch (e) {
+      console.error('[GitClone] clone failed:', e);
       let msg = e instanceof Error ? e.message : String(e);
       if (
         msg.includes('Authentication failed') ||
