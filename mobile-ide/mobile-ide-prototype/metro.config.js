@@ -25,6 +25,12 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (platform === 'web' && moduleName === 'react-native-document-picker') {
     return { type: 'empty' };
   }
+  // isomorphic-git v1.37.5's exports field only exposes CJS (requires Node
+  // 'crypto'). Force Metro to use the ESM entry (globalThis.crypto) for web.
+  if (platform === 'web' && moduleName === 'isomorphic-git') {
+    const isoGitDir = path.dirname(require.resolve('isomorphic-git'));
+    return { type: 'sourceFile', filePath: path.join(isoGitDir, 'index.js') };
+  }
   return context.resolveRequest(context, moduleName, platform);
 };
 
