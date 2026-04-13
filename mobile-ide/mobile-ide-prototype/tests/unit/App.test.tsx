@@ -114,6 +114,17 @@ jest.mock('../../src/theme/tokens', () => {
   };
 });
 
+// Mock react-native-safe-area-context (native module not available in Jest)
+jest.mock('react-native-safe-area-context', () => {
+  const React = require('react');
+  return {
+    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+    SafeAreaView: ({ children, ...props }: { children: React.ReactNode }) =>
+      React.createElement('SafeAreaView', props, children),
+    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  };
+});
+
 // Mock expo-document-picker (not available in Jest environment)
 jest.mock('expo-document-picker', () => ({
   getDocumentAsync: jest.fn().mockResolvedValue({ canceled: true }),

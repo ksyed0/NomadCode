@@ -18,7 +18,6 @@ import {
   Image,
   Modal,
   Platform,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -26,6 +25,7 @@ import {
   View,
 } from 'react-native';
 
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Editor, { EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
 import FileExplorer from './src/components/FileExplorer';
 import { TerminalWebView } from './src/components/TerminalWebView';
@@ -420,6 +420,7 @@ export default function App() {
   // ---------------------------------------------------------------------------
 
   return (
+    <SafeAreaProvider>
     <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]}>
       <StatusBar barStyle="light-content" backgroundColor={t.bg} />
 
@@ -579,6 +580,7 @@ export default function App() {
         onShowError={(text) => Alert.alert('Extension Error', text, [{ text: 'OK', style: 'destructive' }])}
       />
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

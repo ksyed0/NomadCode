@@ -287,3 +287,8 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-04-13 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
 | 2026-04-13 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
 | 2026-04-13 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | bugfix/session13-android-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-13 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | chore/expo-sdk-upgrade | 0 | 0 | 0 | 0.0000 |
+| 2026-04-13 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | chore/expo-sdk-upgrade | 0 | 0 | 0 | 0.0000 |
+| 2026-04-13 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-04-13 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-04-13 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | develop | 0 | 0 | 0 | 0.0000 |
