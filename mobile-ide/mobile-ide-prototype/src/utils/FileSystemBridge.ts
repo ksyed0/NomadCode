@@ -272,57 +272,7 @@ export async function requestWorkspacePermission(): Promise<WorkspaceRoot | null
 }
 
 // ---------------------------------------------------------------------------
-// GitBridge — stub for basic Git operations via isomorphic-git or a native module.
-//
-// TODO: Replace stubs with real implementations using:
-//   - isomorphic-git (pure JS, works in React Native)
-//   - @isomorphic-git/lightning-fs for virtual FS
-//   - GitHub REST API for remote operations
+// GitBridge — real isomorphic-git implementation (see src/git/gitBridge.ts)
 // ---------------------------------------------------------------------------
 
-export interface GitStatus {
-  branch: string;
-  ahead: number;
-  behind: number;
-  modified: string[];
-  staged: string[];
-  untracked: string[];
-}
-
-export const GitBridge = {
-  /** Clone a remote repository into the document directory. */
-  async clone(_url: string, _dir: string, _token?: string): Promise<void> {
-    console.warn('GitBridge.clone: not yet implemented — integrate isomorphic-git');
-  },
-
-  /** Stage all modified files and create a commit. */
-  async commit(_dir: string, _message: string, _author: { name: string; email: string }): Promise<string> {
-    console.warn('GitBridge.commit: not yet implemented');
-    return '';
-  },
-
-  /** Push local commits to the remote origin. */
-  async push(_dir: string, _token?: string): Promise<void> {
-    console.warn('GitBridge.push: not yet implemented');
-  },
-
-  /** Pull latest changes from origin. */
-  async pull(_dir: string, _token?: string): Promise<void> {
-    console.warn('GitBridge.pull: not yet implemented');
-  },
-
-  /** Return current branch name + working-tree status. */
-  async status(_dir: string): Promise<GitStatus> {
-    return { branch: 'main', ahead: 0, behind: 0, modified: [], staged: [], untracked: [] };
-  },
-
-  /** List local branches. */
-  async branches(_dir: string): Promise<string[]> {
-    return ['main'];
-  },
-
-  /** Switch branch (checkout). */
-  async checkout(_dir: string, _branch: string): Promise<void> {
-    console.warn('GitBridge.checkout: not yet implemented');
-  },
-};
+export { GitBridge, categorizeStatusMatrix, type GitStatus } from '../git/gitBridge';

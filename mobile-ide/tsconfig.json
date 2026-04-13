@@ -16,6 +16,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
+  "files": [],
+  "references": [
+    { "path": "./mobile-ide-prototype" }
+  ],
   "exclude": [
     "node_modules",
     "dist",

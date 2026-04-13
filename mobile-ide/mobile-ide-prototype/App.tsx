@@ -34,11 +34,15 @@ import SetupWizard from './src/components/SetupWizard';
 import SettingsScreen from './src/components/SettingsScreen';
 import WorkspaceConflictModal from './src/components/WorkspaceConflictModal';
 import ExtensionHost from './src/components/ExtensionHost';
+import GitCloneModal from './src/components/GitCloneModal';
+import GitDiffModal from './src/components/GitDiffModal';
+import GitPanel from './src/components/GitPanel';
 import TabletResponsive from './src/layout/TabletResponsive';
 import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
 import { simpleHash } from './src/utils/hash';
 import useSettingsStore from './src/stores/useSettingsStore';
 import useAuthStore from './src/stores/useAuthStore';
+import useGitStore from './src/stores/useGitStore';
 import { useTheme } from './src/theme/tokens';
 import type { OpenTabMeta, ConflictInfo, ConflictResolution } from './src/types/workspace';
 import splashImage from './assets/splash.png';
@@ -63,11 +67,33 @@ export default function App() {
 
   // ── Auth store ────────────────────────────────────────────────────────────
   const hydrateAuth = useAuthStore((s) => s.hydrate);
+  const authToken = useAuthStore((s) => s.token);
+
+  // ── Git store (branch + file tree revision) ───────────────────────────────
+  const gitBranch = useGitStore((s) => s.branch);
+  const fileTreeRevision = useGitStore((s) => s.fileTreeRevision);
+  const setBranchInfo = useGitStore((s) => s.setBranchInfo);
 
   // Restore auth session from keychain on mount
   useEffect(() => {
     hydrateAuth();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Refresh branch label when workspace or tree changes (e.g. after clone)
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const s = await GitBridge.status(rootPath);
+        if (!cancelled) setBranchInfo(s.branch, s.ahead, s.behind);
+      } catch {
+        if (!cancelled) setBranchInfo('main', 0, 0);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [rootPath, fileTreeRevision, setBranchInfo]);
 
   // ── Editor state ──────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<EditorTab[]>([]);
@@ -83,9 +109,9 @@ export default function App() {
   const [terminalHeight, setTerminalHeight] = useState(220);
   const [triggerNewFile, setTriggerNewFile] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
-
-  // ── Git status (updated after Git operations) ─────────────────────────────
-  const [gitBranch, setGitBranch] = useState('main');
+  const [showGitPanel, setShowGitPanel] = useState(false);
+  const [showCloneModal, setShowCloneModal] = useState(false);
+  const [diffFilepath, setDiffFilepath] = useState<string | null>(null);
 
   // ── Cloud-sync conflict detection ─────────────────────────────────────────
   // tabMetaRef holds a snapshot of each open tab's content hash at load/save
@@ -296,48 +322,24 @@ export default function App() {
   }, [closeTab]);
 
   // ---------------------------------------------------------------------------
-  // Git operations (stub — integrate isomorphic-git to make these real)
+  // Git — panel + clone (GitBridge in src/git/gitBridge.ts)
   // ---------------------------------------------------------------------------
 
-  const gitStatus = useCallback(async () => {
-    try {
-      const status = await GitBridge.status(rootPath);
-      setGitBranch(status.branch);
-      Alert.alert(
-        `Git — ${status.branch}`,
-        `Modified: ${status.modified.length}\nStaged: ${status.staged.length}\nUntracked: ${status.untracked.length}`,
-      );
-    } catch (err) {
-      Alert.alert('Git status', String(err));
-    }
-  }, [rootPath]);
+  const gitStatus = useCallback(() => {
+    setShowGitPanel(true);
+  }, []);
 
-  const gitCommit = useCallback(async () => {
-    const tab = tabs.find((t) => t.path === activeTabPath);
+  const gitCommit = useCallback(() => {
+    const tab = tabs.find((x) => x.path === activeTabPath);
     if (tab?.isDirty) {
       Alert.alert('Unsaved changes', 'Save the current file before committing?', [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Save & Commit', onPress: saveActiveFile },
+        { text: 'Save', onPress: saveActiveFile },
       ]);
       return;
     }
-    Alert.alert('Git Commit', 'Commit all staged changes?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Commit',
-        onPress: async () => {
-          try {
-            await GitBridge.commit(rootPath, 'feat: update from NomadCode', {
-              name: 'NomadCode User',
-              email: 'user@nomadcode.app',
-            });
-          } catch (err) {
-            Alert.alert('Commit failed', String(err));
-          }
-        },
-      },
-    ]);
-  }, [tabs, activeTabPath, saveActiveFile, rootPath]);
+    setShowGitPanel(true);
+  }, [tabs, activeTabPath, saveActiveFile]);
 
   // ---------------------------------------------------------------------------
   // Terminal callbacks
@@ -388,8 +390,14 @@ export default function App() {
     {
       id: 'git-commit',
       label: 'Git: Commit',
-      description: 'Stage all changes and create a commit',
+      description: 'Open git panel to commit staged changes',
       action: gitCommit,
+    },
+    {
+      id: 'git-clone',
+      label: 'Git: Clone repository',
+      description: 'Clone a GitHub repository into the workspace',
+      action: () => { setShowPalette(false); setShowCloneModal(true); },
     },
     {
       id: 'search-global',
@@ -400,7 +408,7 @@ export default function App() {
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
-  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setTriggerNewFile]);
+  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setTriggerNewFile, setShowPalette]);
 
   const handlePaletteSelect = useCallback((cmd: Command) => {
     setShowPalette(false);
@@ -417,7 +425,11 @@ export default function App() {
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
       <View style={styles.statusBar}>
-        <TouchableOpacity onPress={gitStatus} style={styles.statusItem}>
+        <TouchableOpacity
+          onPress={gitStatus}
+          style={styles.statusItem}
+          accessibilityLabel={`Git branch ${gitBranch}, open git panel`}
+        >
           <Text style={styles.statusText}>⎇ {gitBranch}</Text>
         </TouchableOpacity>
         <Text style={styles.statusTitle}>NomadCode <Text style={styles.statusVersion}>v{APP_VERSION}</Text></Text>
@@ -456,6 +468,7 @@ export default function App() {
         sidebar={
           <FileExplorer
             rootPath={rootPath}
+            refreshKey={fileTreeRevision}
             onFileSelect={openFile}
             onFileCreate={openFile}
             onFileDelete={deleteFile}
@@ -520,6 +533,39 @@ export default function App() {
 
       {/* ── Settings screen ───────────────────────────────────────────────── */}
       <SettingsScreen visible={showSettings} onClose={() => setShowSettings(false)} />
+
+      <GitPanel
+        visible={showGitPanel}
+        onClose={() => setShowGitPanel(false)}
+        rootPath={rootPath}
+        authToken={authToken}
+        onOpenSettings={() => {
+          setShowGitPanel(false);
+          setShowSettings(true);
+        }}
+        onOpenDiff={(fp) => {
+          setDiffFilepath(fp);
+          setShowGitPanel(false);
+        }}
+      />
+
+      <GitCloneModal
+        visible={showCloneModal}
+        onClose={() => setShowCloneModal(false)}
+        rootPath={rootPath}
+        authToken={authToken}
+        onOpenSettings={() => {
+          setShowCloneModal(false);
+          setShowSettings(true);
+        }}
+      />
+
+      <GitDiffModal
+        visible={diffFilepath !== null}
+        onClose={() => setDiffFilepath(null)}
+        rootPath={rootPath}
+        filepath={diffFilepath}
+      />
 
       {/* ── Cloud-sync conflict resolution modal ─────────────────────────── */}
       <WorkspaceConflictModal conflict={conflict} onResolve={handleConflictResolve} />

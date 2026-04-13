@@ -29,6 +29,31 @@ const mockSAFCreateFile = jest.fn();
 const mockSAFDeleteAsync = jest.fn();
 const mockSAFRequestPermissions = jest.fn();
 
+jest.mock('../../src/git/gitBridge', () => ({
+  GitBridge: {
+    clone: jest.fn().mockResolvedValue(undefined),
+    commit: jest.fn().mockResolvedValue(''),
+    push: jest.fn().mockResolvedValue(undefined),
+    pull: jest.fn().mockResolvedValue(undefined),
+    status: jest.fn().mockResolvedValue({
+      branch: 'main',
+      ahead: 0,
+      behind: 0,
+      modified: [],
+      staged: [],
+      untracked: [],
+    }),
+    branches: jest.fn().mockResolvedValue(['main']),
+    checkout: jest.fn().mockResolvedValue(undefined),
+    add: jest.fn().mockResolvedValue(undefined),
+    remove: jest.fn().mockResolvedValue(undefined),
+    statusMatrix: jest.fn().mockResolvedValue([]),
+    getWorkingDiff: jest.fn().mockResolvedValue({ headText: '', workText: '' }),
+    categorizeStatusMatrix: jest.fn(),
+  },
+  categorizeStatusMatrix: jest.fn(() => ({ modified: [], staged: [], untracked: [] })),
+}));
+
 jest.mock('expo-file-system', () => ({
   getInfoAsync: (...args: unknown[]) => mockGetInfoAsync(...args),
   readDirectoryAsync: (...args: unknown[]) => mockReadDirectoryAsync(...args),
@@ -512,7 +537,9 @@ describe('GitBridge', () => {
   });
 
   it('pull resolves without rejection (BUG-0041)', async () => {
-    await expect(GitBridge.pull('/dir')).resolves.toBeUndefined();
+    await expect(
+      GitBridge.pull('/dir', undefined, { name: 'Dev', email: 'dev@example.com' }),
+    ).resolves.toBeUndefined();
   });
 
   it('checkout resolves without rejection (BUG-0041)', async () => {
@@ -545,7 +572,9 @@ describe('GitBridge (BUG-0041 — graceful stubs)', () => {
     await expect(GitBridge.push('/dir')).resolves.toBeUndefined();
   });
   it('pull resolves without rejection (BUG-0041)', async () => {
-    await expect(GitBridge.pull('/dir')).resolves.toBeUndefined();
+    await expect(
+      GitBridge.pull('/dir', undefined, { name: 'Dev', email: 'dev@example.com' }),
+    ).resolves.toBeUndefined();
   });
   it('checkout resolves without rejection (BUG-0041)', async () => {
     await expect(GitBridge.checkout('/dir', 'feature')).resolves.toBeUndefined();

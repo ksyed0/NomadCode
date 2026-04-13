@@ -1100,3 +1100,54 @@ Related AC: AC-0117
 Type: Unit
 Status: [x] Pass
 Defect Raised: None
+
+## EPIC-0008: Git Integration
+
+TC-0360: GitBridge categorizes statusMatrix and delegates clone/add/commit/push/pull/status/branches/diff to isomorphic-git
+Related Story: US-0025
+Related AC: AC-0071
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0361: GitCloneModal validates URL, shows Settings link without token, clones with progress and bumps file tree revision
+Related Story: US-0025
+Related AC: AC-0071, AC-0072, AC-0073, AC-0191
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0362: withNetworkRetry retries transient failures and maps auth/offline errors to readable messages
+Related Story: US-0025
+Related AC: AC-0192
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0363: GitPanel loads status, toggles stage, commits, and lists branches with accessibility labels
+Related Story: US-0026
+Related AC: AC-0074, AC-0075, AC-0076, AC-0193
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0364: GitPanel Push requires token alert; Pull and Push call GitBridge with OAuth token when present
+Related Story: US-0027
+Related AC: AC-0077, AC-0078, AC-0194, AC-0195
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0365: GitDiffModal loads HEAD vs working diff and renders add/del line styling
+Related Story: US-0028
+Related AC: AC-0079, AC-0080
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
+
+TC-0366: GitPanel creates branch and checks out existing branch; useGitStore tracks branch and file tree revision
+Related Story: US-0029
+Related AC: AC-0081, AC-0082, AC-0083
+Type: Unit
+Status: [x] Pass
+Defect Raised: None
