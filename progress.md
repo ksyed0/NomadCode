@@ -4,6 +4,104 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 14 — 2026-04-13 (EPIC-0008 Git Integration + Dependency Housekeeping)
+
+### What Was Done
+
+**Context:** Multi-part session. Main feature work was EPIC-0008 (Git Integration) carried in from sessions on 2026-04-05, 2026-04-09, and 2026-04-12 — all uncommitted on `bugfix/session13-android-fixes`. Today's work was tsconfig fixes, dependabot consolidation, and full branch cleanup.
+
+#### EPIC-0008: Git Integration (in-flight from prior sessions, committed today)
+
+New files added to `src/git/`:
+- `gitBridge.ts` — isomorphic-git facade: clone, pull, push, commit, stage, diff, branch operations
+- `expoGitFs.ts` — Expo FileSystem adapter for isomorphic-git's `fs` interface
+- `gitHubAuth.ts` — GitHub OAuth token retrieval from secure store
+- `networkRetry.ts` — exponential backoff retry wrapper (max 3 retries) for network git ops
+- `useAuthStore.ts` — Zustand auth store (GitHub token, sign-in/out state)
+- `useSettingsStore.ts` — Zustand settings store (theme, font size, etc.)
+
+New components:
+- `src/components/GitPanel.tsx` — sidebar panel: branch selector, staged/unstaged file list, commit message input, push/pull/clone actions
+- `src/components/GitCloneModal.tsx` — bottom sheet for cloning a remote URL into a local path
+- `src/components/GitDiffModal.tsx` — modal diff viewer for staged/unstaged file changes
+- `src/stores/useGitStore.ts` — Zustand git store (repo state, staged files, commit history, remote status)
+
+Modified:
+- `App.tsx` — wired GitPanel into split-pane layout; adds git status to tab bar
+- `src/components/FileExplorer.tsx` — git status indicators (modified/staged/untracked dot indicators)
+- `src/utils/FileSystemBridge.ts` — pruned deprecated git stubs; now delegates to `gitBridge.ts`
+- `src/terminal/bundle/index.ts` + `terminalHtmlContent.ts` — terminal git FS adapter for running `git` commands in the sandboxed terminal
+
+New architecture doc: `architecture/ERROR_TAXONOMY.md`
+
+Tests added (52 new):
+- `tests/unit/GitPanel.test.tsx`
+- `tests/unit/GitCloneModal.test.tsx`
+- `tests/unit/GitDiffModal.test.tsx`
+- `tests/unit/useGitStore.test.ts`
+- `tests/unit/git/gitBridge.test.ts`
+- `tests/unit/git/expoGitFs.test.ts`
+- `tests/unit/git/gitHubAuth.test.ts`
+- `tests/unit/git/networkRetry.test.ts`
+- `tests/unit/git/terminalGitFsAdapter.test.ts`
+- `tests/unit/useAuthStore.test.ts`
+- `tests/unit/useSettingsStore.test.ts`
+
+#### Housekeeping (today)
+
+**tsconfig fixes:**
+- `mobile-ide/tsconfig.json`: Fixed TS18003 ("no inputs") by adding `"files": []` + `"references": [{ "path": "./mobile-ide-prototype" }]` (TypeScript project references pattern for workspace roots)
+- `mobile-ide/mobile-ide-prototype/tsconfig.json`: Added `@stores/*` → `src/stores/*` and `@git/*` → `src/git/*` path aliases for new EPIC-0008 directories
+
+**Dependabot PR consolidation (PR #75, merged to `develop`):**
+- Root cause of all 9 CI failures: `package-lock.json` was out of sync after `develop` moved forward since each PR was created
+- Merged into develop: esbuild 0.27.4→0.28.0, @typescript-eslint 8.57.2→8.58.0 (plugin+parser), marked 12.0.2→17.0.6, detox 20.0.0→20.50.1
+- `marked` v17 is ESM-only; added `marked` to `transformIgnorePatterns` so Jest/Babel transforms it
+- Deferred (need larger coordinated work): expo-* v55 PRs (#66, #71) — need expo SDK 52→55 upgrade; react-native 0.76→0.84 (#67) — major native arch change; jest 29→30 + jest-expo 55 (#68) — blocked on expo upgrade; eslint 8→10 (#69) — needs `.eslintrc.js` → flat config migration
+- Closed all 9 original PRs with explanations
+
+**Branch cleanup:**
+- Removed 3 stale git worktrees (bugfix-batch-open-bugs, EPIC-0003-wasi-terminal-runtime, feature/epic-0003-terminal)
+- Deleted 6 stale remote branches (all had merged PRs), all dependabot branches, orphaned `chore/version-bump-0.1.1`
+- Deleted 17 local stale branches
+- Result: repo now has only `main`, `develop`, `bugfix/session13-android-fixes`
+
+**Version bump automation finding:**
+- Workflow `version-bump.yml` has been silently failing on every PR merge since 2026-03-31 — `develop` is stuck at `0.1.0`
+- Fix: enable "Allow GitHub Actions to create and approve pull requests" in repo Settings → Actions → General
+
+**Research / planning:**
+- Expo Go iOS: SDK 52 still supported (current is 55); SDK 52 likely dropped in 1–2 more releases
+- Expo Orbit: nice-to-have for EAS build workflow; low priority at prototype stage
+- Expo SDK 52→54 upgrade risk: key blockers are React 18→19 (SDK 53) and `expo-file-system` API restructure (SDK 54); `FileSystemBridge.ts` will need targeted migration
+
+### Current State
+- Branch: `bugfix/session13-android-fixes` — targeting `develop`
+- All mobile unit tests: **947 tests, 0 failures** (34 suites)
+- TypeScript: 0 errors
+- `develop` is clean: 895 tests passing after PR #75
+
+### Test Status
+- 947 mobile tests passing (up from 895 on develop, +52 from EPIC-0008 git integration)
+
+### Key Files Modified
+- `mobile-ide/mobile-ide-prototype/src/git/` — new git layer (gitBridge, expoGitFs, gitHubAuth, networkRetry)
+- `mobile-ide/mobile-ide-prototype/src/stores/` — useGitStore, useAuthStore, useSettingsStore
+- `mobile-ide/mobile-ide-prototype/src/components/` — GitPanel, GitCloneModal, GitDiffModal
+- `mobile-ide/mobile-ide-prototype/App.tsx` — wired git panel into layout
+- `mobile-ide/mobile-ide-prototype/src/utils/FileSystemBridge.ts` — delegated to gitBridge
+- `mobile-ide/mobile-ide-prototype/tsconfig.json` — @stores/* and @git/* aliases
+- `mobile-ide/tsconfig.json` — project references fix
+
+### Next Session Pick-up
+1. **Merge this PR** → `develop` after CI green
+2. **Version bump fix** — enable Actions PR creation in repo settings, or manually bump to `0.1.1`
+3. **Deferred dependabot PRs** — eslint 8→10 (flat config migration) and expo SDK upgrade (52→55) as separate dedicated PRs
+4. **Expo SDK upgrade** — recommended path: 52→53→54 stepwise using `npx expo install expo@^53 --fix` + test each step; biggest risks: React 19 peer deps (53), expo-file-system API (54)
+5. BUG-0042 — `react-hooks/set-state-in-effect` in FileExplorer still deferred
+
+---
+
 ## Session 13 — 2026-03-31 (Android Device Testing + Bug-Fix Sprint)
 
 ### What Was Done

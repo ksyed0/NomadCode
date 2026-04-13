@@ -34829,6 +34829,15 @@ $1 $2
     };
   }
 
+  // src/git/gitHubAuth.ts
+  function createGithubOnAuth(token) {
+    if (!token || token.length === 0) return void 0;
+    return async () => ({
+      username: token,
+      password: "x-oauth-basic"
+    });
+  }
+
   // src/terminal/bundle/index.ts
   var cwd = "/";
   var pendingRequests = /* @__PURE__ */ new Map();
@@ -34929,9 +34938,14 @@ $1 $2
     });
   }
   async function getToken() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const requestId = generateId();
+      const timer = setTimeout(() => {
+        pendingRequests.delete(requestId);
+        reject(new Error("getToken timed out after 30 s \u2014 TOKEN_RESULT not received"));
+      }, 3e4);
       pendingRequests.set(requestId, (result) => {
+        clearTimeout(timer);
         resolve(result);
       });
       sendToRN({ type: "GET_TOKEN", requestId });
@@ -34955,11 +34969,13 @@ $1 $2
             return { output: "nothing to commit, working tree clean", exitCode: 0 };
           }
           const lines = statusMatrix.map(([filepath, head, workdir, stage]) => {
-            if (head === 0 && workdir === 2) return `?? ${filepath}`;
+            if (head === 0 && workdir === 2 && stage === 2) return `A  ${filepath}`;
+            if (head === 0 && workdir === 2 && stage === 0) return `?? ${filepath}`;
             if (head === 1 && workdir === 2 && stage === 2) return `M  ${filepath}`;
             if (head === 1 && workdir === 2 && stage === 1) return ` M ${filepath}`;
-            if (head === 0 && workdir === 2 && stage === 2) return `A  ${filepath}`;
-            if (head === 1 && workdir === 0) return ` D ${filepath}`;
+            if (head === 1 && workdir === 2 && stage === 0) return ` M ${filepath}`;
+            if (head === 1 && workdir === 0 && stage === 0) return ` D ${filepath}`;
+            if (head === 1 && workdir === 0 && stage === 1) return `D  ${filepath}`;
             return `   ${filepath}`;
           });
           return { output: lines.join("\n"), exitCode: 0 };
@@ -35004,13 +35020,14 @@ $1 $2
           const remote = rest[0] || "origin";
           const branch = rest[1] || "main";
           const pushToken = await getToken();
+          const onAuthPush = createGithubOnAuth(pushToken != null ? pushToken : null);
           await import_isomorphic_git.default.push(__spreadValues({
             fs: gitFs,
             http: web_default,
             dir: cwd,
             remote,
             remoteRef: branch
-          }, pushToken ? { onAuth: () => ({ username: pushToken, password: "x-oauth-basic" }) } : {}));
+          }, onAuthPush ? { onAuth: onAuthPush } : {}));
           return {
             output: `Pushed to ${remote}/${branch}`,
             exitCode: 0
@@ -35023,12 +35040,13 @@ $1 $2
             return { output: "usage: git clone <url> [dir]", exitCode: 1 };
           }
           const cloneToken = await getToken();
+          const onAuthClone = createGithubOnAuth(cloneToken != null ? cloneToken : null);
           await import_isomorphic_git.default.clone(__spreadValues({
             fs: gitFs,
             http: web_default,
             dir,
             url
-          }, cloneToken ? { onAuth: () => ({ username: cloneToken, password: "x-oauth-basic" }) } : {}));
+          }, onAuthClone ? { onAuth: onAuthClone } : {}));
           return { output: `Cloned ${url} into ${dir}`, exitCode: 0 };
         }
         default:
@@ -35039,7 +35057,11 @@ $1 $2
       }
     } catch (e) {
       const errMsg = (_a13 = e.message) != null ? _a13 : "";
-      if (errMsg.includes("ENOENT") || errMsg.includes("Could not find git repo") || errMsg.includes("is not readable") || errMsg.includes("'readAsStringAsync'") || errMsg.includes("'readDirectoryAsync'")) {
+      if (errMsg.includes("timed out")) {
+        return { output: `fatal: authentication timed out \u2014 check network and try again`, exitCode: 1 };
+      }
+      const isGitDirMissing = subcommand !== "init" && (errMsg.includes("Could not find git repo") || (errMsg.includes("ENOENT") || errMsg.includes("is not readable") || errMsg.includes("'readAsStringAsync'") || errMsg.includes("'readDirectoryAsync'")) && errMsg.includes(".git"));
+      if (isGitDirMissing) {
         return {
           output: `fatal: not a git repository (or any of the parent directories): .git
 Run 'git init' to create one.`,
