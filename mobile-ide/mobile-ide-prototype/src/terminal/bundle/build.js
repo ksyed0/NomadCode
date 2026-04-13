@@ -18,6 +18,18 @@ async function build() {
     platform: 'browser',
     target: ['es2017'],
     minify: false,
+    // isomorphic-git v1.37.5 exports field only exposes CJS (requires Node
+    // 'crypto'). Override the main entry to ESM (uses globalThis.crypto).
+    // Subpath imports like 'isomorphic-git/http/web' still resolve via exports.
+    plugins: [{
+      name: 'isomorphic-git-esm',
+      setup(build) {
+        const isoGitDir = path.dirname(require.resolve('isomorphic-git'));
+        build.onResolve({ filter: /^isomorphic-git$/ }, () => ({
+          path: path.join(isoGitDir, 'index.js'),
+        }));
+      },
+    }],
     // Provide minimal node built-ins that isomorphic-git may reference
     define: {
       'process.env.NODE_ENV': JSON.stringify('production'),
