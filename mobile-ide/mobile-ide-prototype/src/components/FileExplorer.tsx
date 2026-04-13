@@ -556,7 +556,8 @@ export default function FileExplorer({
               style={[styles.nameInput, { color: t.text, backgroundColor: t.bg, borderColor: t.border }]}
               value={nameInputValue}
               onChangeText={setNameInputValue}
-              onSubmitEditing={handleNameConfirm}
+              onSubmitEditing={() => handleNameConfirm()}
+              blurOnSubmit={false}
               returnKeyType="done"
               autoFocus
               autoCapitalize="none"

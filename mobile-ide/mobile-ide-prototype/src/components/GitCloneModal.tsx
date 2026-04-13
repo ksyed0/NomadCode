@@ -45,6 +45,7 @@ export default function GitCloneModal({
   const [subfolder, setSubfolder] = useState('');
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [errorText, setErrorText] = useState<string | null>(null);
 
   const onClone = useCallback(async () => {
     const u = url.trim();
@@ -56,6 +57,7 @@ export default function GitCloneModal({
     const safeName = name.replace(/[^a-zA-Z0-9._-]/g, '_') || 'repo';
     const dest = `${rootPath.endsWith('/') ? rootPath.slice(0, -1) : rootPath}/${safeName}`;
     setBusy(true);
+    setErrorText(null);
     setLastError(null);
     setProgress(0);
     setCloneProgress(0);
@@ -84,15 +86,16 @@ export default function GitCloneModal({
       setSubfolder('');
       onClose();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setLastError(msg);
+      let msg = e instanceof Error ? e.message : String(e);
       if (
         msg.includes('Authentication failed') ||
         msg.includes('401') ||
         msg.includes('Sign in')
       ) {
-        setLastError('Sign in with GitHub in Settings to access private repositories.');
+        msg = 'Sign in with GitHub in Settings to access private repositories.';
       }
+      setErrorText(msg);
+      setLastError(msg);
     } finally {
       setBusy(false);
       setCloneProgress(null);
@@ -139,6 +142,9 @@ export default function GitCloneModal({
                 Sign in with GitHub (Settings) for private repos
               </Text>
             </TouchableOpacity>
+          )}
+          {errorText && (
+            <Text style={styles.errorText}>{errorText}</Text>
           )}
           {busy && (
             <View style={styles.progressRow}>
@@ -203,6 +209,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginBottom: 12,
     minHeight: 44,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 13,
+    marginBottom: 12,
   },
   settingsLink: {
     marginBottom: 12,
