@@ -21,15 +21,20 @@ config.watchFolders = [
 // Resolve native-only packages to empty stubs for web builds.
 // react-native-document-picker has no web entry point; expo export (web) fails
 // without this stub because Metro cannot find a web-compatible module.
+// Locate the isomorphic-git ESM entry at config load time.
+// The exports field only declares CJS (requires Node 'crypto'), but the ESM
+// entry (index.js) uses globalThis.crypto and is browser-safe.
+const isoGitEsm = path.join(
+  path.dirname(require.resolve('isomorphic-git')),
+  'index.js',
+);
+
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (platform === 'web' && moduleName === 'react-native-document-picker') {
     return { type: 'empty' };
   }
-  // isomorphic-git v1.37.5's exports field only exposes CJS (requires Node
-  // 'crypto'). Force Metro to use the ESM entry (globalThis.crypto) for web.
   if (platform === 'web' && moduleName === 'isomorphic-git') {
-    const isoGitDir = path.dirname(require.resolve('isomorphic-git'));
-    return { type: 'sourceFile', filePath: path.join(isoGitDir, 'index.js') };
+    return { type: 'sourceFile', filePath: isoGitEsm };
   }
   return context.resolveRequest(context, moduleName, platform);
 };
