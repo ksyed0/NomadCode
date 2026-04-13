@@ -15,6 +15,7 @@ import * as prettierStandalone from 'prettier/standalone';
 import * as prettierBabelPlugin from 'prettier/plugins/babel';
 import * as prettierEstreePlugin from 'prettier/plugins/estree';
 import { buildGitFs } from './gitFsAdapter';
+import { createGithubOnAuth } from '../../git/gitHubAuth';
 // eslint (full package) is Node.js-only and cannot be bundled for WebView — deferred to v1.x
 // typescript package is ~10 MB and exceeds the 2 MB bundle ceiling — tsc deferred to v1.x
 
@@ -265,15 +266,14 @@ async function handleGit(
         const remote = rest[0] || 'origin';
         const branch = rest[1] || 'main';
         const pushToken = await getToken();
+        const onAuthPush = createGithubOnAuth(pushToken ?? null);
         await git.push({
           fs: gitFs,
           http,
           dir: cwd,
           remote,
           remoteRef: branch,
-          ...(pushToken
-            ? { onAuth: () => ({ username: pushToken, password: 'x-oauth-basic' }) }
-            : {}),
+          ...(onAuthPush ? { onAuth: onAuthPush } : {}),
         });
         return {
           output: `Pushed to ${remote}/${branch}`,
@@ -288,14 +288,13 @@ async function handleGit(
           return { output: 'usage: git clone <url> [dir]', exitCode: 1 };
         }
         const cloneToken = await getToken();
+        const onAuthClone = createGithubOnAuth(cloneToken ?? null);
         await git.clone({
           fs: gitFs,
           http,
           dir,
           url,
-          ...(cloneToken
-            ? { onAuth: () => ({ username: cloneToken, password: 'x-oauth-basic' }) }
-            : {}),
+          ...(onAuthClone ? { onAuth: onAuthClone } : {}),
         });
         return { output: `Cloned ${url} into ${dir}`, exitCode: 0 };
       }

@@ -54,7 +54,7 @@ Dependencies: EPIC-0005
 EPIC-0008: Git Integration
 Description: Full git workflow via isomorphic-git — clone, stage, commit, push, pull, diff, and branch management.
 Release Target: Release 1.0 (GA)
-Status: Planned
+Status: Done
 Dependencies: EPIC-0007
 
 EPIC-0009: In-App Purchases & Monetization
@@ -472,54 +472,54 @@ Dependencies: US-0022, US-0023
 US-0025 (EPIC-0008): As a developer, I want to clone a GitHub repository, so that I can work on an existing project.
 Priority: High (P0)
 Estimate: L
-Status: Planned
+Status: Complete
 Acceptance Criteria:
-  - [ ] AC-0071: User can enter a GitHub repository URL and initiate a clone to local storage
-  - [ ] AC-0072: Clone progress is shown via a progress indicator; errors surface a readable message
-  - [ ] AC-0073: Cloned repo appears in the file explorer immediately on completion
-  - [ ] AC-0191: If the repository requires authentication and no GitHub token is stored, the user sees a clear message and a path to sign in (e.g. Settings)
-  - [ ] AC-0192: When the network is unavailable or clone fails transiently, the user sees an actionable message; transient failures retry with exponential backoff up to three times (per AGENTS.md)
+  - [x] AC-0071: User can enter a GitHub repository URL and initiate a clone to local storage
+  - [x] AC-0072: Clone progress is shown via a progress indicator; errors surface a readable message
+  - [x] AC-0073: Cloned repo appears in the file explorer immediately on completion
+  - [x] AC-0191: If the repository requires authentication and no GitHub token is stored, the user sees a clear message and a path to sign in (e.g. Settings)
+  - [x] AC-0192: When the network is unavailable or clone fails transiently, the user sees an actionable message; transient failures retry with exponential backoff up to three times (per AGENTS.md)
 Dependencies: EPIC-0007
 
 US-0026 (EPIC-0008): As a developer, I want to stage and commit changes, so that I can record my work in git history.
 Priority: High (P0)
 Estimate: M
-Status: Planned
+Status: Complete
 Acceptance Criteria:
-  - [ ] AC-0074: Modified files are listed in the git status panel with staged/unstaged indicators
-  - [ ] AC-0075: Tapping a file checkbox toggles it between staged and unstaged
-  - [ ] AC-0076: Entering a commit message and confirming creates a local commit
-  - [ ] AC-0193: Git status panel interactive controls have accessibility labels and minimum 44pt touch targets (WCAG-minded)
+  - [x] AC-0074: Modified files are listed in the git status panel with staged/unstaged indicators
+  - [x] AC-0075: Tapping a file checkbox toggles it between staged and unstaged
+  - [x] AC-0076: Entering a commit message and confirming creates a local commit
+  - [x] AC-0193: Git status panel interactive controls have accessibility labels and minimum 44pt touch targets (WCAG-minded)
 Dependencies: US-0025
 
 US-0027 (EPIC-0008): As a developer, I want to push and pull from remote, so that I can collaborate with my team.
 Priority: High (P0)
 Estimate: M
-Status: Planned
+Status: Complete
 Acceptance Criteria:
-  - [ ] AC-0077: Tapping Push sends local commits to the remote using the stored OAuth token
-  - [ ] AC-0078: Tapping Pull fetches and merges remote changes into the working directory
-  - [ ] AC-0194: If push or pull requires authentication and no GitHub token is stored, the user sees a clear message and a path to sign in (e.g. Settings)
-  - [ ] AC-0195: When offline or push/pull fails transiently, the user sees an actionable message; transient failures retry with exponential backoff up to three times (per AGENTS.md)
+  - [x] AC-0077: Tapping Push sends local commits to the remote using the stored OAuth token
+  - [x] AC-0078: Tapping Pull fetches and merges remote changes into the working directory
+  - [x] AC-0194: If push or pull requires authentication and no GitHub token is stored, the user sees a clear message and a path to sign in (e.g. Settings)
+  - [x] AC-0195: When offline or push/pull fails transiently, the user sees an actionable message; transient failures retry with exponential backoff up to three times (per AGENTS.md)
 Dependencies: US-0026
 
 US-0028 (EPIC-0008): As a developer, I want to view file diffs, so that I can review changes before committing.
 Priority: Medium (P1)
 Estimate: M
-Status: Planned
+Status: Complete
 Acceptance Criteria:
-  - [ ] AC-0079: Tapping a modified file in the git status panel shows an inline diff view
-  - [ ] AC-0080: Added lines are highlighted green; removed lines are highlighted red
+  - [x] AC-0079: Tapping a modified file in the git status panel shows an inline diff view
+  - [x] AC-0080: Added lines are highlighted green; removed lines are highlighted red
 Dependencies: US-0026
 
 US-0029 (EPIC-0008): As a developer, I want to create and switch branches, so that I can work on features in isolation.
 Priority: Medium (P1)
 Estimate: M
-Status: Planned
+Status: Complete
 Acceptance Criteria:
-  - [ ] AC-0081: Current branch name is visible in the status bar
-  - [ ] AC-0082: User can create a new branch from the current HEAD via the branch panel
-  - [ ] AC-0083: User can switch to an existing local branch without losing uncommitted changes
+  - [x] AC-0081: Current branch name is visible in the status bar
+  - [x] AC-0082: User can create a new branch from the current HEAD via the branch panel
+  - [x] AC-0083: User can switch to an existing local branch without losing uncommitted changes
 Dependencies: US-0025
 ```
 

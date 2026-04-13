@@ -18,6 +18,8 @@ import { GlobalSearch } from './GlobalSearch';
 
 interface FileExplorerProps {
   rootPath: string;
+  /** Bumps when the tree should reload (e.g. after git clone) without changing rootPath. */
+  refreshKey?: number;
   onFileSelect: (filePath: string) => void;
   onFileCreate?: (filePath: string) => void;
   onFileDelete?: (filePath: string) => void;
@@ -83,6 +85,7 @@ function showErrorAlert(err: unknown): void {
  */
 export default function FileExplorer({
   rootPath,
+  refreshKey = 0,
   onFileSelect,
   onFileDelete,
   onFileCreate,
@@ -125,7 +128,7 @@ export default function FileExplorer({
       .then(setNodes)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [rootPath, loadDirectory]);
+  }, [rootPath, refreshKey, loadDirectory]);
 
   // ---------------------------------------------------------------------------
   // Refresh helpers
