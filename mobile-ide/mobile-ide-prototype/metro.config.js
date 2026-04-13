@@ -33,7 +33,8 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (platform === 'web' && moduleName === 'react-native-document-picker') {
     return { type: 'empty' };
   }
-  if (platform === 'web' && moduleName === 'isomorphic-git') {
+  // Apply to all platforms — Metro doesn't have Node 'crypto' built-in.
+  if (moduleName === 'isomorphic-git') {
     return { type: 'sourceFile', filePath: isoGitEsm };
   }
   return context.resolveRequest(context, moduleName, platform);
