@@ -118,13 +118,15 @@ export default function App() {
     hydrateAuth();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Refresh branch label when workspace or tree changes (e.g. after clone)
+  // Refresh branch label when workspace or tree changes (e.g. after clone).
+  // Uses the fast branch-only lookup (reads HEAD, no statusMatrix scan)
+  // so the 100ms job doesn't block the JS thread for ~30s on a large repo.
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const s = await GitBridge.status(rootPath);
-        if (!cancelled) setBranchInfo(s.branch, s.ahead, s.behind);
+        const { branch } = await GitBridge.currentBranch(rootPath);
+        if (!cancelled) setBranchInfo(branch, 0, 0);
       } catch {
         if (!cancelled) setBranchInfo('main', 0, 0);
       }

@@ -366,6 +366,27 @@ export const GitBridge = {
     return git.statusMatrix({ fs, dir: d, cache });
   },
 
+  /**
+   * Fast branch-only lookup. Skips the O(files) statusMatrix scan and
+   * just reads HEAD. Use this when you need the branch label (e.g. the
+   * top status bar) but don't need modified/staged/untracked lists.
+   */
+  async currentBranch(dir: string): Promise<{ branch: string; repoDir: string | null }> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = await findRepoRoot(fs, d);
+    if (!repoDir) return { branch: 'main', repoDir: null };
+    const cache = getGitCache(repoDir);
+    const branch = (await git.currentBranch({
+      fs,
+      dir: repoDir,
+      fullname: false,
+      cache,
+    } as Parameters<typeof git.currentBranch>[0]).catch(() => null)) ?? 'main';
+    return { branch, repoDir };
+  },
+
   async branches(dir: string): Promise<string[]> {
     assertGitWorkspace(dir);
     const fs = getFs();
