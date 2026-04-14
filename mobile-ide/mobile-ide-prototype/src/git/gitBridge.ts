@@ -362,25 +362,27 @@ export const GitBridge = {
     // Auto-detect repo root so diff works when the workspace is the
     // parent of a cloned subfolder (see status() for the same pattern).
     const repoDir = (await findRepoRoot(fs, d)) ?? d;
-    const mapped = await git.walk({
-      fs,
-      dir: repoDir,
-      trees: [git.TREE({ ref: 'HEAD' }), git.WORKDIR()],
-      map: async (path, [head, workdir]) => {
-        if (path !== filepath) return null;
-        const headBuf = head ? await head.content() : undefined;
-        const workBuf = workdir ? await workdir.content() : undefined;
-        const headText = headBuf ? new TextDecoder().decode(headBuf) : '';
-        const workText = workBuf ? new TextDecoder().decode(workBuf) : '';
-        return { headText, workText };
-      },
-    });
-    const flat = Array.isArray(mapped) ? mapped.flat(Infinity) : [mapped];
-    const found = flat.find(
-      (x): x is { headText: string; workText: string } =>
-        x !== null && typeof x === 'object' && 'headText' in x && 'workText' in x,
-    );
-    if (found) return found;
+
+    // HEAD side: resolve HEAD oid, then read the blob for `filepath`.
+    // Previously used git.walk but its WalkerEntry.content() returned
+    // undefined on React Native / Hermes for reasons that weren't
+    // obvious — the entire file appeared as green "added" content.
+    // readBlob + oid is the canonical way and works reliably.
+    let headText = '';
+    try {
+      const headOid = await git.resolveRef({ fs, dir: repoDir, ref: 'HEAD' });
+      const { blob } = await git.readBlob({
+        fs,
+        dir: repoDir,
+        oid: headOid,
+        filepath,
+      });
+      headText = new TextDecoder().decode(blob);
+    } catch {
+      // File not in HEAD (newly added / untracked) — leave headText empty.
+    }
+
+    // WORKDIR side: read the file directly from the filesystem.
     const workPath = `${repoDir}/${filepath}`;
     const workUri = workPath.startsWith('file://') || !workPath.startsWith('/')
       ? workPath
@@ -388,6 +390,7 @@ export const GitBridge = {
     const workText = await ExpoFS.readAsStringAsync(workUri, {
       encoding: ExpoFS.EncodingType.UTF8,
     }).catch(() => '');
-    return { headText: '', workText };
+
+    return { headText, workText };
   },
 };
