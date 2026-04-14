@@ -167,6 +167,9 @@ export default function GitCloneModal({
             placeholderTextColor={t.textMuted}
             value={url}
             onChangeText={setUrl}
+            onSubmitEditing={() => { if (!busy) onClone(); }}
+            blurOnSubmit={false}
+            returnKeyType="go"
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="url"
@@ -178,6 +181,9 @@ export default function GitCloneModal({
             placeholderTextColor={t.textMuted}
             value={subfolder}
             onChangeText={setSubfolder}
+            onSubmitEditing={() => { if (!busy) onClone(); }}
+            blurOnSubmit={false}
+            returnKeyType="go"
             autoCapitalize="none"
             accessibilityLabel="Clone destination folder name"
           />

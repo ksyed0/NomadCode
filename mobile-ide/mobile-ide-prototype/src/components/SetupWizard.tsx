@@ -163,6 +163,9 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
               style={[styles.workspaceInput, { backgroundColor: t.bgElevated, color: t.text, borderColor: t.border }]}
               value={workspacePath || FileSystem.documentDirectory || ''}
               onChangeText={setWorkspacePath}
+              onSubmitEditing={handleGetStarted}
+              blurOnSubmit={false}
+              returnKeyType="go"
               placeholder="Workspace path"
               placeholderTextColor={t.textMuted}
               autoCapitalize="none"

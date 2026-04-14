@@ -253,6 +253,9 @@ export default function GitPanel({
                 placeholderTextColor={t.textMuted}
                 value={commitMsg}
                 onChangeText={setCommitMsg}
+                onSubmitEditing={() => { if (!busy) doCommit(); }}
+                blurOnSubmit={false}
+                returnKeyType="send"
                 accessibilityLabel="Commit message"
               />
               <TouchableOpacity
@@ -271,6 +274,9 @@ export default function GitPanel({
                   placeholderTextColor={t.textMuted}
                   value={newBranch}
                   onChangeText={setNewBranch}
+                  onSubmitEditing={() => { if (!busy) doCreateBranch(); }}
+                  blurOnSubmit={false}
+                  returnKeyType="go"
                   autoCapitalize="none"
                   accessibilityLabel="New branch name"
                 />

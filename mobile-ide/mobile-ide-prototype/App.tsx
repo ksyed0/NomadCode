@@ -324,22 +324,11 @@ export default function App() {
     setConflict(null);
   }, [conflict, openFile]);
 
-  const deleteFile = useCallback(async (path: string) => {
-    Alert.alert('Delete file', `Delete "${path.split('/').pop()}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await FileSystemBridge.deleteEntry(path);
-            closeTab(path);
-          } catch (err) {
-            Alert.alert('Delete failed', String(err));
-          }
-        },
-      },
-    ]);
+  // FileExplorer already shows the confirm dialog and performs the delete.
+  // This hook fires AFTER deletion to close any open editor tab for the
+  // deleted path. Do not re-prompt or re-delete here.
+  const deleteFile = useCallback((path: string) => {
+    closeTab(path);
   }, [closeTab]);
 
   // ---------------------------------------------------------------------------
