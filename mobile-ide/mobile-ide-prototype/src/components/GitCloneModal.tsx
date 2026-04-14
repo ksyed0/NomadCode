@@ -78,11 +78,27 @@ export default function GitCloneModal({
   }, []);
 
   const onClone = useCallback(async () => {
-    const u = url.trim();
-    if (!u) {
+    const raw = url.trim();
+    if (!raw) {
       setErrorText('Enter a repository URL.');
       setLastError('Enter a repository URL.');
       return;
+    }
+    // Normalise the URL — accept scheme-less and shorthand forms:
+    //   github.com/owner/repo[.git]   → https://github.com/owner/repo.git
+    //   owner/repo                    → https://github.com/owner/repo.git
+    //   git@github.com:owner/repo.git → kept as-is (SSH won't work anyway,
+    //                                  but we surface a clearer error later)
+    let u: string;
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(raw) || raw.startsWith('git@')) {
+      u = raw;
+    } else if (/^[\w.-]+\/[\w.-]+$/.test(raw)) {
+      u = `https://github.com/${raw}.git`;
+    } else {
+      u = `https://${raw}`;
+    }
+    if (/^https?:\/\//i.test(u) && !/\.git$/i.test(u)) {
+      u = `${u}.git`;
     }
     const name = subfolder.trim() || repoNameFromCloneUrl(u);
     const safeName = name.replace(/[^a-zA-Z0-9._-]/g, '_') || 'repo';
@@ -180,7 +196,7 @@ export default function GitCloneModal({
         <View style={[styles.sheet, { backgroundColor: t.bgElevated, borderColor: t.border }]}>
           <Text style={[styles.title, { color: t.text }]}>Clone repository</Text>
           <Text style={[styles.hint, { color: t.textMuted }]}>
-            HTTPS GitHub URL. Destination: workspace folder + name below.
+            URL, github.com/owner/repo, or owner/repo. Destination: workspace folder + name below.
           </Text>
           <TextInput
             style={[styles.input, { color: t.text, borderColor: t.border }]}
