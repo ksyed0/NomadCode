@@ -7,11 +7,11 @@
 
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { Platform } from 'react-native';
 
 const mockSetTheme = jest.fn();
 const mockSetFontSize = jest.fn();
 const mockSetWorkspacePath = jest.fn();
+const mockSetWorkspaceRoot = jest.fn();
 const mockCompleteSetup = jest.fn();
 let mockHasCompletedSetup = false;
 let mockFontSize = 14;
@@ -29,13 +29,15 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
       setTheme: mockSetTheme,
       setFontSize: mockSetFontSize,
       setWorkspacePath: mockSetWorkspacePath,
+      setWorkspaceRoot: mockSetWorkspaceRoot,
       completeSetup: mockCompleteSetup,
     })
   ),
 }));
 
-jest.mock('expo-document-picker', () => ({
-  getDocumentAsync: jest.fn(() => Promise.resolve({ canceled: true })),
+const mockRequestWorkspacePermission = jest.fn(() => Promise.resolve(null));
+jest.mock('../../src/utils/FileSystemBridge', () => ({
+  requestWorkspacePermission: (...args: unknown[]) => mockRequestWorkspacePermission(...args),
 }));
 
 jest.mock('expo-file-system/legacy', () => ({
@@ -46,8 +48,6 @@ jest.mock('expo-file-system/legacy', () => ({
 }));
 
 import SetupWizard from '../../src/components/SetupWizard';
-import * as DocumentPicker from 'expo-document-picker';
-import * as ExpoFS from 'expo-file-system/legacy';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -55,7 +55,7 @@ beforeEach(() => {
   mockFontSize = 14;
   mockTheme = 'nomad-dark';
   mockWorkspacePath = '';
-  (ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock).mockResolvedValue({ granted: false });
+  mockRequestWorkspacePermission.mockResolvedValue(null);
 });
 
 describe('SetupWizard — visibility', () => {
@@ -216,71 +216,36 @@ describe('SetupWizard — Step 3 (Workspace)', () => {
     expect(screen.getByTestId('btn-browse')).toBeTruthy();
   });
 
-  it('Browse button (iOS) calls DocumentPicker.getDocumentAsync', async () => {
+  it('Browse button calls requestWorkspacePermission', async () => {
     goToStep3();
     await fireEvent.press(screen.getByTestId('btn-browse'));
-    expect(DocumentPicker.getDocumentAsync).toHaveBeenCalledWith({
-      type: 'public.folder',
-      copyToCacheDirectory: false,
-    });
+    expect(mockRequestWorkspacePermission).toHaveBeenCalled();
   });
 
-  it('Browse button (iOS) calls setWorkspacePath with picked URI', async () => {
-    (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValueOnce({
-      canceled: false,
-      assets: [{ uri: 'file:///picked-folder/' }],
+  it('Browse button calls setWorkspaceRoot with picked WorkspaceRoot on success', async () => {
+    mockRequestWorkspacePermission.mockResolvedValueOnce({
+      uri: 'file:///picked-folder/',
+      uriType: 'file',
+      displayName: 'picked-folder',
     });
     goToStep3();
-    await fireEvent.press(screen.getByTestId('btn-browse'));
-    expect(mockSetWorkspacePath).toHaveBeenCalledWith('file:///picked-folder/');
-  });
-
-  it('Browse button (Android) calls StorageAccessFramework.requestDirectoryPermissionsAsync', async () => {
-    const originalOS = Platform.OS;
-    Platform.OS = 'android';
-    try {
-      goToStep3();
-      await fireEvent.press(screen.getByTestId('btn-browse'));
-      expect((ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock)).toHaveBeenCalled();
-      expect(DocumentPicker.getDocumentAsync).not.toHaveBeenCalled();
-    } finally {
-      Platform.OS = originalOS;
-    }
-  });
-
-  it('Browse button (Android) calls setWorkspacePath when permission granted', async () => {
-    const originalOS = Platform.OS;
-    Platform.OS = 'android';
-    (ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock).mockResolvedValueOnce({
-      granted: true,
-      directoryUri: 'content://com.android.externalstorage.documents/tree/primary%3AProjects',
+    fireEvent.press(screen.getByTestId('btn-browse'));
+    await waitFor(() => {
+      expect(mockSetWorkspaceRoot).toHaveBeenCalledWith({
+        uri: 'file:///picked-folder/',
+        uriType: 'file',
+        displayName: 'picked-folder',
+      });
     });
-    try {
-      goToStep3();
-      fireEvent.press(screen.getByTestId('btn-browse'));
-      await waitFor(() => {
-        expect(mockSetWorkspacePath).toHaveBeenCalledWith(
-          'content://com.android.externalstorage.documents/tree/primary%3AProjects',
-        );
-      });
-    } finally {
-      Platform.OS = originalOS;
-    }
   });
 
-  it('Browse button (Android) does not call setWorkspacePath when permission denied', async () => {
-    const originalOS = Platform.OS;
-    Platform.OS = 'android';
-    (ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock).mockResolvedValueOnce({ granted: false });
-    try {
-      goToStep3();
-      fireEvent.press(screen.getByTestId('btn-browse'));
-      await waitFor(() => {
-        expect((ExpoFS.StorageAccessFramework.requestDirectoryPermissionsAsync as jest.Mock)).toHaveBeenCalled();
-      });
-      expect(mockSetWorkspacePath).not.toHaveBeenCalled();
-    } finally {
-      Platform.OS = originalOS;
-    }
+  it('Browse button does not call setWorkspaceRoot when user cancels', async () => {
+    mockRequestWorkspacePermission.mockResolvedValueOnce(null);
+    goToStep3();
+    fireEvent.press(screen.getByTestId('btn-browse'));
+    await waitFor(() => {
+      expect(mockRequestWorkspacePermission).toHaveBeenCalled();
+    });
+    expect(mockSetWorkspaceRoot).not.toHaveBeenCalled();
   });
 });
