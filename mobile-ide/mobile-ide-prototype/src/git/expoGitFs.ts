@@ -18,6 +18,20 @@ function toFileUri(path: string): string {
   return path;
 }
 
+/**
+ * Progress tracker for long-running fs operations (e.g. statusMatrix scan).
+ * Updated in place; readers can sample it to show live progress.
+ * Set by the caller before invoking an operation and reset after.
+ */
+export const fsProgress = {
+  reads: 0,
+  bytes: 0,
+  reset(): void {
+    this.reads = 0;
+    this.bytes = 0;
+  },
+};
+
 interface StatResult {
   isFile: () => boolean;
   isDirectory: () => boolean;
@@ -96,11 +110,16 @@ export function buildExpoGitFs(): ExpoGitFs {
         options?: { encoding?: string },
       ): Promise<string | Uint8Array> => {
         const uri = toFileUri(path);
+        fsProgress.reads += 1;
         if (options?.encoding) {
-          return ExpoFS.readAsStringAsync(uri, { encoding: ExpoFS.EncodingType.UTF8 });
+          const s = await ExpoFS.readAsStringAsync(uri, { encoding: ExpoFS.EncodingType.UTF8 });
+          fsProgress.bytes += s.length;
+          return s;
         }
         const b64 = await ExpoFS.readAsStringAsync(uri, { encoding: ExpoFS.EncodingType.Base64 });
-        return base64ToUint8Array(b64);
+        const bytes = base64ToUint8Array(b64);
+        fsProgress.bytes += bytes.byteLength;
+        return bytes;
       },
 
       writeFile: async (path: string, data: string | Uint8Array): Promise<void> => {
