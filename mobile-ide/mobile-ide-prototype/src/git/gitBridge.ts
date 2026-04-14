@@ -95,7 +95,9 @@ export const GitBridge = {
     const d = normalizeDir(dir);
     const fs = getFs();
     const onAuth = createGithubOnAuth(token ?? null);
-    await ExpoFS.makeDirectoryAsync(d, { intermediates: true }).catch(() => undefined);
+    // Note: do not pre-create the destination directory. expoGitFs.writeFile
+    // creates parent dirs on demand, and pre-creating leaves a stale empty
+    // folder on failure (see GitCloneModal cleanup logic).
     await withNetworkRetry(
       () =>
         git.clone({

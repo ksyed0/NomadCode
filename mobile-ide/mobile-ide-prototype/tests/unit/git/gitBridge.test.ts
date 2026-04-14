@@ -110,7 +110,9 @@ describe('GitBridge', () => {
 
   it('clone normalizes trailing slash and calls git.clone', async () => {
     await GitBridge.clone('https://github.com/o/r.git', `${dir}/`, 'tok');
-    expect(mockMakeDirectoryAsync).toHaveBeenCalled();
+    // Note: clone no longer pre-creates the destination — expoGitFs.writeFile
+    // creates parent dirs on demand, and pre-creating leaves a stale empty
+    // folder on failure. Removed assertion for makeDirectoryAsync.
     expect(mockClone).toHaveBeenCalled();
     const arg = mockClone.mock.calls[0][0];
     expect(arg.dir).toBe(dir);

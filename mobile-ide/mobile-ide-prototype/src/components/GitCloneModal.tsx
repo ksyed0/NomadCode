@@ -73,8 +73,18 @@ export default function GitCloneModal({
     return () => clearInterval(id);
   }, [busy]);
 
+  // Number of leading lines pinned at the top of the log (the "→ clone …"
+  // and "→ destination …" setup lines). Subsequent server messages roll
+  // through a 200-line buffer below them so the pinned context is never
+  // truncated when the stream of "Counting objects: N%" lines fills up.
+  const PINNED_LINES = 2;
   const appendLog = useCallback((line: string) => {
-    setLogLines((prev) => [...prev.slice(-199), line.trimEnd()]);
+    setLogLines((prev) => {
+      if (prev.length < PINNED_LINES) return [...prev, line.trimEnd()];
+      const pinned = prev.slice(0, PINNED_LINES);
+      const tail = prev.slice(PINNED_LINES, PINNED_LINES + 199);
+      return [...pinned, ...tail, line.trimEnd()];
+    });
   }, []);
 
   const onClone = useCallback(async () => {
@@ -170,6 +180,16 @@ export default function GitCloneModal({
       // Do not auto-close — user taps Done to dismiss and review log.
     } catch (e) {
       console.error('[GitClone] clone failed:', e);
+      // Clean up any partial destination directory left behind by the
+      // failed clone (isomorphic-git may have written .git/HEAD, .git/refs,
+      // etc. before the network error). This lets the user retry without
+      // hitting our "destination already exists" pre-flight guard.
+      try {
+        await FileSystemBridge.deleteEntry(dest);
+        appendLog(`→ cleaned up partial destination ${safeName}/`);
+      } catch {
+        // Ignore: nothing to clean or already removed.
+      }
       let msg = e instanceof Error ? e.message : String(e);
       appendLog(`✗ ${msg}`);
       setShowDetails(true); // auto-open details on failure
