@@ -31,7 +31,7 @@ describe('buildExpoGitFs', () => {
     const fs = buildExpoGitFs();
     const out = await fs.promises.readFile('/p', { encoding: 'utf8' });
     expect(out).toBe('hello');
-    expect(mockReadAsStringAsync).toHaveBeenCalledWith('/p', { encoding: 'utf8' });
+    expect(mockReadAsStringAsync).toHaveBeenCalledWith('file:///p', { encoding: 'utf8' });
   });
 
   it('readFile returns Uint8Array for binary (base64 path)', async () => {
@@ -46,21 +46,21 @@ describe('buildExpoGitFs', () => {
     mockWriteAsStringAsync.mockResolvedValueOnce(undefined);
     const fs = buildExpoGitFs();
     await fs.promises.writeFile('/f', 'text');
-    expect(mockWriteAsStringAsync).toHaveBeenCalledWith('/f', 'text', { encoding: 'utf8' });
+    expect(mockWriteAsStringAsync).toHaveBeenCalledWith('file:///f', 'text', { encoding: 'utf8' });
   });
 
   it('writeFile writes base64 for Uint8Array data', async () => {
     mockWriteAsStringAsync.mockResolvedValueOnce(undefined);
     const fs = buildExpoGitFs();
     await fs.promises.writeFile('/f', new Uint8Array([65]));
-    expect(mockWriteAsStringAsync).toHaveBeenCalledWith('/f', 'QQ==', { encoding: 'base64' });
+    expect(mockWriteAsStringAsync).toHaveBeenCalledWith('file:///f', 'QQ==', { encoding: 'base64' });
   });
 
   it('readdir strips trailing slash from path', async () => {
     mockReadDirectoryAsync.mockResolvedValueOnce(['a']);
     const fs = buildExpoGitFs();
     await fs.promises.readdir('/dir/');
-    expect(mockReadDirectoryAsync).toHaveBeenCalledWith('/dir');
+    expect(mockReadDirectoryAsync).toHaveBeenCalledWith('file:///dir');
   });
 
   it('stat throws ENOENT when file missing', async () => {
@@ -99,7 +99,7 @@ describe('buildExpoGitFs', () => {
     mockReadAsStringAsync.mockResolvedValueOnce('../target/path');
     const fs = buildExpoGitFs();
     const bytes = await fs.promises.readlink('/l');
-    expect(mockReadAsStringAsync).toHaveBeenCalledWith('/l', { encoding: 'utf8' });
+    expect(mockReadAsStringAsync).toHaveBeenCalledWith('file:///l', { encoding: 'utf8' });
     expect(bytes).toBeInstanceOf(Uint8Array);
     expect(String.fromCharCode(...bytes)).toBe('../target/path');
   });
@@ -109,7 +109,7 @@ describe('buildExpoGitFs', () => {
     mockWriteAsStringAsync.mockResolvedValueOnce(undefined);
     const fs = buildExpoGitFs();
     await fs.promises.symlink('../target/path', '/a/link');
-    expect(mockWriteAsStringAsync).toHaveBeenCalledWith('/a/link', '../target/path', {
+    expect(mockWriteAsStringAsync).toHaveBeenCalledWith('file:///a/link', '../target/path', {
       encoding: 'utf8',
     });
   });
@@ -126,6 +126,6 @@ describe('buildExpoGitFs', () => {
     mockMakeDirectoryAsync.mockResolvedValue(undefined);
     const fs = buildExpoGitFs();
     await fs.promises.mkdir('/nested');
-    expect(mockMakeDirectoryAsync).toHaveBeenCalledWith('/nested', { intermediates: true });
+    expect(mockMakeDirectoryAsync).toHaveBeenCalledWith('file:///nested', { intermediates: true });
   });
 });

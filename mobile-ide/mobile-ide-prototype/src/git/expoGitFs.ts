@@ -5,6 +5,19 @@
 
 import * as ExpoFS from 'expo-file-system/legacy';
 
+/**
+ * Ensure a path has the file:// prefix that expo-file-system (SDK 54)
+ * requires for sandbox writes. isomorphic-git strips URL prefixes when
+ * building child paths (e.g. `${dir}/.git/config`), so by the time our
+ * adapter is called the path is often a bare /Users/... absolute path.
+ * Without the prefix, writeAsStringAsync fails with "not writable".
+ */
+function toFileUri(path: string): string {
+  if (path.startsWith('file://')) return path;
+  if (path.startsWith('/')) return `file://${path}`;
+  return path;
+}
+
 interface StatResult {
   isFile: () => boolean;
   isDirectory: () => boolean;
@@ -82,19 +95,21 @@ export function buildExpoGitFs(): ExpoGitFs {
         path: string,
         options?: { encoding?: string },
       ): Promise<string | Uint8Array> => {
+        const uri = toFileUri(path);
         if (options?.encoding) {
-          return ExpoFS.readAsStringAsync(path, { encoding: ExpoFS.EncodingType.UTF8 });
+          return ExpoFS.readAsStringAsync(uri, { encoding: ExpoFS.EncodingType.UTF8 });
         }
-        const b64 = await ExpoFS.readAsStringAsync(path, { encoding: ExpoFS.EncodingType.Base64 });
+        const b64 = await ExpoFS.readAsStringAsync(uri, { encoding: ExpoFS.EncodingType.Base64 });
         return base64ToUint8Array(b64);
       },
 
       writeFile: async (path: string, data: string | Uint8Array): Promise<void> => {
+        const uri = toFileUri(path);
         // Ensure parent directory exists. SDK 54's writeAsStringAsync on iOS
         // no longer auto-creates parents; isomorphic-git relies on this.
-        const parentIdx = path.lastIndexOf('/');
-        if (parentIdx > 0) {
-          const parent = path.slice(0, parentIdx);
+        const parentIdx = uri.lastIndexOf('/');
+        if (parentIdx > 'file://'.length) {
+          const parent = uri.slice(0, parentIdx);
           try {
             await ExpoFS.makeDirectoryAsync(parent, { intermediates: true });
           } catch {
@@ -102,34 +117,35 @@ export function buildExpoGitFs(): ExpoGitFs {
           }
         }
         if (typeof data === 'string') {
-          await ExpoFS.writeAsStringAsync(path, data, { encoding: ExpoFS.EncodingType.UTF8 });
+          await ExpoFS.writeAsStringAsync(uri, data, { encoding: ExpoFS.EncodingType.UTF8 });
         } else {
-          await ExpoFS.writeAsStringAsync(path, uint8ArrayToBase64(data), {
+          await ExpoFS.writeAsStringAsync(uri, uint8ArrayToBase64(data), {
             encoding: ExpoFS.EncodingType.Base64,
           });
         }
       },
 
       unlink: async (path: string): Promise<void> => {
-        await ExpoFS.deleteAsync(path, { idempotent: true });
+        await ExpoFS.deleteAsync(toFileUri(path), { idempotent: true });
       },
 
       readdir: async (path: string): Promise<string[]> => {
-        const dir = path.endsWith('/') ? path.slice(0, -1) : path;
+        const uri = toFileUri(path);
+        const dir = uri.endsWith('/') ? uri.slice(0, -1) : uri;
         const names = await ExpoFS.readDirectoryAsync(dir);
         return names;
       },
 
       mkdir: async (path: string): Promise<void> => {
-        await ExpoFS.makeDirectoryAsync(path, { intermediates: true });
+        await ExpoFS.makeDirectoryAsync(toFileUri(path), { intermediates: true });
       },
 
       rmdir: async (path: string): Promise<void> => {
-        await ExpoFS.deleteAsync(path, { idempotent: true });
+        await ExpoFS.deleteAsync(toFileUri(path), { idempotent: true });
       },
 
       stat: async (path: string): Promise<StatResult> => {
-        const info = await ExpoFS.getInfoAsync(path);
+        const info = await ExpoFS.getInfoAsync(toFileUri(path));
         if (!info.exists) {
           throw Object.assign(new Error(`ENOENT: no such file or directory, stat '${path}'`), {
             code: 'ENOENT',
@@ -139,7 +155,7 @@ export function buildExpoGitFs(): ExpoGitFs {
       },
 
       lstat: async (path: string): Promise<StatResult> => {
-        const info = await ExpoFS.getInfoAsync(path);
+        const info = await ExpoFS.getInfoAsync(toFileUri(path));
         if (!info.exists) {
           throw Object.assign(new Error(`ENOENT: no such file or directory, lstat '${path}'`), {
             code: 'ENOENT',
@@ -152,7 +168,7 @@ export function buildExpoGitFs(): ExpoGitFs {
         // iOS sandbox has no symlink API. Fall back to reading the file as
         // regular content (isomorphic-git stores the link target as UTF-8
         // bytes in readlink's return value).
-        const text = await ExpoFS.readAsStringAsync(path, {
+        const text = await ExpoFS.readAsStringAsync(toFileUri(path), {
           encoding: ExpoFS.EncodingType.UTF8,
         });
         const bytes = new Uint8Array(text.length);
@@ -166,16 +182,17 @@ export function buildExpoGitFs(): ExpoGitFs {
         // semantics but lets isomorphic-git finish the clone. Repos with
         // meaningful symlinks (e.g. to content outside the working tree)
         // will not behave correctly until EPIC-0019 adds native support.
-        const parentIdx = path.lastIndexOf('/');
-        if (parentIdx > 0) {
-          const parent = path.slice(0, parentIdx);
+        const uri = toFileUri(path);
+        const parentIdx = uri.lastIndexOf('/');
+        if (parentIdx > 'file://'.length) {
+          const parent = uri.slice(0, parentIdx);
           try {
             await ExpoFS.makeDirectoryAsync(parent, { intermediates: true });
           } catch {
             // Ignore: may already exist
           }
         }
-        await ExpoFS.writeAsStringAsync(path, target, {
+        await ExpoFS.writeAsStringAsync(uri, target, {
           encoding: ExpoFS.EncodingType.UTF8,
         });
       },

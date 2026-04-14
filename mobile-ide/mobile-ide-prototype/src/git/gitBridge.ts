@@ -260,7 +260,10 @@ export const GitBridge = {
     );
     if (found) return found;
     const workPath = `${d}/${filepath}`;
-    const workText = await ExpoFS.readAsStringAsync(workPath, {
+    const workUri = workPath.startsWith('file://') || !workPath.startsWith('/')
+      ? workPath
+      : `file://${workPath}`;
+    const workText = await ExpoFS.readAsStringAsync(workUri, {
       encoding: ExpoFS.EncodingType.UTF8,
     }).catch(() => '');
     return { headText: '', workText };
