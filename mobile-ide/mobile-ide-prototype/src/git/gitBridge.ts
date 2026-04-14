@@ -171,6 +171,28 @@ export interface GitStatus {
   noRepo?: boolean;
 }
 
+/**
+ * Shared cache for isomorphic-git. Persists parsed pack files, HEAD tree,
+ * index metadata, and mtime-based stat caches across calls — turning what
+ * would be an O(files × readBytes × hash) scan on every open into an
+ * O(changed files) incremental operation.
+ *
+ * Cached by repo directory so multiple repos don't collide. Invalidated
+ * explicitly on clone / commit / checkout / pull / push / add / remove.
+ */
+const gitCaches = new Map<string, Record<string, unknown>>();
+function getGitCache(dir: string): Record<string, unknown> {
+  let c = gitCaches.get(dir);
+  if (!c) {
+    c = {};
+    gitCaches.set(dir, c);
+  }
+  return c;
+}
+function invalidateGitCache(dir: string): void {
+  gitCaches.delete(dir);
+}
+
 export const GitBridge = {
   categorizeStatusMatrix,
 
@@ -213,20 +235,24 @@ export const GitBridge = {
         }),
       'Clone',
     );
+    // Fresh repo — no prior cache.
+    invalidateGitCache(d);
   },
 
   async add(dir: string, filepath: string): Promise<void> {
     assertGitWorkspace(dir);
     const fs = getFs();
     const d = normalizeDir(dir);
-    await git.add({ fs, dir: d, filepath });
+    const cache = getGitCache(d);
+    await git.add({ fs, dir: d, filepath, cache });
   },
 
   async remove(dir: string, filepath: string): Promise<void> {
     assertGitWorkspace(dir);
     const fs = getFs();
     const d = normalizeDir(dir);
-    await git.remove({ fs, dir: d, filepath });
+    const cache = getGitCache(d);
+    await git.remove({ fs, dir: d, filepath, cache });
   },
 
   async commit(
@@ -237,12 +263,16 @@ export const GitBridge = {
     assertGitWorkspace(dir);
     const fs = getFs();
     const d = normalizeDir(dir);
+    const cache = getGitCache(d);
     const sha = await git.commit({
       fs,
       dir: d,
       message,
       author,
+      cache,
     });
+    // HEAD moved — invalidate so next status re-computes from new HEAD.
+    invalidateGitCache(d);
     return sha;
   },
 
@@ -250,7 +280,8 @@ export const GitBridge = {
     assertGitWorkspace(dir);
     const fs = getFs();
     const d = normalizeDir(dir);
-    const branch = (await git.currentBranch({ fs, dir: d, fullname: false })) ?? 'main';
+    const cache = getGitCache(d);
+    const branch = (await git.currentBranch({ fs, dir: d, fullname: false, cache } as Parameters<typeof git.currentBranch>[0])) ?? 'main';
     const onAuth = createGithubOnAuth(token ?? null);
     await withNetworkRetry(
       () =>
@@ -287,6 +318,8 @@ export const GitBridge = {
         }),
       'Pull',
     );
+    // Pull can advance HEAD — invalidate so next status sees the new tree.
+    invalidateGitCache(d);
   },
 
   async status(dir: string): Promise<GitStatus> {
@@ -310,8 +343,9 @@ export const GitBridge = {
         noRepo: true,
       };
     }
-    const branch = (await git.currentBranch({ fs, dir: repoDir, fullname: false }).catch(() => null)) ?? 'main';
-    const matrix = await git.statusMatrix({ fs, dir: repoDir });
+    const cache = getGitCache(repoDir);
+    const branch = (await git.currentBranch({ fs, dir: repoDir, fullname: false, cache } as Parameters<typeof git.currentBranch>[0]).catch(() => null)) ?? 'main';
+    const matrix = await git.statusMatrix({ fs, dir: repoDir, cache });
     const { modified, staged, untracked } = categorizeStatusMatrix(matrix);
     return {
       branch,
@@ -328,14 +362,16 @@ export const GitBridge = {
     assertGitWorkspace(dir);
     const fs = getFs();
     const d = normalizeDir(dir);
-    return git.statusMatrix({ fs, dir: d });
+    const cache = getGitCache(d);
+    return git.statusMatrix({ fs, dir: d, cache });
   },
 
   async branches(dir: string): Promise<string[]> {
     assertGitWorkspace(dir);
     const fs = getFs();
     const d = normalizeDir(dir);
-    return git.listBranches({ fs, dir: d });
+    const cache = getGitCache(d);
+    return git.listBranches({ fs, dir: d, cache } as Parameters<typeof git.listBranches>[0]);
   },
 
   async checkout(dir: string, ref: string): Promise<void> {
@@ -343,6 +379,8 @@ export const GitBridge = {
     const fs = getFs();
     const d = normalizeDir(dir);
     await git.checkout({ fs, dir: d, ref, force: false });
+    // HEAD + workdir changed — fresh scan needed.
+    invalidateGitCache(d);
   },
 
   async createBranch(dir: string, name: string, checkout: boolean): Promise<void> {
@@ -350,6 +388,7 @@ export const GitBridge = {
     const fs = getFs();
     const d = normalizeDir(dir);
     await git.branch({ fs, dir: d, ref: name, checkout });
+    if (checkout) invalidateGitCache(d);
   },
 
   /**
@@ -368,14 +407,16 @@ export const GitBridge = {
     // undefined on React Native / Hermes for reasons that weren't
     // obvious — the entire file appeared as green "added" content.
     // readBlob + oid is the canonical way and works reliably.
+    const cache = getGitCache(repoDir);
     let headText = '';
     try {
-      const headOid = await git.resolveRef({ fs, dir: repoDir, ref: 'HEAD' });
+      const headOid = await git.resolveRef({ fs, dir: repoDir, ref: 'HEAD', cache } as Parameters<typeof git.resolveRef>[0]);
       const { blob } = await git.readBlob({
         fs,
         dir: repoDir,
         oid: headOid,
         filepath,
+        cache,
       });
       headText = new TextDecoder().decode(blob);
     } catch {
