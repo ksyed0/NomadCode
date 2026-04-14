@@ -135,9 +135,30 @@ export default function App() {
       return;
     }
 
+    // Reject known binary/asset extensions early — readAsStringAsync (UTF-8)
+    // will fail on these with a "not readable" error. Image preview is
+    // tracked as a future enhancement.
+    const name = path.split('/').pop() ?? path;
+    const ext = name.includes('.') ? name.slice(name.lastIndexOf('.') + 1).toLowerCase() : '';
+    const BINARY_EXTS = new Set([
+      'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'tiff', 'svg',
+      'mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac',
+      'mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v',
+      'pdf', 'zip', 'tar', 'gz', 'bz2', '7z', 'rar', 'jar', 'war',
+      'woff', 'woff2', 'ttf', 'otf', 'eot',
+      'class', 'pyc', 'so', 'dll', 'dylib', 'a', 'o', 'exe',
+      'sqlite', 'db', 'wasm',
+    ]);
+    if (BINARY_EXTS.has(ext)) {
+      Alert.alert(
+        'Cannot preview file',
+        `${name} is a ${ext.toUpperCase()} file. Binary file preview is not yet supported.`,
+      );
+      return;
+    }
+
     try {
       const content = await FileSystemBridge.readFile(path);
-      const name = path.split('/').pop() ?? path;
       const detectedLang = getLanguageForFile(name);
       const language = detectedLang === 'plaintext'
         ? detectLanguageFromContent(content)
@@ -422,7 +443,10 @@ export default function App() {
   return (
     <SafeAreaProvider>
     <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]}>
-      <StatusBar barStyle="light-content" backgroundColor={t.bg} />
+      <StatusBar
+        barStyle={t.mode === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={t.bg}
+      />
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
       <View style={styles.statusBar}>

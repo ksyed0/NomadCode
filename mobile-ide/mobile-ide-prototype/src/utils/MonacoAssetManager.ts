@@ -132,9 +132,14 @@ export const MonacoAssetManager = {
  *                   - CDN:    "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs"
  *                   - Local:  "file:///path/to/documentDirectory/monaco/0.45.0/vs"
  */
-export function buildMonacoHtml(vsBaseUrl: string): string {
+export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark' = 'vs-dark'): string {
   // Safely embed the URL in JS (no injection vector since it's our own constant)
   const safeBase = JSON.stringify(vsBaseUrl);
+  const safeTheme = JSON.stringify(initialTheme);
+  // Match the chrome (loading screen + body bg) to the editor theme so users
+  // don't see a flash of the wrong colour while Monaco bootstraps.
+  const chromeBg = initialTheme === 'vs' ? '#ffffff' : '#1e1e1e';
+  const chromeText = initialTheme === 'vs' ? '#374151' : '#6b7280';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -143,12 +148,12 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body  { height: 100%; background: #1e1e1e; overflow: hidden; }
+    html, body  { height: 100%; background: ${chromeBg}; overflow: hidden; }
     #container  { position: absolute; inset: 0; -webkit-user-select: text; user-select: text; }
     #loading    {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 12px;
-      color: #6b7280; font: 13px/1 -apple-system, sans-serif; background: #1e1e1e;
+      color: ${chromeText}; font: 13px/1 -apple-system, sans-serif; background: ${chromeBg};
     }
     #loading-bar-wrap { width: 160px; height: 3px; background: #1f2937; border-radius: 2px; }
     #loading-bar      { height: 100%; width: 0%; background: #2563eb; border-radius: 2px;
@@ -210,7 +215,7 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
         editor = monaco.editor.create(document.getElementById('container'), {
           value: '',
           language: 'plaintext',
-          theme: 'vs-dark',
+          theme: ${safeTheme},
           fontSize: currentFontSize,
           fontFamily: "'JetBrains Mono', 'Fira Code', Menlo, Monaco, monospace",
           lineNumbers: 'on',

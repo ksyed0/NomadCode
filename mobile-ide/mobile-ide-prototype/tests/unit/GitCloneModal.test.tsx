@@ -84,6 +84,9 @@ describe('GitCloneModal', () => {
     expect(mockClone.mock.calls[0][1]).toBe('/docs/ws/my-app');
     expect(mockClone.mock.calls[0][2]).toBe('tok');
     expect(useGitStore.getState().fileTreeRevision).toBeGreaterThan(0);
+    // Modal no longer auto-closes — user taps "Done" to dismiss.
+    await waitFor(() => expect(screen.getByTestId('clone-success')).toBeTruthy());
+    fireEvent.press(screen.getByTestId('clone-done-btn'));
     expect(onClose).toHaveBeenCalled();
   });
 

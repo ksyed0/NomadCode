@@ -50,6 +50,7 @@ export default function GitCloneModal({
   const [errorText, setErrorText] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [logLines, setLogLines] = useState<string[]>([]);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const appendLog = useCallback((line: string) => {
     setLogLines((prev) => [...prev.slice(-199), line.trimEnd()]);
@@ -67,6 +68,7 @@ export default function GitCloneModal({
     const dest = `${rootPath.endsWith('/') ? rootPath.slice(0, -1) : rootPath}/${safeName}`;
     setBusy(true);
     setErrorText(null);
+    setSuccessMessage(null);
     setLastError(null);
     setProgress(0);
     setCloneProgress(0);
@@ -101,9 +103,8 @@ export default function GitCloneModal({
       });
       appendLog('✓ clone complete');
       bumpFileTree();
-      setUrl('');
-      setSubfolder('');
-      onClose();
+      setSuccessMessage(`Clone completed successfully into ${safeName}/`);
+      // Do not auto-close — user taps Done to dismiss and review log.
     } catch (e) {
       console.error('[GitClone] clone failed:', e);
       let msg = e instanceof Error ? e.message : String(e);
@@ -169,6 +170,9 @@ export default function GitCloneModal({
           {errorText && (
             <Text style={styles.errorText}>{errorText}</Text>
           )}
+          {successMessage && (
+            <Text testID="clone-success" style={styles.successText}>✓ {successMessage}</Text>
+          )}
           {busy && (
             <View style={styles.progressRow}>
               <ActivityIndicator color={t.accent} />
@@ -212,23 +216,45 @@ export default function GitCloneModal({
             </>
           )}
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.btn, { backgroundColor: t.border }]}
-              onPress={onClose}
-              accessibilityLabel="Cancel clone"
-              accessibilityRole="button"
-            >
-              <Text style={[styles.btnText, { color: t.text }]}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.btn, styles.btnPrimary, { backgroundColor: t.accent, opacity: busy ? 0.6 : 1 }]}
-              onPress={onClone}
-              disabled={busy}
-              accessibilityLabel="Clone repository"
-              accessibilityRole="button"
-            >
-              <Text style={[styles.btnText, { color: '#FFFFFF' }]}>Clone</Text>
-            </TouchableOpacity>
+            {successMessage ? (
+              <TouchableOpacity
+                testID="clone-done-btn"
+                style={[styles.btn, styles.btnPrimary, { backgroundColor: t.accent }]}
+                onPress={() => {
+                  setUrl('');
+                  setSubfolder('');
+                  setSuccessMessage(null);
+                  setLogLines([]);
+                  onClose();
+                }}
+                accessibilityLabel="Done"
+                accessibilityRole="button"
+              >
+                <Text style={[styles.btnText, { color: '#FFFFFF' }]}>Done</Text>
+              </TouchableOpacity>
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={[styles.btn, { backgroundColor: t.border }]}
+                  onPress={onClose}
+                  accessibilityLabel="Cancel clone"
+                  accessibilityRole="button"
+                >
+                  <Text style={[styles.btnText, { color: t.text }]}>
+                    {errorText ? 'Close' : 'Cancel'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.btn, styles.btnPrimary, { backgroundColor: t.accent, opacity: busy ? 0.6 : 1 }]}
+                  onPress={onClone}
+                  disabled={busy}
+                  accessibilityLabel="Clone repository"
+                  accessibilityRole="button"
+                >
+                  <Text style={[styles.btnText, { color: '#FFFFFF' }]}>Clone</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </View>
@@ -270,6 +296,12 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#EF4444',
     fontSize: 13,
+    marginBottom: 12,
+  },
+  successText: {
+    color: '#22C55E',
+    fontSize: 13,
+    fontWeight: '500',
     marginBottom: 12,
   },
   settingsLink: {

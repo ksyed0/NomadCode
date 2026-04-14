@@ -83,17 +83,17 @@ describe('useTheme', () => {
   });
 });
 
+// getMonacoTheme maps NomadCode theme IDs to Monaco built-in themes
+// (vs / vs-dark). Custom Monaco theme palettes are not yet registered via
+// monaco.editor.defineTheme — see follow-up enhancement. The original
+// BUG-0044 fix returned the raw ThemeId, which Monaco silently ignored
+// (falling back to vs-dark on light themes). Mapping by mode keeps the
+// editor in sync with the user's light/dark preference at minimum.
 describe('getMonacoTheme', () => {
-  it.each(ALL_THEME_IDS)('returns ThemeId %s for Monaco custom theme name (BUG-0044)', (id) => {
-    expect(getMonacoTheme(id)).toBe(id);
+  it.each(DARK_THEME_IDS)('returns vs-dark for dark theme %s', (id) => {
+    expect(getMonacoTheme(id)).toBe('vs-dark');
   });
-});
-
-describe('getMonacoTheme (BUG-0044)', () => {
-  it.each(DARK_THEME_IDS)('returns ThemeId for dark theme %s (BUG-0044)', (id) => {
-    expect(getMonacoTheme(id)).toBe(id);
-  });
-  it.each(LIGHT_THEME_IDS)('returns ThemeId for light theme %s (BUG-0044)', (id) => {
-    expect(getMonacoTheme(id)).toBe(id);
+  it.each(LIGHT_THEME_IDS)('returns vs for light theme %s', (id) => {
+    expect(getMonacoTheme(id)).toBe('vs');
   });
 });
