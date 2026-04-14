@@ -681,8 +681,10 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   statusRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     minWidth: 60,
-    alignItems: 'flex-end',
   },
   statusDirty: {
     // color applied inline from theme tokens (t.error)
