@@ -63,6 +63,18 @@ export default function App() {
   const installedExtensions = useSettingsStore((s) => s.installedExtensions);
   const workspaceUri = useSettingsStore((s) => s.workspaceUri);
   const setWorkspaceRoot = useSettingsStore((s) => s.setWorkspaceRoot);
+  const editorFontSize = useSettingsStore((s) => s.fontSize);
+
+  // Scale chrome text (status bar, etc.) proportionally to the user's
+  // editor font size. Default editor size is 14 → scale factor 1.0.
+  const chromeScale = editorFontSize / 14;
+  const statusBarStyles = useMemo(() => ({
+    bar: { height: Math.max(28, 22 * chromeScale + 6) },
+    branch: { fontSize: 11 * chromeScale },
+    title: { fontSize: 12 * chromeScale },
+    version: { fontSize: 10 * chromeScale },
+    infoIcon: { fontSize: 16 * chromeScale },
+  }), [chromeScale]);
   // Fall back to the app's sandboxed document directory when no workspace has been picked yet
   const rootPath = workspaceUri || FileSystemBridge.documentDirectory;
 
@@ -465,23 +477,25 @@ export default function App() {
       />
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
-      <View style={styles.statusBar}>
+      <View style={[styles.statusBar, statusBarStyles.bar]}>
         <TouchableOpacity
           onPress={gitStatus}
           style={styles.statusItem}
           accessibilityLabel={`Git branch ${gitBranch}, open git panel`}
         >
-          <Text style={styles.statusText}>⎇ {gitBranch}</Text>
+          <Text style={[styles.statusText, statusBarStyles.branch]}>⎇ {gitBranch}</Text>
         </TouchableOpacity>
-        <Text style={styles.statusTitle}>NomadCode <Text style={styles.statusVersion}>v{APP_VERSION}</Text></Text>
+        <Text style={[styles.statusTitle, statusBarStyles.title]}>
+          NomadCode <Text style={[styles.statusVersion, statusBarStyles.version]}>v{APP_VERSION}</Text>
+        </Text>
         <View style={styles.statusRight}>
           {tabs.find((t) => t.path === activeTabPath)?.isDirty && (
             <TouchableOpacity onPress={saveActiveFile}>
-              <Text style={styles.statusDirty}>● Save</Text>
+              <Text style={[styles.statusDirty, statusBarStyles.branch]}>● Save</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => setShowAbout(true)} style={styles.aboutBtn} accessibilityLabel="About NomadCode">
-            <Text style={styles.aboutBtnText}>ⓘ</Text>
+            <Text style={[styles.aboutBtnText, statusBarStyles.infoIcon]}>ⓘ</Text>
           </TouchableOpacity>
         </View>
       </View>
