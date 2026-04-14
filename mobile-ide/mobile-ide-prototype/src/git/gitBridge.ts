@@ -359,9 +359,12 @@ export const GitBridge = {
     assertGitWorkspace(dir);
     const fs = getFs();
     const d = normalizeDir(dir);
+    // Auto-detect repo root so diff works when the workspace is the
+    // parent of a cloned subfolder (see status() for the same pattern).
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
     const mapped = await git.walk({
       fs,
-      dir: d,
+      dir: repoDir,
       trees: [git.TREE({ ref: 'HEAD' }), git.WORKDIR()],
       map: async (path, [head, workdir]) => {
         if (path !== filepath) return null;
@@ -378,7 +381,7 @@ export const GitBridge = {
         x !== null && typeof x === 'object' && 'headText' in x && 'workText' in x,
     );
     if (found) return found;
-    const workPath = `${d}/${filepath}`;
+    const workPath = `${repoDir}/${filepath}`;
     const workUri = workPath.startsWith('file://') || !workPath.startsWith('/')
       ? workPath
       : `file://${workPath}`;
