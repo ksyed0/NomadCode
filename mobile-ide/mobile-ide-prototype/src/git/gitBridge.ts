@@ -14,6 +14,49 @@ function isSafWorkspace(path: string): boolean {
   return path.startsWith('content://');
 }
 
+/**
+ * isomorphic-git's http adapter shape. The body is an async iterable of
+ * Uint8Array chunks streamed from the HTTP response. We tap into it to
+ * report bytes received so the UI can show download progress during the
+ * silent pack-download phase of clone/fetch.
+ */
+type GitHttpAdapter = {
+  request: (params: {
+    url: string;
+    method?: string;
+    headers?: Record<string, string>;
+    body?: AsyncIterableIterator<Uint8Array>;
+  }) => Promise<{
+    url: string;
+    method?: string;
+    headers: Record<string, string>;
+    body?: AsyncIterableIterator<Uint8Array>;
+    statusCode: number;
+    statusMessage: string;
+  }>;
+};
+
+function wrapHttpWithByteCounter(
+  base: GitHttpAdapter,
+  onBytes: (bytes: number) => void,
+): GitHttpAdapter {
+  return {
+    request: async (params) => {
+      const res = await base.request(params);
+      if (!res.body) return res;
+      const originalBody = res.body;
+      // Wrap the async-iterable body to count bytes as they stream past.
+      const countingBody = (async function* () {
+        for await (const chunk of originalBody) {
+          if (chunk && chunk.byteLength) onBytes(chunk.byteLength);
+          yield chunk;
+        }
+      })();
+      return { ...res, body: countingBody };
+    },
+  };
+}
+
 let fsSingleton: ExpoGitFs | null = null;
 
 function getFs(): ExpoGitFs {
@@ -89,12 +132,21 @@ export const GitBridge = {
     options?: {
       onProgress?: (progress: { loaded: number; total: number; phase?: string }) => void;
       onMessage?: (message: string) => void;
+      onHttpBytes?: (bytes: number) => void;
     },
   ): Promise<void> {
     assertGitWorkspace(dir);
     const d = normalizeDir(dir);
     const fs = getFs();
     const onAuth = createGithubOnAuth(token ?? null);
+    // Wrap the http adapter so we can count bytes received during the pack
+    // download. isomorphic-git's onProgress events go silent between
+    // "Compressing objects: done" and "Analyzing workdir" because the pack
+    // stream doesn't emit phase events — but those are the minutes a user
+    // stares at a stuck-looking 100% indicator. Byte counting fills the gap.
+    const wrappedHttp = options?.onHttpBytes
+      ? wrapHttpWithByteCounter(http as unknown as GitHttpAdapter, options.onHttpBytes)
+      : http;
     // Note: do not pre-create the destination directory. expoGitFs.writeFile
     // creates parent dirs on demand, and pre-creating leaves a stale empty
     // folder on failure (see GitCloneModal cleanup logic).
@@ -102,7 +154,7 @@ export const GitBridge = {
       () =>
         git.clone({
           fs,
-          http,
+          http: wrappedHttp,
           dir: d,
           url,
           singleBranch: true,

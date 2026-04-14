@@ -78,7 +78,9 @@ export default function GitCloneModal({
   // emit no isomorphic-git progress events).
   const [lastActivity, setLastActivity] = useState<string>('');
   const [elapsedSec, setElapsedSec] = useState(0);
+  const [bytesReceived, setBytesReceived] = useState(0);
   const startedAtRef = useRef<number | null>(null);
+  const bytesAccumulatorRef = useRef(0);
 
   // Tick a seconds counter while a clone is busy.
   useEffect(() => {
@@ -138,6 +140,8 @@ export default function GitCloneModal({
     setCloneProgress(0);
     setPhase('connecting');
     setLastActivity('');
+    setBytesReceived(0);
+    bytesAccumulatorRef.current = 0;
     lastPhaseRef.current = '';
     setLogLines([`→ clone ${u}`, `→ destination ${dest}`]);
     // Pre-flight: destination must not already exist. isomorphic-git hangs
@@ -190,7 +194,18 @@ export default function GitCloneModal({
           const trimmed = message.trim();
           if (trimmed) setLastActivity(trimmed);
         },
+        onHttpBytes: (bytes: number) => {
+          // Coalesce updates — chunks arrive every few KB; reflecting each
+          // one in React state would cause a re-render storm. Accumulate in
+          // a ref and only setState every ~64KB or when activity is sparse.
+          bytesAccumulatorRef.current += bytes;
+          if (bytesAccumulatorRef.current % 65536 < bytes || bytes > 65536) {
+            setBytesReceived(bytesAccumulatorRef.current);
+          }
+        },
       });
+      // Final flush so the final byte count is reflected after completion.
+      setBytesReceived(bytesAccumulatorRef.current);
       appendLog('✓ clone complete');
       bumpFileTree();
       setSuccessMessage(`Clone completed successfully into ${safeName}/`);
@@ -283,10 +298,18 @@ export default function GitCloneModal({
             const elapsedStr = elapsedSec >= 60
               ? `${Math.floor(elapsedSec / 60)}m ${elapsedSec % 60}s`
               : `${elapsedSec}s`;
+            // Format bytes received as KB / MB / GB.
+            const formatBytes = (b: number): string => {
+              if (b < 1024) return `${b} B`;
+              if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+              if (b < 1024 * 1024 * 1024) return `${(b / 1024 / 1024).toFixed(1)} MB`;
+              return `${(b / 1024 / 1024 / 1024).toFixed(2)} GB`;
+            };
             // Prefer the last git server message (more granular) over the
             // coarse isomorphic-git phase label. Fall back to phase, then
             // to a generic "working…" once the connection is established.
             const statusLabel = lastActivity || phase || 'working…';
+            const bytesStr = bytesReceived > 0 ? ` · ↓ ${formatBytes(bytesReceived)}` : '';
             return (
               <View style={styles.progressRow}>
                 <ActivityIndicator color={t.accent} />
@@ -294,7 +317,7 @@ export default function GitCloneModal({
                   style={[styles.progressText, { color: t.textMuted }]}
                   numberOfLines={1}
                 >
-                  {elapsedStr} · {statusLabel}
+                  {elapsedStr}{bytesStr} · {statusLabel}
                 </Text>
               </View>
             );
