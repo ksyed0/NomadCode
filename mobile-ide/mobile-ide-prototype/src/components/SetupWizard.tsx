@@ -60,9 +60,14 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
   }, [setWorkspaceRoot]);
 
   const handleGetStarted = useCallback(() => {
-    setWorkspacePath(workspacePath || FileSystem.documentDirectory || '');
+    // If no workspace was picked, default to the app's sandboxed Documents/
+    // directory. This is always writable and git operations work here.
+    if (!workspacePath) {
+      const docDir = FileSystem.documentDirectory || '';
+      setWorkspaceRoot({ uri: docDir, uriType: 'file', displayName: 'Documents' });
+    }
     completeSetup();
-  }, [workspacePath, setWorkspacePath, completeSetup]);
+  }, [workspacePath, setWorkspaceRoot, completeSetup]);
 
   if (!visible) return null;
 
