@@ -15,6 +15,51 @@ function isSafWorkspace(path: string): boolean {
 }
 
 /**
+ * Find the nearest git repository root starting from `dir`.
+ * Walks up first (standard git behavior), then — if nothing is found —
+ * scans one level of subdirectories and returns the first one that
+ * contains a .git/ folder. This handles the common case where the user
+ * clones into a subfolder (e.g. workspace=Documents/, repo=Documents/CTCmw/)
+ * and expects the Git panel to work without manually changing workspace.
+ *
+ * Returns null if no .git/ is found anywhere in that limited search.
+ */
+export async function findRepoRoot(fs: ExpoGitFs, dir: string): Promise<string | null> {
+  // Walk up
+  let d = dir.endsWith('/') ? dir.slice(0, -1) : dir;
+  const minLen = d.startsWith('file://') ? 'file://'.length : 0;
+  while (d.length > minLen) {
+    try {
+      await fs.promises.stat(`${d}/.git/HEAD`);
+      return d;
+    } catch {
+      // continue walking up
+    }
+    const parentIdx = d.lastIndexOf('/');
+    if (parentIdx <= minLen) break;
+    d = d.slice(0, parentIdx);
+  }
+  // Scan one level of subdirs
+  try {
+    const children = await fs.promises.readdir(dir);
+    for (const child of children) {
+      if (child === '.git') continue;
+      const base = dir.endsWith('/') ? dir.slice(0, -1) : dir;
+      const sub = `${base}/${child}`;
+      try {
+        await fs.promises.stat(`${sub}/.git/HEAD`);
+        return sub;
+      } catch {
+        // continue
+      }
+    }
+  } catch {
+    // dir unreadable
+  }
+  return null;
+}
+
+/**
  * isomorphic-git's http adapter shape. The body is an async iterable of
  * Uint8Array chunks streamed from the HTTP response. We tap into it to
  * report bytes received so the UI can show download progress during the
@@ -120,6 +165,10 @@ export interface GitStatus {
   modified: string[];
   staged: string[];
   untracked: string[];
+  /** Repo root used for this status (may differ from caller's dir if auto-detected). */
+  repoDir: string;
+  /** True when no git repository was found in or under the caller's dir. */
+  noRepo?: boolean;
 }
 
 export const GitBridge = {
@@ -244,8 +293,25 @@ export const GitBridge = {
     assertGitWorkspace(dir);
     const fs = getFs();
     const d = normalizeDir(dir);
-    const branch = (await git.currentBranch({ fs, dir: d, fullname: false }).catch(() => null)) ?? 'main';
-    const matrix = await git.statusMatrix({ fs, dir: d });
+    // Auto-detect the git repo root: walk up first, then scan subdirs.
+    // This lets the Git panel work when the user clones into a subfolder
+    // (workspace=Documents/, repo=Documents/CTCmw/) without forcing them
+    // to change workspace.
+    const repoDir = await findRepoRoot(fs, d);
+    if (!repoDir) {
+      return {
+        branch: 'main',
+        ahead: 0,
+        behind: 0,
+        modified: [],
+        staged: [],
+        untracked: [],
+        repoDir: d,
+        noRepo: true,
+      };
+    }
+    const branch = (await git.currentBranch({ fs, dir: repoDir, fullname: false }).catch(() => null)) ?? 'main';
+    const matrix = await git.statusMatrix({ fs, dir: repoDir });
     const { modified, staged, untracked } = categorizeStatusMatrix(matrix);
     return {
       branch,
@@ -254,6 +320,7 @@ export const GitBridge = {
       modified,
       staged,
       untracked,
+      repoDir,
     };
   },
 

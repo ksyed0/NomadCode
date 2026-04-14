@@ -53,7 +53,11 @@ export default function GitPanel({
       const s = await GitBridge.status(rootPath);
       setStatus(s);
       setBranchInfo(s.branch, s.ahead, s.behind);
-      const b = await GitBridge.branches(rootPath);
+      if (s.noRepo) {
+        setBranches([]);
+        return;
+      }
+      const b = await GitBridge.branches(s.repoDir);
       setBranches(b);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -68,12 +72,17 @@ export default function GitPanel({
     if (visible) void refresh();
   }, [visible, refresh]);
 
+  // Effective repo path — use the auto-detected repoDir from the last
+  // status refresh, falling back to the raw workspace rootPath if not yet
+  // known (before first refresh).
+  const repoPath = status?.repoDir ?? rootPath;
+
   const toggleStage = async (filepath: string, currentlyStaged: boolean) => {
     try {
       if (currentlyStaged) {
-        await GitBridge.remove(rootPath, filepath);
+        await GitBridge.remove(repoPath, filepath);
       } else {
-        await GitBridge.add(rootPath, filepath);
+        await GitBridge.add(repoPath, filepath);
       }
       await refresh();
       bumpFileTree();
@@ -86,7 +95,7 @@ export default function GitPanel({
     const msg = commitMsg.trim() || 'chore: commit from NomadCode';
     setBusy(true);
     try {
-      await GitBridge.commit(rootPath, msg, {
+      await GitBridge.commit(repoPath, msg, {
         name: 'NomadCode User',
         email: 'user@nomadcode.app',
       });
@@ -110,7 +119,7 @@ export default function GitPanel({
     }
     setBusy(true);
     try {
-      await GitBridge.push(rootPath, authToken);
+      await GitBridge.push(repoPath, authToken);
       await refresh();
     } catch (e) {
       Alert.alert('Push failed', e instanceof Error ? e.message : String(e));
@@ -123,7 +132,7 @@ export default function GitPanel({
     setBusy(true);
     try {
       await GitBridge.pull(
-        rootPath,
+        repoPath,
         authToken ?? undefined,
         { name: 'NomadCode User', email: 'user@nomadcode.app' },
       );
@@ -139,7 +148,7 @@ export default function GitPanel({
   const doCheckout = async (name: string) => {
     setBusy(true);
     try {
-      await GitBridge.checkout(rootPath, name);
+      await GitBridge.checkout(repoPath, name);
       await refresh();
       bumpFileTree();
     } catch (e) {
@@ -154,7 +163,7 @@ export default function GitPanel({
     if (!name) return;
     setBusy(true);
     try {
-      await GitBridge.createBranch(rootPath, name, true);
+      await GitBridge.createBranch(repoPath, name, true);
       setNewBranch('');
       await refresh();
       bumpFileTree();
@@ -186,10 +195,22 @@ export default function GitPanel({
           </View>
           {loading ? (
             <ActivityIndicator color={t.accent} />
+          ) : status?.noRepo ? (
+            <ScrollView>
+              <Text style={[styles.section, { color: t.textMuted, marginTop: 8 }]}>
+                No git repository
+              </Text>
+              <Text style={{ color: t.textMuted, fontSize: 13, marginBottom: 16 }}>
+                The workspace at this path isn&apos;t a git repo. Clone a repository into your workspace
+                or change your workspace to point to an existing repo folder.
+              </Text>
+            </ScrollView>
           ) : (
             <ScrollView>
               <Text style={[styles.section, { color: t.textMuted }]}>
-                Branch: {status?.branch ?? '—'}
+                Branch: {status?.branch ?? '—'}{status?.repoDir && rootPath !== status.repoDir
+                  ? ` · ${status.repoDir.split('/').filter(Boolean).pop() ?? ''}/`
+                  : ''}
               </Text>
               {!authToken && (
                 <TouchableOpacity onPress={onOpenSettings} style={styles.signIn}>
