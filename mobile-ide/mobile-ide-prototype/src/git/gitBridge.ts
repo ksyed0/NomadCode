@@ -326,12 +326,12 @@ export const GitBridge = {
     assertGitWorkspace(dir);
     const fs = getFs();
     const d = normalizeDir(dir);
-    const tStart = Date.now();
     // Auto-detect the git repo root: walk up first, then scan subdirs.
+    // This lets the Git panel work when the user clones into a subfolder
+    // (workspace=Documents/, repo=Documents/CTCmw/) without forcing them
+    // to change workspace.
     const repoDir = await findRepoRoot(fs, d);
-    const tRepoFound = Date.now();
     if (!repoDir) {
-      console.log(`[gitBridge.status] no repo (findRepoRoot ${tRepoFound - tStart}ms)`);
       return {
         branch: 'main',
         ahead: 0,
@@ -345,16 +345,8 @@ export const GitBridge = {
     }
     const cache = getGitCache(repoDir);
     const branch = (await git.currentBranch({ fs, dir: repoDir, fullname: false, cache } as Parameters<typeof git.currentBranch>[0]).catch(() => null)) ?? 'main';
-    const tBranch = Date.now();
     const matrix = await git.statusMatrix({ fs, dir: repoDir, cache });
-    const tMatrix = Date.now();
     const { modified, staged, untracked } = categorizeStatusMatrix(matrix);
-    const total = tMatrix - tStart;
-    console.log(
-      `[gitBridge.status] ${total}ms (findRepoRoot=${tRepoFound - tStart}ms, ` +
-      `currentBranch=${tBranch - tRepoFound}ms, statusMatrix=${tMatrix - tBranch}ms, ` +
-      `${matrix.length} files, ${modified.length}M/${staged.length}S/${untracked.length}U)`
-    );
     return {
       branch,
       ahead: 0,

@@ -4,6 +4,96 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 15 — 2026-04-14 (SDK 54 Post-Upgrade Bug Fixes + Git UX)
+
+### What Was Done
+
+**Context:** PR #91 (Expo SDK 52→54 upgrade) merged yesterday. This session was a long bug-fix sprint covering the full list of issues found during iPad Pro simulator smoke-testing, plus significant git-integration polish driven by the EPIC-0008 test script.
+
+30 commits on `bugfix/sdk54-ui-fixes` off `develop`, grouped by area below.
+
+#### SDK 54 compatibility fallout
+
+- **Stale workspace auto-fallback** (`App.tsx`): On startup, probe the stored `workspaceUri` with a sentinel write. If it points to a non-writable location (e.g. leftover `File Provider Storage/` from an earlier iOS picker attempt), silently reset to the app's writable `Documents/` sandbox.
+- **file:// prefix normalisation** (`expoGitFs.ts`): SDK 54's `expo-file-system/legacy` requires the `file://` scheme on every write. isomorphic-git strips URL schemes when building child paths (e.g. `${dir}/.git/config`), so the adapter has to add it back. New `toFileUri()` helper applied to every `ExpoFS.*Async` call. Confirmed by 13 expoGitFs tests updated to assert the new behaviour.
+- **Auto-create parent dirs in writeFile**: SDK 54's iOS `writeAsStringAsync` no longer auto-creates parent folders. isomorphic-git relies on this for the initial `.git/config` write. Fixed by calling `makeDirectoryAsync({ intermediates: true })` on the parent before every write.
+- **Buffer polyfill** (`index.js`): isomorphic-git needs `global.Buffer`; Hermes doesn't provide it. Added the `buffer` package and polyfill at app startup.
+
+#### SetupWizard + workspace picker
+
+- **iOS folder picker was broken**: `react-native-document-picker.pickDirectory()` throws "not supported on iOS". Updated SetupWizard to use `requestWorkspacePermission()` (same as Settings) which wraps the correct API, but acknowledged this is still limited (see EPIC-0019 for proper native UIDocumentPickerViewController + security-scoped URL bookmarks).
+- **Get Started default path**: if the user doesn't pick a workspace, auto-populate with `FileSystem.documentDirectory` via `setWorkspaceRoot` (not the deprecated `setWorkspacePath` which only updated one of three related fields).
+- **SafeAreaView deprecation**: swapped to `react-native-safe-area-context` + `SafeAreaProvider`. Regenerated ios/ with the new native module linked.
+
+#### GitCloneModal UX (major rework)
+
+- **URL normalisation**: accepts `https://...`, `github.com/owner/repo`, `owner/repo` shorthand, SSH URLs; auto-appends `.git` if missing.
+- **Error display**: errors were being written to Zustand but never rendered. Added local `errorText` state + red text in modal.
+- **Pre-flight dest check**: detect if the target folder already exists before calling `clone` (isomorphic-git hangs silently on non-empty targets).
+- **Cleanup on failure**: delete the partial destination when clone throws, so the user can retry with the same folder name.
+- **Success state**: modal no longer auto-closes; shows "✓ Clone completed successfully into X/" with a "Done" button so users can read the verbose log.
+- **Verbose log panel**: collapsible "▶ Show details" with 2000-line buffer (pinned first 2 lines so setup context isn't lost), ⧉ Copy icon that copies to clipboard via `expo-clipboard`, `selectable={true}` on every line for long-press iOS copy.
+- **Live progress**: during the silent pack-download phase (between "Compressing objects: done" and "Analyzing workdir"), wrap isomorphic-git's HTTP adapter to count bytes streaming past; display `↓ 47.3 MB` + elapsed time inline with the status label. Prefer the last git server message ("Compressing objects: 47% (87/184)") over the coarse phase label.
+- **Phase dedupe**: use useRef for phase tracking (setState is async and was producing duplicate "Analyzing workdir" log lines).
+- **Symlink fallback** in expoGitFs: iOS sandbox has no symlink API, so materialize symlinks as regular UTF-8 files containing the target path. Required because the test repo (CTC-Mobile-Wishlist) has 7 symlinks (CLAUDE.md, CodeMie.md, etc.).
+
+#### GitPanel (major rework)
+
+- **Auto-detect repo root**: added `findRepoRoot(fs, dir)` helper that walks up first, then scans one level of subdirs. Lets the Git panel work when the user clones into a subfolder (workspace=`Documents/`, repo=`Documents/CTCmw/`) without manually changing workspace.
+- **No-repo state**: `GitStatus` now includes `repoDir` (detected root) and `noRepo` flag. Panel renders a clear "No git repository" message instead of a false list of "untracked" files.
+- **Route all ops through repoDir**: add, remove, commit, push, pull, checkout, createBranch, branches all use the detected repo path, not the workspace root.
+- **Fixed diff viewer**: `getWorkingDiff` was returning empty `headText` because `git.walk`'s `WalkerEntry.content()` returns `undefined` under Hermes. Replaced with direct `resolveRef` + `readBlob(oid, filepath)` which works reliably.
+- **Shared cache across calls**: added module-level `gitCaches` Map keyed by repo dir. Persists parsed pack files, HEAD tree, index metadata, stat-based shortcuts across `status`/`statusMatrix`/`branches`/`resolveRef`/`readBlob` calls. Invalidated on mutating ops (clone, commit, pull, checkout, createBranch).
+- **Fast branch lookup for status bar**: new `GitBridge.currentBranch()` reads only HEAD (~50ms), no file scan. Status bar was calling full `status()` on every launch which for CTC-Mobile-Wishlist took 3 min of statusMatrix scan and blocked the JS thread so taps looked unresponsive.
+- **Live progress during scan**: `fsProgress` module-level counter in expoGitFs, incremented on every readFile. GitPanel polls it every 250ms during the scan, showing "23s · 142 reads · 8430 KB" + a "first scan can take a minute on large repos" message so the spinner doesn't look frozen.
+
+#### File explorer + editor polish
+
+- **Duplicate delete confirmation**: FileExplorer's handleContextDelete was calling onFileDelete (App.tsx `deleteFile`) which showed a second confirm dialog and called deleteEntry AGAIN. Changed deleteFile to just close the tab — FileExplorer owns the confirm+delete flow.
+- **Hardware keyboard Enter**: added `onSubmitEditing` + `returnKeyType` to TextInputs in GitCloneModal, SetupWizard, GitPanel, SettingsScreen so Enter invokes the default action.
+- **Binary file preview guard**: `openFile` now rejects PNG/JPG/MP3/PDF/etc. with a clear "Binary file preview is not supported" alert instead of crashing `readAsStringAsync` on non-UTF-8 bytes.
+- **Tab width**: raised maxWidth 180→360, changed flex:1→flexShrink:1 so filenames like `AGENTS.md` render fully instead of "AGE…".
+- **Editor theme**: `getMonacoTheme()` now maps to Monaco built-in `vs`/`vs-dark` by theme mode. Custom palettes were never registered with `defineTheme` so the previous fix silently fell back to `vs-dark`. Logged US-0067 under EPIC-0005 for proper custom theme registration.
+- **Monaco initial theme**: `buildMonacoHtml` accepts an `initialTheme` param so the editor boots in the user's mode (no flash of dark on light themes). Loading screen chrome matches the theme.
+- **Status bar contrast**: themed via tokens (was hardcoded `#1E3A5F` navy). `barStyle` respects `t.mode`. `statusRight` got `flexDirection: 'row'` so "● Save" and "ⓘ" stop stacking vertically and poking into the iOS system bar.
+- **Status bar font scaling**: chrome text (branch chip, NomadCode title, version, ⓘ) now scales proportionally to the user's editor font size.
+- **Preview icon**: `⊙` → `◫` (square with vertical line — represents editor+preview split pane).
+- **SafeAreaView edges**: explicit `edges={['top', 'bottom', 'left', 'right']}` so iOS system chrome doesn't overlap.
+
+### Research / Docs
+
+- Logged **EPIC-0019** (Native iOS Folder Picker with security-scoped URL bookmarks) and **US-0067** (Monaco custom theme registration) as future enhancements in RELEASE_PLAN.md.
+- Bumped ID_REGISTRY for the new artefacts.
+- Added `docs/TEST_SCRIPT_GIT.md` — 15-step manual test script using `ksyed0/CTC-Mobile-Wishlist` as the target repo.
+- Worked through tests 1-7 successfully (PAT auth, clone, browse, status, create branch, edit, diff).
+
+### Current State
+- Branch: `bugfix/sdk54-ui-fixes` — 30 commits ahead of `develop`
+- All mobile unit tests: **935 tests, 0 failures** (34 suites)
+- TypeScript: 0 errors
+
+### Key Files Modified (hot list)
+- `mobile-ide/mobile-ide-prototype/src/git/gitBridge.ts` — cache, findRepoRoot, currentBranch fast path, onHttpBytes, getWorkingDiff rewrite
+- `mobile-ide/mobile-ide-prototype/src/git/expoGitFs.ts` — toFileUri prefix, auto-mkdir, symlink fallback, fsProgress counters
+- `mobile-ide/mobile-ide-prototype/src/components/GitCloneModal.tsx` — end-to-end UX rework
+- `mobile-ide/mobile-ide-prototype/src/components/GitPanel.tsx` — repoDir routing, no-repo state, live scan progress
+- `mobile-ide/mobile-ide-prototype/App.tsx` — workspace auto-fallback, fast branch lookup, themed status bar, SafeArea
+- `mobile-ide/mobile-ide-prototype/src/components/SetupWizard.tsx` — setWorkspaceRoot, Documents default
+- `mobile-ide/mobile-ide-prototype/index.js` — Buffer polyfill
+- `mobile-ide/mobile-ide-prototype/ios/` + `android/` — regenerated via prebuild --clean with expo-clipboard linked
+
+### Known Limitations (tracked for future)
+- **First statusMatrix scan is O(files × bridge cost)** — 3 min for ~240-file repo. Subsequent opens use the cache and are near-instant. Proper fix needs a custom native bulk-read module.
+- **iOS folder picker** — limited to the app sandbox until EPIC-0019 ships a UIDocumentPickerViewController wrapper with security-scoped URL bookmarks.
+- **Monaco syntax colours** — currently map by light/dark mode only; per-theme palettes need US-0067 (EPIC-0005).
+
+### Next Session Pick-up
+1. **Merge PR #N** for `bugfix/sdk54-ui-fixes` → `develop` after CI green
+2. Resume Git test script (tests 8-15: stage, commit, push, pull, branch switch, new-file commit, private repo, sign out)
+3. Consider EPIC-0019 (native iOS folder picker + security-scoped URLs) as the next focused effort
+
+---
+
 ## Session 14 — 2026-04-13 (EPIC-0008 Git Integration + Dependency Housekeeping)
 
 ### What Was Done
