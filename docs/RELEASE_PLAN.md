@@ -101,6 +101,12 @@ Description: Automated crash reporting via Sentry/Bugsnag and performance metric
 Release Target: Release 1.1 (Post-Launch)
 Status: Deferred
 Dependencies: EPIC-0011
+
+EPIC-0019: Native iOS Folder Picker
+Description: Custom native module wrapping UIDocumentPickerViewController in directory mode with security-scoped URL bookmarks, allowing users to pick workspace folders outside the app sandbox (iCloud Drive, On My iPad, external providers) with persistent write access.
+Release Target: Release 1.2 (Post-Launch)
+Status: Deferred
+Dependencies: EPIC-0002
 ```
 
 ---
@@ -840,6 +846,25 @@ Acceptance Criteria:
   - [x] AC-0170: Vue SFCs (.vue) fall back to html language mode (no dedicated Monaco grammar)
   - [x] AC-0171: jsonc files map to Monaco language ID 'jsonc'; toml files map to 'toml'
 Dependencies: US-0059
+```
+
+---
+
+### EPIC-0019: Native iOS Folder Picker
+
+```
+US-0066 (EPIC-0019): As an iOS user, I want to pick a workspace folder from iCloud Drive, On My iPad, or any File Provider (Dropbox, OneDrive, etc.), so that my NomadCode workspace lives where my other files are and syncs across devices.
+Priority: Medium (P1)
+Estimate: L
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0196: Custom native iOS module (Swift) wraps UIDocumentPickerViewController in directory-selection mode (.folder UTType on iOS 14+)
+  - [ ] AC-0197: Selected folder URL is converted to a security-scoped URL bookmark (NSURL bookmarkData) and persisted so write access survives app relaunches
+  - [ ] AC-0198: Before each git write, the module calls startAccessingSecurityScopedResource() and pairs it with stopAccessingSecurityScopedResource() after completion to avoid leaking entitlements
+  - [ ] AC-0199: SetupWizard and Settings use the new picker via requestWorkspacePermission() — existing call site unchanged
+  - [ ] AC-0200: When the picker is unavailable (e.g. user cancels, iOS < 14), the in-app SandboxDirectoryPicker is offered as fallback
+  - [ ] AC-0201: Unit + E2E tests confirm clone/commit/push works in an iCloud Drive folder on a physical device
+Dependencies: EPIC-0002
 ```
 
 ---

@@ -90,6 +90,17 @@ export function buildExpoGitFs(): ExpoGitFs {
       },
 
       writeFile: async (path: string, data: string | Uint8Array): Promise<void> => {
+        // Ensure parent directory exists. SDK 54's writeAsStringAsync on iOS
+        // no longer auto-creates parents; isomorphic-git relies on this.
+        const parentIdx = path.lastIndexOf('/');
+        if (parentIdx > 0) {
+          const parent = path.slice(0, parentIdx);
+          try {
+            await ExpoFS.makeDirectoryAsync(parent, { intermediates: true });
+          } catch {
+            // Ignore: may already exist
+          }
+        }
         if (typeof data === 'string') {
           await ExpoFS.writeAsStringAsync(path, data, { encoding: ExpoFS.EncodingType.UTF8 });
         } else {
