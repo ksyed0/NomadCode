@@ -2,7 +2,7 @@
  * US-0025: Clone a GitHub repository into the workspace.
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -54,6 +54,24 @@ export default function GitCloneModal({
   // Ref for phase dedupe — setState is async and can't be read reliably
   // inside the onProgress callback that fires many times per tick.
   const lastPhaseRef = useRef<string>('');
+  // Most recent onMessage line from the git server, shown as the live
+  // status so the user sees activity during pack download + parse (which
+  // emit no isomorphic-git progress events).
+  const [lastActivity, setLastActivity] = useState<string>('');
+  const [elapsedSec, setElapsedSec] = useState(0);
+  const startedAtRef = useRef<number | null>(null);
+
+  // Tick a seconds counter while a clone is busy.
+  useEffect(() => {
+    if (!busy) { setElapsedSec(0); startedAtRef.current = null; return; }
+    startedAtRef.current = Date.now();
+    const id = setInterval(() => {
+      if (startedAtRef.current) {
+        setElapsedSec(Math.floor((Date.now() - startedAtRef.current) / 1000));
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [busy]);
 
   const appendLog = useCallback((line: string) => {
     setLogLines((prev) => [...prev.slice(-199), line.trimEnd()]);
@@ -76,6 +94,7 @@ export default function GitCloneModal({
     setProgress(0);
     setCloneProgress(0);
     setPhase('connecting');
+    setLastActivity('');
     lastPhaseRef.current = '';
     setLogLines([`→ clone ${u}`, `→ destination ${dest}`]);
     // Pre-flight: destination must not already exist. isomorphic-git hangs
@@ -125,6 +144,8 @@ export default function GitCloneModal({
         },
         onMessage: (message: string) => {
           appendLog(message);
+          const trimmed = message.trim();
+          if (trimmed) setLastActivity(trimmed);
         },
       });
       appendLog('✓ clone complete');
@@ -205,14 +226,26 @@ export default function GitCloneModal({
           {successMessage && (
             <Text testID="clone-success" style={styles.successText}>✓ {successMessage}</Text>
           )}
-          {busy && (
-            <View style={styles.progressRow}>
-              <ActivityIndicator color={t.accent} />
-              <Text style={[styles.progressText, { color: t.textMuted }]}>
-                {Math.round(progress * 100)}%{phase ? ` · ${phase}` : ''}
-              </Text>
-            </View>
-          )}
+          {busy && (() => {
+            const elapsedStr = elapsedSec >= 60
+              ? `${Math.floor(elapsedSec / 60)}m ${elapsedSec % 60}s`
+              : `${elapsedSec}s`;
+            // Prefer the last git server message (more granular) over the
+            // coarse isomorphic-git phase label. Fall back to phase, then
+            // to a generic "working…" once the connection is established.
+            const statusLabel = lastActivity || phase || 'working…';
+            return (
+              <View style={styles.progressRow}>
+                <ActivityIndicator color={t.accent} />
+                <Text
+                  style={[styles.progressText, { color: t.textMuted }]}
+                  numberOfLines={1}
+                >
+                  {elapsedStr} · {statusLabel}
+                </Text>
+              </View>
+            );
+          })()}
           {(busy || logLines.length > 0) && (
             <View>
               <TouchableOpacity
