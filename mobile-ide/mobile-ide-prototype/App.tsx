@@ -470,32 +470,38 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-    <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]}>
+    <SafeAreaView
+      style={[styles.root, { backgroundColor: t.bg }]}
+      edges={['top', 'bottom', 'left', 'right']}
+    >
       <StatusBar
         barStyle={t.mode === 'dark' ? 'light-content' : 'dark-content'}
         backgroundColor={t.bg}
       />
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
-      <View style={[styles.statusBar, statusBarStyles.bar]}>
+      <View style={[styles.statusBar, statusBarStyles.bar, { backgroundColor: t.bgElevated, borderBottomColor: t.border }]}>
         <TouchableOpacity
           onPress={gitStatus}
           style={styles.statusItem}
           accessibilityLabel={`Git branch ${gitBranch}, open git panel`}
         >
-          <Text style={[styles.statusText, statusBarStyles.branch]}>⎇ {gitBranch}</Text>
+          <Text style={[styles.statusText, statusBarStyles.branch, { color: t.text }]}>⎇ {gitBranch}</Text>
         </TouchableOpacity>
-        <Text style={[styles.statusTitle, statusBarStyles.title]}>
-          NomadCode <Text style={[styles.statusVersion, statusBarStyles.version]}>v{APP_VERSION}</Text>
+        <Text style={[styles.statusTitle, statusBarStyles.title, { color: t.text }]}>
+          NomadCode{' '}
+          <Text style={[styles.statusVersion, statusBarStyles.version, { color: t.textMuted }]}>
+            v{APP_VERSION}
+          </Text>
         </Text>
         <View style={styles.statusRight}>
           {tabs.find((t) => t.path === activeTabPath)?.isDirty && (
             <TouchableOpacity onPress={saveActiveFile}>
-              <Text style={[styles.statusDirty, statusBarStyles.branch]}>● Save</Text>
+              <Text style={[styles.statusDirty, statusBarStyles.branch, { color: t.error }]}>● Save</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => setShowAbout(true)} style={styles.aboutBtn} accessibilityLabel="About NomadCode">
-            <Text style={[styles.aboutBtnText, statusBarStyles.infoIcon]}>ⓘ</Text>
+            <Text style={[styles.aboutBtnText, statusBarStyles.infoIcon, { color: t.textMuted }]}>ⓘ</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -648,27 +654,29 @@ const styles = StyleSheet.create({
   },
   statusBar: {
     height: 28,
-    backgroundColor: '#1E3A5F',
+    // backgroundColor + borderBottomColor applied inline from theme tokens
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   statusItem: {
     marginRight: 12,
   },
   statusText: {
-    color: '#94A3B8',
+    // color applied inline from theme tokens for proper contrast
     fontSize: 11,
+    fontWeight: '500',
   },
   statusTitle: {
     flex: 1,
-    color: '#CBD5E1',
+    // color applied inline from theme tokens
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },
   statusVersion: {
-    color: '#64748B',
+    // color applied inline from theme tokens
     fontSize: 10,
     fontWeight: '400',
   },
@@ -677,8 +685,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   statusDirty: {
-    color: '#FBBF24',
+    // color applied inline from theme tokens (t.error)
     fontSize: 11,
+    fontWeight: '600',
+    marginRight: 10,
   },
   aboutBtn: {
     marginLeft: 10,
@@ -689,7 +699,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   aboutBtnText: {
-    color: '#94A3B8',
+    // color applied inline from theme tokens
     fontSize: 14,
   },
   aboutOverlay: {
