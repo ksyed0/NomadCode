@@ -13,9 +13,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { GitBridge, FileSystemBridge } from '../utils/FileSystemBridge';
 import useGitStore from '../stores/useGitStore';
 import { useTheme } from '../theme/tokens';
+
+// Number of leading lines pinned at the top of the log box (the "→ clone …"
+// and "→ destination …" setup lines). Subsequent server messages roll
+// through a fixed-size buffer below them so the pinned context is never
+// truncated by streaming "Counting objects: N%" output.
+const PINNED_LINES = 2;
+const MAX_LOG_LINES = 2000;
 
 export interface GitCloneModalProps {
   visible: boolean;
@@ -51,6 +59,17 @@ export default function GitCloneModal({
   const [showDetails, setShowDetails] = useState(false);
   const [logLines, setLogLines] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [copyConfirm, setCopyConfirm] = useState(false);
+
+  const handleCopyLog = useCallback(async () => {
+    try {
+      await Clipboard.setStringAsync(logLines.join('\n'));
+      setCopyConfirm(true);
+      setTimeout(() => setCopyConfirm(false), 1500);
+    } catch (e) {
+      if (__DEV__) console.warn('[GitClone] copy failed:', e);
+    }
+  }, [logLines]);
   // Ref for phase dedupe — setState is async and can't be read reliably
   // inside the onProgress callback that fires many times per tick.
   const lastPhaseRef = useRef<string>('');
@@ -73,17 +92,15 @@ export default function GitCloneModal({
     return () => clearInterval(id);
   }, [busy]);
 
-  // Number of leading lines pinned at the top of the log (the "→ clone …"
-  // and "→ destination …" setup lines). Subsequent server messages roll
-  // through a 200-line buffer below them so the pinned context is never
-  // truncated when the stream of "Counting objects: N%" lines fills up.
-  const PINNED_LINES = 2;
   const appendLog = useCallback((line: string) => {
     setLogLines((prev) => {
-      if (prev.length < PINNED_LINES) return [...prev, line.trimEnd()];
-      const pinned = prev.slice(0, PINNED_LINES);
-      const tail = prev.slice(PINNED_LINES, PINNED_LINES + 199);
-      return [...pinned, ...tail, line.trimEnd()];
+      const next = [...prev, line.trimEnd()];
+      if (next.length <= MAX_LOG_LINES) return next;
+      // Pin the first PINNED_LINES (e.g. "→ clone …", "→ destination …")
+      // and trim the oldest streaming entries to stay within the cap.
+      const pinned = next.slice(0, PINNED_LINES);
+      const tail = next.slice(-(MAX_LOG_LINES - PINNED_LINES));
+      return [...pinned, ...tail];
     });
   }, []);
 
@@ -284,18 +301,34 @@ export default function GitCloneModal({
           })()}
           {(busy || logLines.length > 0) && (
             <View>
-              <TouchableOpacity
-                testID="clone-toggle-details"
-                onPress={() => setShowDetails((v) => !v)}
-                style={styles.detailsToggle}
-                hitSlop={{ top: 8, bottom: 8, left: 16, right: 16 }}
-                accessibilityRole="button"
-                accessibilityLabel={showDetails ? 'Hide details' : 'Show details'}
-              >
-                <Text style={[styles.detailsToggleText, { color: t.textMuted }]}>
-                  {showDetails ? '▼ Hide details' : '▶ Show details'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.detailsHeader}>
+                <TouchableOpacity
+                  testID="clone-toggle-details"
+                  onPress={() => setShowDetails((v) => !v)}
+                  style={styles.detailsToggle}
+                  hitSlop={{ top: 8, bottom: 8, left: 16, right: 16 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={showDetails ? 'Hide details' : 'Show details'}
+                >
+                  <Text style={[styles.detailsToggleText, { color: t.textMuted }]}>
+                    {showDetails ? '▼ Hide details' : '▶ Show details'}
+                  </Text>
+                </TouchableOpacity>
+                {showDetails && logLines.length > 0 && (
+                  <TouchableOpacity
+                    testID="clone-copy-log"
+                    onPress={handleCopyLog}
+                    style={styles.copyBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Copy log to clipboard"
+                  >
+                    <Text style={[styles.copyBtnText, { color: t.textMuted }]}>
+                      {copyConfirm ? '✓ Copied' : '⧉ Copy'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
               {showDetails && (
                 <ScrollView
                   testID="clone-log"
@@ -305,6 +338,7 @@ export default function GitCloneModal({
                   {logLines.map((line, i) => (
                     <Text
                       key={i}
+                      selectable
                       style={[
                         styles.logLine,
                         { color: line.startsWith('✗') ? '#EF4444' : line.startsWith('✓') ? '#22C55E' : t.text },
@@ -424,13 +458,27 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 13,
   },
+  detailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
   detailsToggle: {
     minHeight: 32,
     justifyContent: 'center',
-    marginBottom: 6,
   },
   detailsToggleText: {
     fontSize: 12,
+  },
+  copyBtn: {
+    minHeight: 32,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+  },
+  copyBtnText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   logBox: {
     borderWidth: 1,
