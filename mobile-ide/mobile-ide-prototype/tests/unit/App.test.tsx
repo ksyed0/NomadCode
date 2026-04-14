@@ -114,13 +114,16 @@ jest.mock('../../src/theme/tokens', () => {
   };
 });
 
-// Mock react-native-safe-area-context (native module not available in Jest)
+// Mock react-native-safe-area-context (native module not available in Jest).
+// Imports inside jest.mock must use require() to avoid hoisting issues, but
+// ESLint rule no-require-imports forbids it — suppress just this line.
 jest.mock('react-native-safe-area-context', () => {
-  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const R = require('react');
   return {
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    SafeAreaView: ({ children, ...props }: { children: React.ReactNode }) =>
-      React.createElement('SafeAreaView', props, children),
+    SafeAreaProvider: ({ children }: { children: unknown }) => children,
+    SafeAreaView: ({ children, ...props }: { children: unknown }) =>
+      R.createElement('SafeAreaView', props, children),
     useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
   };
 });

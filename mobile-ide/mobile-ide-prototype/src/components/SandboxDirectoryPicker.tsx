@@ -152,7 +152,7 @@ export default function SandboxDirectoryPicker({
         <View style={[styles.sheet, { backgroundColor: t.bgElevated, borderColor: t.border }]}>
           <Text style={[styles.title, { color: t.text }]}>Choose workspace folder</Text>
           <Text style={[styles.hint, { color: t.textMuted }]}>
-            Navigate inside your app's sandbox. Only subfolders are writable.
+            Navigate inside your app&apos;s sandbox. Only subfolders are writable.
           </Text>
           <Text
             testID="sandbox-picker-breadcrumb"

@@ -53,7 +53,9 @@ export default function GitCloneModal({
   const [url, setUrl] = useState('');
   const [subfolder, setSubfolder] = useState('');
   const [busy, setBusy] = useState(false);
-  const [progress, setProgress] = useState(0);
+  // Progress is tracked but not directly displayed — we show phase + bytes
+  // in the status line instead. Kept for setCloneProgress side-effects.
+  const [, setProgress] = useState(0);
   const [phase, setPhase] = useState<string>('');
   const [errorText, setErrorText] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
