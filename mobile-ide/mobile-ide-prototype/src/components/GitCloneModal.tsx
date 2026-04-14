@@ -2,7 +2,7 @@
  * US-0025: Clone a GitHub repository into the workspace.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { GitBridge } from '../utils/FileSystemBridge';
+import { GitBridge, FileSystemBridge } from '../utils/FileSystemBridge';
 import useGitStore from '../stores/useGitStore';
 import { useTheme } from '../theme/tokens';
 
@@ -51,6 +51,9 @@ export default function GitCloneModal({
   const [showDetails, setShowDetails] = useState(false);
   const [logLines, setLogLines] = useState<string[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // Ref for phase dedupe — setState is async and can't be read reliably
+  // inside the onProgress callback that fires many times per tick.
+  const lastPhaseRef = useRef<string>('');
 
   const appendLog = useCallback((line: string) => {
     setLogLines((prev) => [...prev.slice(-199), line.trimEnd()]);
@@ -73,7 +76,27 @@ export default function GitCloneModal({
     setProgress(0);
     setCloneProgress(0);
     setPhase('connecting');
+    lastPhaseRef.current = '';
     setLogLines([`→ clone ${u}`, `→ destination ${dest}`]);
+    // Pre-flight: destination must not already exist. isomorphic-git hangs
+    // silently on an initialised/non-empty target folder.
+    try {
+      const exists = await FileSystemBridge.exists(dest);
+      if (exists) {
+        const msg = `Destination already exists: ${safeName}/ — pick a different folder name or delete the existing one first.`;
+        appendLog(`✗ ${msg}`);
+        setShowDetails(true);
+        setErrorText(msg);
+        setLastError(msg);
+        setBusy(false);
+        setCloneProgress(null);
+        setProgress(0);
+        setPhase('');
+        return;
+      }
+    } catch {
+      // If the check itself fails, fall through and let clone surface the error.
+    }
     try {
       let isGitHubHost = false;
       try {
@@ -92,7 +115,10 @@ export default function GitCloneModal({
           const t0 = p.total > 0 ? p.loaded / p.total : 0;
           setProgress(t0);
           setCloneProgress(t0);
-          if (p.phase && p.phase !== phase) {
+          // Dedupe phase transitions via ref (state is stale across fast
+          // back-to-back onProgress calls).
+          if (p.phase && p.phase !== lastPhaseRef.current) {
+            lastPhaseRef.current = p.phase;
             setPhase(p.phase);
             appendLog(`→ ${p.phase}`);
           }
@@ -125,7 +151,7 @@ export default function GitCloneModal({
       setProgress(0);
       setPhase('');
     }
-  }, [url, subfolder, rootPath, authToken, phase, bumpFileTree, onClose, setCloneProgress, setLastError, appendLog]);
+  }, [url, subfolder, rootPath, authToken, bumpFileTree, onClose, setCloneProgress, setLastError, appendLog]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -182,11 +208,12 @@ export default function GitCloneModal({
             </View>
           )}
           {(busy || logLines.length > 0) && (
-            <>
+            <View>
               <TouchableOpacity
                 testID="clone-toggle-details"
                 onPress={() => setShowDetails((v) => !v)}
                 style={styles.detailsToggle}
+                hitSlop={{ top: 8, bottom: 8, left: 16, right: 16 }}
                 accessibilityRole="button"
                 accessibilityLabel={showDetails ? 'Hide details' : 'Show details'}
               >
@@ -213,7 +240,7 @@ export default function GitCloneModal({
                   ))}
                 </ScrollView>
               )}
-            </>
+            </View>
           )}
           <View style={styles.actions}>
             {successMessage ? (
