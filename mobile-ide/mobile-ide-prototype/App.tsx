@@ -18,7 +18,6 @@ import {
   Image,
   Modal,
   Platform,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -26,6 +25,7 @@ import {
   View,
 } from 'react-native';
 
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Editor, { EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
 import FileExplorer from './src/components/FileExplorer';
 import { TerminalWebView } from './src/components/TerminalWebView';
@@ -62,8 +62,47 @@ export default function App() {
   const hasCompletedSetup = useSettingsStore((s) => s.hasCompletedSetup);
   const installedExtensions = useSettingsStore((s) => s.installedExtensions);
   const workspaceUri = useSettingsStore((s) => s.workspaceUri);
+  const setWorkspaceRoot = useSettingsStore((s) => s.setWorkspaceRoot);
+  const editorFontSize = useSettingsStore((s) => s.fontSize);
+
+  // Scale chrome text (status bar, etc.) proportionally to the user's
+  // editor font size. Default editor size is 14 → scale factor 1.0.
+  const chromeScale = editorFontSize / 14;
+  const statusBarStyles = useMemo(() => ({
+    bar: { height: Math.max(28, 22 * chromeScale + 6) },
+    branch: { fontSize: 11 * chromeScale },
+    title: { fontSize: 12 * chromeScale },
+    version: { fontSize: 10 * chromeScale },
+    infoIcon: { fontSize: 16 * chromeScale },
+  }), [chromeScale]);
   // Fall back to the app's sandboxed document directory when no workspace has been picked yet
   const rootPath = workspaceUri || FileSystemBridge.documentDirectory;
+
+  // Startup check: if the stored workspace points to a non-writable
+  // location (e.g. File Provider Storage from a legacy Browse on iOS),
+  // silently reset it to the app's writable Documents/ sandbox. This
+  // avoids confusing "not writable" errors on every git / file op.
+  useEffect(() => {
+    if (!workspaceUri) return;
+    (async () => {
+      try {
+        const sentinelName = `.__nomad_writable_check_${Date.now()}`;
+        const testUri = workspaceUri.endsWith('/')
+          ? `${workspaceUri}${sentinelName}`
+          : `${workspaceUri}/${sentinelName}`;
+        await FileSystemBridge.writeFile(testUri, 'ok');
+        await FileSystemBridge.deleteEntry(testUri);
+        // Workspace is writable — nothing to do.
+      } catch {
+        const fallback = FileSystemBridge.documentDirectory;
+        if (fallback && fallback !== workspaceUri) {
+          console.warn('[App] workspace not writable, falling back to', fallback);
+          setWorkspaceRoot({ uri: fallback, uriType: 'file', displayName: 'Documents' });
+        }
+      }
+    })();
+    // Run once per workspaceUri change.
+  }, [workspaceUri, setWorkspaceRoot]);
 
   // ── Auth store ────────────────────────────────────────────────────────────
   const hydrateAuth = useAuthStore((s) => s.hydrate);
@@ -79,13 +118,15 @@ export default function App() {
     hydrateAuth();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Refresh branch label when workspace or tree changes (e.g. after clone)
+  // Refresh branch label when workspace or tree changes (e.g. after clone).
+  // Uses the fast branch-only lookup (reads HEAD, no statusMatrix scan)
+  // so the 100ms job doesn't block the JS thread for ~30s on a large repo.
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const s = await GitBridge.status(rootPath);
-        if (!cancelled) setBranchInfo(s.branch, s.ahead, s.behind);
+        const { branch } = await GitBridge.currentBranch(rootPath);
+        if (!cancelled) setBranchInfo(branch, 0, 0);
       } catch {
         if (!cancelled) setBranchInfo('main', 0, 0);
       }
@@ -135,9 +176,30 @@ export default function App() {
       return;
     }
 
+    // Reject known binary/asset extensions early — readAsStringAsync (UTF-8)
+    // will fail on these with a "not readable" error. Image preview is
+    // tracked as a future enhancement.
+    const name = path.split('/').pop() ?? path;
+    const ext = name.includes('.') ? name.slice(name.lastIndexOf('.') + 1).toLowerCase() : '';
+    const BINARY_EXTS = new Set([
+      'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'tiff', 'svg',
+      'mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac',
+      'mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v',
+      'pdf', 'zip', 'tar', 'gz', 'bz2', '7z', 'rar', 'jar', 'war',
+      'woff', 'woff2', 'ttf', 'otf', 'eot',
+      'class', 'pyc', 'so', 'dll', 'dylib', 'a', 'o', 'exe',
+      'sqlite', 'db', 'wasm',
+    ]);
+    if (BINARY_EXTS.has(ext)) {
+      Alert.alert(
+        'Cannot preview file',
+        `${name} is a ${ext.toUpperCase()} file. Binary file preview is not yet supported.`,
+      );
+      return;
+    }
+
     try {
       const content = await FileSystemBridge.readFile(path);
-      const name = path.split('/').pop() ?? path;
       const detectedLang = getLanguageForFile(name);
       const language = detectedLang === 'plaintext'
         ? detectLanguageFromContent(content)
@@ -303,22 +365,11 @@ export default function App() {
     setConflict(null);
   }, [conflict, openFile]);
 
-  const deleteFile = useCallback(async (path: string) => {
-    Alert.alert('Delete file', `Delete "${path.split('/').pop()}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await FileSystemBridge.deleteEntry(path);
-            closeTab(path);
-          } catch (err) {
-            Alert.alert('Delete failed', String(err));
-          }
-        },
-      },
-    ]);
+  // FileExplorer already shows the confirm dialog and performs the delete.
+  // This hook fires AFTER deletion to close any open editor tab for the
+  // deleted path. Do not re-prompt or re-delete here.
+  const deleteFile = useCallback((path: string) => {
+    closeTab(path);
   }, [closeTab]);
 
   // ---------------------------------------------------------------------------
@@ -420,27 +471,39 @@ export default function App() {
   // ---------------------------------------------------------------------------
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]}>
-      <StatusBar barStyle="light-content" backgroundColor={t.bg} />
+    <SafeAreaProvider>
+    <SafeAreaView
+      style={[styles.root, { backgroundColor: t.bg }]}
+      edges={['top', 'bottom', 'left', 'right']}
+    >
+      <StatusBar
+        barStyle={t.mode === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={t.bg}
+      />
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
-      <View style={styles.statusBar}>
+      <View style={[styles.statusBar, statusBarStyles.bar, { backgroundColor: t.bgElevated, borderBottomColor: t.border }]}>
         <TouchableOpacity
           onPress={gitStatus}
           style={styles.statusItem}
           accessibilityLabel={`Git branch ${gitBranch}, open git panel`}
         >
-          <Text style={styles.statusText}>⎇ {gitBranch}</Text>
+          <Text style={[styles.statusText, statusBarStyles.branch, { color: t.text }]}>⎇ {gitBranch}</Text>
         </TouchableOpacity>
-        <Text style={styles.statusTitle}>NomadCode <Text style={styles.statusVersion}>v{APP_VERSION}</Text></Text>
+        <Text style={[styles.statusTitle, statusBarStyles.title, { color: t.text }]}>
+          NomadCode{' '}
+          <Text style={[styles.statusVersion, statusBarStyles.version, { color: t.textMuted }]}>
+            v{APP_VERSION}
+          </Text>
+        </Text>
         <View style={styles.statusRight}>
           {tabs.find((t) => t.path === activeTabPath)?.isDirty && (
             <TouchableOpacity onPress={saveActiveFile}>
-              <Text style={styles.statusDirty}>● Save</Text>
+              <Text style={[styles.statusDirty, statusBarStyles.branch, { color: t.error }]}>● Save</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => setShowAbout(true)} style={styles.aboutBtn} accessibilityLabel="About NomadCode">
-            <Text style={styles.aboutBtnText}>ⓘ</Text>
+            <Text style={[styles.aboutBtnText, statusBarStyles.infoIcon, { color: t.textMuted }]}>ⓘ</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -579,6 +642,7 @@ export default function App() {
         onShowError={(text) => Alert.alert('Extension Error', text, [{ text: 'OK', style: 'destructive' }])}
       />
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -592,37 +656,43 @@ const styles = StyleSheet.create({
   },
   statusBar: {
     height: 28,
-    backgroundColor: '#1E3A5F',
+    // backgroundColor + borderBottomColor applied inline from theme tokens
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   statusItem: {
     marginRight: 12,
   },
   statusText: {
-    color: '#94A3B8',
+    // color applied inline from theme tokens for proper contrast
     fontSize: 11,
+    fontWeight: '500',
   },
   statusTitle: {
     flex: 1,
-    color: '#CBD5E1',
+    // color applied inline from theme tokens
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },
   statusVersion: {
-    color: '#64748B',
+    // color applied inline from theme tokens
     fontSize: 10,
     fontWeight: '400',
   },
   statusRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     minWidth: 60,
-    alignItems: 'flex-end',
   },
   statusDirty: {
-    color: '#FBBF24',
+    // color applied inline from theme tokens (t.error)
     fontSize: 11,
+    fontWeight: '600',
+    marginRight: 10,
   },
   aboutBtn: {
     marginLeft: 10,
@@ -633,7 +703,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   aboutBtnText: {
-    color: '#94A3B8',
+    // color applied inline from theme tokens
     fontSize: 14,
   },
   aboutOverlay: {

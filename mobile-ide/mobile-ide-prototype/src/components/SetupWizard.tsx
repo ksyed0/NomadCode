@@ -10,11 +10,11 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import {
-  Modal, Platform, View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput,
+  Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
-import * as DocumentPicker from 'expo-document-picker';
 import useSettingsStore from '../stores/useSettingsStore';
+import { requestWorkspacePermission } from '../utils/FileSystemBridge';
 import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, ThemeId, useTheme } from '../theme/tokens';
 
 interface SetupWizardProps {
@@ -34,6 +34,7 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
   const setTheme = useSettingsStore((s) => s.setTheme);
   const setFontSize = useSettingsStore((s) => s.setFontSize);
   const setWorkspacePath = useSettingsStore((s) => s.setWorkspacePath);
+  const setWorkspaceRoot = useSettingsStore((s) => s.setWorkspaceRoot);
   const completeSetup = useSettingsStore((s) => s.completeSetup);
 
   const swatchIds = useMemo(
@@ -49,30 +50,24 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
 
   const handleBrowse = useCallback(async () => {
     try {
-      if (Platform.OS === 'android') {
-        // Android SAF directory picker — DocumentPicker doesn't support
-        // folder selection on Android (public.folder is an iOS-only UTI).
-        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-        if (!permissions.granted) return;
-        setWorkspacePath(permissions.directoryUri);
-      } else {
-        const result = await DocumentPicker.getDocumentAsync({
-          type: 'public.folder',
-          copyToCacheDirectory: false,
-        });
-        if (!result.canceled && result.assets?.[0]?.uri) {
-          setWorkspacePath(result.assets[0].uri);
-        }
-      }
+      // requestWorkspacePermission uses the native UIDocumentPickerViewController
+      // on iOS (proper folder picker with "Open" button) and SAF on Android.
+      const root = await requestWorkspacePermission();
+      if (root) setWorkspaceRoot(root);
     } catch (e) {
       if (__DEV__) console.warn('[SetupWizard] browse error:', e);
     }
-  }, [setWorkspacePath]);
+  }, [setWorkspaceRoot]);
 
   const handleGetStarted = useCallback(() => {
-    setWorkspacePath(workspacePath || FileSystem.documentDirectory || '');
+    // If no workspace was picked, default to the app's sandboxed Documents/
+    // directory. This is always writable and git operations work here.
+    if (!workspacePath) {
+      const docDir = FileSystem.documentDirectory || '';
+      setWorkspaceRoot({ uri: docDir, uriType: 'file', displayName: 'Documents' });
+    }
     completeSetup();
-  }, [workspacePath, setWorkspacePath, completeSetup]);
+  }, [workspacePath, setWorkspaceRoot, completeSetup]);
 
   if (!visible) return null;
 
@@ -168,6 +163,9 @@ export default function SetupWizard({ visible }: SetupWizardProps) {
               style={[styles.workspaceInput, { backgroundColor: t.bgElevated, color: t.text, borderColor: t.border }]}
               value={workspacePath || FileSystem.documentDirectory || ''}
               onChangeText={setWorkspacePath}
+              onSubmitEditing={handleGetStarted}
+              blurOnSubmit={false}
+              returnKeyType="go"
               placeholder="Workspace path"
               placeholderTextColor={t.textMuted}
               autoCapitalize="none"

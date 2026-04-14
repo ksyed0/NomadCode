@@ -306,7 +306,7 @@ export default function FileExplorer({
     const trimmed = nameInputValue.trim();
     if (!trimmed) return;
 
-    const parentPath = targetNode ? resolveParentPath(targetNode) : rootPath;
+    const parentPath = (targetNode ? resolveParentPath(targetNode) : rootPath).replace(/\/+$/, '');
     const newPath = `${parentPath}/${trimmed}`;
 
     setNameModal(null);
@@ -556,6 +556,9 @@ export default function FileExplorer({
               style={[styles.nameInput, { color: t.text, backgroundColor: t.bg, borderColor: t.border }]}
               value={nameInputValue}
               onChangeText={setNameInputValue}
+              onSubmitEditing={() => handleNameConfirm()}
+              blurOnSubmit={false}
+              returnKeyType="done"
               autoFocus
               autoCapitalize="none"
               autoCorrect={false}

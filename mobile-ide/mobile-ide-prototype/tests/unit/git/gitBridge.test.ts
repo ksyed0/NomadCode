@@ -14,6 +14,8 @@ const mockListBranches = jest.fn();
 const mockCheckout = jest.fn();
 const mockBranch = jest.fn();
 const mockWalk = jest.fn();
+const mockResolveRef = jest.fn();
+const mockReadBlob = jest.fn();
 
 jest.mock('isomorphic-git', () => ({
   __esModule: true,
@@ -30,6 +32,8 @@ jest.mock('isomorphic-git', () => ({
     checkout: (...a: unknown[]) => mockCheckout(...a),
     branch: (...a: unknown[]) => mockBranch(...a),
     walk: (...a: unknown[]) => mockWalk(...a),
+    resolveRef: (...a: unknown[]) => mockResolveRef(...a),
+    readBlob: (...a: unknown[]) => mockReadBlob(...a),
     TREE: jest.fn(() => ({})),
     WORKDIR: jest.fn(() => ({})),
   },
@@ -110,7 +114,9 @@ describe('GitBridge', () => {
 
   it('clone normalizes trailing slash and calls git.clone', async () => {
     await GitBridge.clone('https://github.com/o/r.git', `${dir}/`, 'tok');
-    expect(mockMakeDirectoryAsync).toHaveBeenCalled();
+    // Note: clone no longer pre-creates the destination — expoGitFs.writeFile
+    // creates parent dirs on demand, and pre-creating leaves a stale empty
+    // folder on failure. Removed assertion for makeDirectoryAsync.
     expect(mockClone).toHaveBeenCalled();
     const arg = mockClone.mock.calls[0][0];
     expect(arg.dir).toBe(dir);
@@ -174,14 +180,18 @@ describe('GitBridge', () => {
     );
   });
 
-  it('getWorkingDiff returns walk result when present', async () => {
-    mockWalk.mockResolvedValueOnce({ headText: 'a', workText: 'b' });
+  it('getWorkingDiff reads HEAD blob + workdir file for a tracked file', async () => {
+    mockResolveRef.mockResolvedValueOnce('deadbeef');
+    const encoder = new TextEncoder();
+    mockReadBlob.mockResolvedValueOnce({ blob: encoder.encode('original') });
+    mockReadAsStringAsync.mockResolvedValueOnce('modified');
     const d = await GitBridge.getWorkingDiff(dir, 'file.txt');
-    expect(d).toEqual({ headText: 'a', workText: 'b' });
+    expect(d.headText).toBe('original');
+    expect(d.workText).toBe('modified');
   });
 
-  it('getWorkingDiff falls back to readAsStringAsync when walk finds nothing', async () => {
-    mockWalk.mockResolvedValueOnce(null);
+  it('getWorkingDiff returns empty headText when file is not in HEAD (untracked)', async () => {
+    mockResolveRef.mockRejectedValueOnce(new Error('no HEAD'));
     mockReadAsStringAsync.mockResolvedValueOnce('local only');
     const d = await GitBridge.getWorkingDiff(dir, 'new.txt');
     expect(d.workText).toBe('local only');

@@ -282,7 +282,7 @@ export const TOOLBAR_ITEMS: ToolbarItem[] = [
   { id: 'format',      label: '✦',   title: 'Format document',  action: 'format' },
   { id: 'select',      label: '⊞',   title: 'Select all',       action: 'selectAll' },
   { id: 'multicursor', label: '⊕',   title: 'Add cursor mode',  action: 'multicursor', toggle: true },
-  { id: 'preview',     label: '⊙',   title: 'Toggle preview',   action: 'preview',     toggle: true },
+  { id: 'preview',     label: '◫',   title: 'Toggle preview',   action: 'preview',     toggle: true },
 ];
 
 const FONT_DEC_ID = 'font-dec';
@@ -328,11 +328,16 @@ export default function Editor({
   const previewEnabled = activeTab ? canPreview(activeTab.language) : false;
 
   // ── Resolve Monaco source (CDN or local cache) on mount ─────────────────
+  // Pass the user's current theme so the editor boots in the right mode
+  // and avoids a flash of vs-dark on light themes.
   useEffect(() => {
     MonacoAssetManager.resolve().then(({ baseUrl, isOffline: offline }) => {
-      setMonacoHtml(buildMonacoHtml(baseUrl));
+      setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme));
       setIsOffline(offline);
     }).catch(console.error);
+    // monacoTheme intentionally excluded from deps — Monaco only boots once;
+    // subsequent theme changes are handled by the setTheme effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Tooltip helpers ──────────────────────────────────────────────────────
@@ -685,12 +690,12 @@ function makeStyles(t: ThemeTokens) {
     tab: {
       flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12,
       height: TAB_HEIGHT, borderRightWidth: StyleSheet.hairlineWidth,
-      borderRightColor: t.bg, maxWidth: 180, minWidth: 80,
+      borderRightColor: t.bg, minWidth: 80, maxWidth: 360,
     },
     tabActive: {
       backgroundColor: t.bg, borderBottomWidth: 2, borderBottomColor: t.accent,
     },
-    tabLabel:       { color: t.textMuted, fontSize: 12, flex: 1 },
+    tabLabel:       { color: t.textMuted, fontSize: 12, flexShrink: 1 },
     tabLabelActive: { color: t.text },
     tabCloseHit:    { marginLeft: 6, alignItems: 'center', justifyContent: 'center' },
     tabCloseIcon:   { color: t.textMuted, fontSize: 16, lineHeight: 16 },

@@ -2,7 +2,7 @@
  * US-0026 / US-0027 / US-0029: Git status, stage, commit, push, pull, branches.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -15,6 +15,7 @@ import {
   Alert,
 } from 'react-native';
 import { GitBridge, type GitStatus } from '../utils/FileSystemBridge';
+import { fsProgress } from '../git/expoGitFs';
 import useGitStore from '../stores/useGitStore';
 import { useTheme } from '../theme/tokens';
 
@@ -45,21 +46,42 @@ export default function GitPanel({
   const [newBranch, setNewBranch] = useState('');
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [scanProgress, setScanProgress] = useState<{ reads: number; bytes: number; elapsed: number } | null>(null);
+  const scanStartRef = useRef<number>(0);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setLastError(null);
+    // Start live progress polling — the statusMatrix scan can take a minute
+    // or more on a cold cache for a large repo. Without feedback the spinner
+    // looks frozen.
+    fsProgress.reset();
+    scanStartRef.current = Date.now();
+    setScanProgress({ reads: 0, bytes: 0, elapsed: 0 });
+    const progressTimer = setInterval(() => {
+      setScanProgress({
+        reads: fsProgress.reads,
+        bytes: fsProgress.bytes,
+        elapsed: Math.floor((Date.now() - scanStartRef.current) / 1000),
+      });
+    }, 250);
     try {
       const s = await GitBridge.status(rootPath);
       setStatus(s);
       setBranchInfo(s.branch, s.ahead, s.behind);
-      const b = await GitBridge.branches(rootPath);
+      if (s.noRepo) {
+        setBranches([]);
+        return;
+      }
+      const b = await GitBridge.branches(s.repoDir);
       setBranches(b);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setLastError(msg);
       setStatus(null);
     } finally {
+      clearInterval(progressTimer);
+      setScanProgress(null);
       setLoading(false);
     }
   }, [rootPath, setBranchInfo, setLastError]);
@@ -68,12 +90,17 @@ export default function GitPanel({
     if (visible) void refresh();
   }, [visible, refresh]);
 
+  // Effective repo path — use the auto-detected repoDir from the last
+  // status refresh, falling back to the raw workspace rootPath if not yet
+  // known (before first refresh).
+  const repoPath = status?.repoDir ?? rootPath;
+
   const toggleStage = async (filepath: string, currentlyStaged: boolean) => {
     try {
       if (currentlyStaged) {
-        await GitBridge.remove(rootPath, filepath);
+        await GitBridge.remove(repoPath, filepath);
       } else {
-        await GitBridge.add(rootPath, filepath);
+        await GitBridge.add(repoPath, filepath);
       }
       await refresh();
       bumpFileTree();
@@ -86,7 +113,7 @@ export default function GitPanel({
     const msg = commitMsg.trim() || 'chore: commit from NomadCode';
     setBusy(true);
     try {
-      await GitBridge.commit(rootPath, msg, {
+      await GitBridge.commit(repoPath, msg, {
         name: 'NomadCode User',
         email: 'user@nomadcode.app',
       });
@@ -110,7 +137,7 @@ export default function GitPanel({
     }
     setBusy(true);
     try {
-      await GitBridge.push(rootPath, authToken);
+      await GitBridge.push(repoPath, authToken);
       await refresh();
     } catch (e) {
       Alert.alert('Push failed', e instanceof Error ? e.message : String(e));
@@ -123,7 +150,7 @@ export default function GitPanel({
     setBusy(true);
     try {
       await GitBridge.pull(
-        rootPath,
+        repoPath,
         authToken ?? undefined,
         { name: 'NomadCode User', email: 'user@nomadcode.app' },
       );
@@ -139,7 +166,7 @@ export default function GitPanel({
   const doCheckout = async (name: string) => {
     setBusy(true);
     try {
-      await GitBridge.checkout(rootPath, name);
+      await GitBridge.checkout(repoPath, name);
       await refresh();
       bumpFileTree();
     } catch (e) {
@@ -154,7 +181,7 @@ export default function GitPanel({
     if (!name) return;
     setBusy(true);
     try {
-      await GitBridge.createBranch(rootPath, name, true);
+      await GitBridge.createBranch(repoPath, name, true);
       setNewBranch('');
       await refresh();
       bumpFileTree();
@@ -185,11 +212,36 @@ export default function GitPanel({
             </TouchableOpacity>
           </View>
           {loading ? (
-            <ActivityIndicator color={t.accent} />
+            <View style={{ alignItems: 'center', paddingVertical: 24, gap: 12 }}>
+              <ActivityIndicator color={t.accent} size="large" />
+              {scanProgress && (
+                <>
+                  <Text style={{ color: t.text, fontSize: 13, fontFamily: 'Menlo' }}>
+                    {scanProgress.elapsed}s · {scanProgress.reads} reads · {(scanProgress.bytes / 1024).toFixed(0)} KB
+                  </Text>
+                  <Text style={{ color: t.textMuted, fontSize: 12, textAlign: 'center', paddingHorizontal: 16 }}>
+                    First scan can take a minute on large repos.{'\n'}
+                    Subsequent opens use a cache and are near-instant.
+                  </Text>
+                </>
+              )}
+            </View>
+          ) : status?.noRepo ? (
+            <ScrollView>
+              <Text style={[styles.section, { color: t.textMuted, marginTop: 8 }]}>
+                No git repository
+              </Text>
+              <Text style={{ color: t.textMuted, fontSize: 13, marginBottom: 16 }}>
+                The workspace at this path isn&apos;t a git repo. Clone a repository into your workspace
+                or change your workspace to point to an existing repo folder.
+              </Text>
+            </ScrollView>
           ) : (
             <ScrollView>
               <Text style={[styles.section, { color: t.textMuted }]}>
-                Branch: {status?.branch ?? '—'}
+                Branch: {status?.branch ?? '—'}{status?.repoDir && rootPath !== status.repoDir
+                  ? ` · ${status.repoDir.split('/').filter(Boolean).pop() ?? ''}/`
+                  : ''}
               </Text>
               {!authToken && (
                 <TouchableOpacity onPress={onOpenSettings} style={styles.signIn}>
@@ -253,6 +305,9 @@ export default function GitPanel({
                 placeholderTextColor={t.textMuted}
                 value={commitMsg}
                 onChangeText={setCommitMsg}
+                onSubmitEditing={() => { if (!busy) doCommit(); }}
+                blurOnSubmit={false}
+                returnKeyType="send"
                 accessibilityLabel="Commit message"
               />
               <TouchableOpacity
@@ -271,6 +326,9 @@ export default function GitPanel({
                   placeholderTextColor={t.textMuted}
                   value={newBranch}
                   onChangeText={setNewBranch}
+                  onSubmitEditing={() => { if (!busy) doCreateBranch(); }}
+                  blurOnSubmit={false}
+                  returnKeyType="go"
                   autoCapitalize="none"
                   accessibilityLabel="New branch name"
                 />

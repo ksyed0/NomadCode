@@ -101,6 +101,12 @@ Description: Automated crash reporting via Sentry/Bugsnag and performance metric
 Release Target: Release 1.1 (Post-Launch)
 Status: Deferred
 Dependencies: EPIC-0011
+
+EPIC-0019: Native iOS Folder Picker
+Description: Custom native module wrapping UIDocumentPickerViewController in directory mode with security-scoped URL bookmarks, allowing users to pick workspace folders outside the app sandbox (iCloud Drive, On My iPad, external providers) with persistent write access.
+Release Target: Release 1.2 (Post-Launch)
+Status: Deferred
+Dependencies: EPIC-0002
 ```
 
 ---
@@ -412,6 +418,27 @@ Acceptance Criteria:
   - [x] AC-0151: The About modal footer shows the app version (from package.json) and copyright line
   - [x] AC-0152: Tapping the ✕ close button dismisses the About modal with a fade animation
 Dependencies: US-0018
+
+US-0067 (EPIC-0005): As a user, I want the Monaco editor's syntax colours to match my selected NomadCode theme, so that my chosen look (Dracula, Nord, Solarized Light, etc.) is reflected in code colours — not just the app chrome.
+Priority: Medium (P1)
+Estimate: M
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0202: Each NomadCode theme ID (nomad-dark, one-dark-pro, dracula, monokai, nord, tokyo-night, nomad-light, github-light, solarized-light, catppuccin-latte, night-owl-light) is registered with monaco.editor.defineTheme on editor boot with a full IStandaloneThemeData palette (colors + token rules)
+  - [ ] AC-0203: getMonacoTheme() returns the registered custom theme name (not vs / vs-dark) so custom colours are applied instead of the Monaco built-in fallback
+  - [ ] AC-0204: buildMonacoHtml() injects a defineTheme call for every registered theme before the initial setTheme, so the editor never shows a vs-dark flash on custom themes
+  - [ ] AC-0205: Switching themes in Settings or SetupWizard updates Monaco's active theme within one frame, with no unstyled interval
+  - [ ] AC-0206: Unit tests confirm each theme's defineTheme payload contains non-empty colors.background, colors.foreground, and at least one token rule for keywords, strings, and comments
+Dependencies: EPIC-0005 (existing), prior BUG-0044 (superseded)
+
+Notes:
+- Current workaround (as of SDK 54 upgrade) maps every theme ID to vs or vs-dark
+  based on .mode. This preserves the light/dark distinction but loses the
+  unique syntax palette for each theme.
+- Requires curating 11 IStandaloneThemeData objects in src/theme/monacoThemes.ts.
+- The original BUG-0044 fix attempted this by returning the raw ThemeId, but
+  never called defineTheme — Monaco silently ignored the unknown theme name
+  and kept vs-dark. That behaviour is now documented and tested against.
 ```
 
 ### EPIC-0006: Plan Visualizer
@@ -840,6 +867,25 @@ Acceptance Criteria:
   - [x] AC-0170: Vue SFCs (.vue) fall back to html language mode (no dedicated Monaco grammar)
   - [x] AC-0171: jsonc files map to Monaco language ID 'jsonc'; toml files map to 'toml'
 Dependencies: US-0059
+```
+
+---
+
+### EPIC-0019: Native iOS Folder Picker
+
+```
+US-0066 (EPIC-0019): As an iOS user, I want to pick a workspace folder from iCloud Drive, On My iPad, or any File Provider (Dropbox, OneDrive, etc.), so that my NomadCode workspace lives where my other files are and syncs across devices.
+Priority: Medium (P1)
+Estimate: L
+Status: Deferred
+Acceptance Criteria:
+  - [ ] AC-0196: Custom native iOS module (Swift) wraps UIDocumentPickerViewController in directory-selection mode (.folder UTType on iOS 14+)
+  - [ ] AC-0197: Selected folder URL is converted to a security-scoped URL bookmark (NSURL bookmarkData) and persisted so write access survives app relaunches
+  - [ ] AC-0198: Before each git write, the module calls startAccessingSecurityScopedResource() and pairs it with stopAccessingSecurityScopedResource() after completion to avoid leaking entitlements
+  - [ ] AC-0199: SetupWizard and Settings use the new picker via requestWorkspacePermission() — existing call site unchanged
+  - [ ] AC-0200: When the picker is unavailable (e.g. user cancels, iOS < 14), the in-app SandboxDirectoryPicker is offered as fallback
+  - [ ] AC-0201: Unit + E2E tests confirm clone/commit/push works in an iCloud Drive folder on a physical device
+Dependencies: EPIC-0002
 ```
 
 ---

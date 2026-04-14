@@ -311,6 +311,9 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
                     placeholderTextColor={tokens.textMuted}
                     value={patValue}
                     onChangeText={setPatValue}
+                    onSubmitEditing={() => { if (patValue.trim() && !authLoading) handlePatConnect(); }}
+                    blurOnSubmit={false}
+                    returnKeyType="go"
                     secureTextEntry
                     autoCapitalize="none"
                     autoCorrect={false}

@@ -30,6 +30,8 @@ PODS:
     - Yoga
   - ExpoAsset (12.0.12):
     - ExpoModulesCore
+  - ExpoClipboard (8.0.8):
+    - ExpoModulesCore
   - ExpoCrypto (15.0.8):
     - ExpoModulesCore
   - ExpoDocumentPicker (14.0.8):
@@ -1374,6 +1376,75 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-safe-area-context (5.6.2):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - react-native-safe-area-context/common (= 5.6.2)
+    - react-native-safe-area-context/fabric (= 5.6.2)
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - react-native-safe-area-context/common (5.6.2):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - react-native-safe-area-context/fabric (5.6.2):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - react-native-safe-area-context/common
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-webview (13.15.0):
     - hermes-engine
     - RCTRequired
@@ -1775,6 +1846,7 @@ DEPENDENCIES:
   - EXConstants (from `../../node_modules/expo-constants/ios`)
   - Expo (from `../../node_modules/expo`)
   - ExpoAsset (from `../../node_modules/expo-asset/ios`)
+  - ExpoClipboard (from `../../node_modules/expo-clipboard/ios`)
   - ExpoCrypto (from `../../node_modules/expo-crypto/ios`)
   - ExpoDocumentPicker (from `../../node_modules/expo-document-picker/ios`)
   - ExpoFileSystem (from `../../node_modules/expo-file-system/ios`)
@@ -1821,6 +1893,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-document-picker (from `../../node_modules/react-native-document-picker`)
+  - react-native-safe-area-context (from `../../node_modules/react-native-safe-area-context`)
   - react-native-webview (from `../../node_modules/react-native-webview`)
   - React-NativeModulesApple (from `../../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-oscompat (from `../../node_modules/react-native/ReactCommon/oscompat`)
@@ -1865,6 +1938,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/expo"
   ExpoAsset:
     :path: "../../node_modules/expo-asset/ios"
+  ExpoClipboard:
+    :path: "../../node_modules/expo-clipboard/ios"
   ExpoCrypto:
     :path: "../../node_modules/expo-crypto/ios"
   ExpoDocumentPicker:
@@ -1956,6 +2031,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-document-picker:
     :path: "../../node_modules/react-native-document-picker"
+  react-native-safe-area-context:
+    :path: "../../node_modules/react-native-safe-area-context"
   react-native-webview:
     :path: "../../node_modules/react-native-webview"
   React-NativeModulesApple:
@@ -2030,6 +2107,7 @@ SPEC CHECKSUMS:
   EXConstants: fce59a631a06c4151602843667f7cfe35f81e271
   Expo: aadbcc8c6c14ff3105a9154f1683cb1424ff0d2a
   ExpoAsset: f867e55ceb428aab99e1e8c082b5aee7c159ea18
+  ExpoClipboard: b36b287d8356887844bb08ed5c84b5979bb4dd1e
   ExpoCrypto: b6105ebaa15d6b38a811e71e43b52cd934945322
   ExpoDocumentPicker: 7cd9e71a0f66fb19eb0a586d6f26eee1284692e0
   ExpoFileSystem: 858a44267a3e6e9057e0888ad7c7cfbf55d52063
@@ -2075,6 +2153,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 9050ee10c19f4f7fca8963d0211b2854d624973e
   React-microtasksnativemodule: f775db9e991c6f3b8ccbc02bfcde22770f96e23b
   react-native-document-picker: 1b3327cac6b18345690c452f77b4c7e392173f93
+  react-native-safe-area-context: 37e680fc4cace3c0030ee46e8987d24f5d3bdab2
   react-native-webview: b29007f4723bca10872028067b07abacfa1cb35a
   React-NativeModulesApple: 8969913947d5b576de4ed371a939455a8daf28aa
   React-oscompat: ce47230ed20185e91de62d8c6d139ae61763d09c
