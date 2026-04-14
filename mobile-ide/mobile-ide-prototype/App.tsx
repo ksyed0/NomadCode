@@ -62,8 +62,35 @@ export default function App() {
   const hasCompletedSetup = useSettingsStore((s) => s.hasCompletedSetup);
   const installedExtensions = useSettingsStore((s) => s.installedExtensions);
   const workspaceUri = useSettingsStore((s) => s.workspaceUri);
+  const setWorkspaceRoot = useSettingsStore((s) => s.setWorkspaceRoot);
   // Fall back to the app's sandboxed document directory when no workspace has been picked yet
   const rootPath = workspaceUri || FileSystemBridge.documentDirectory;
+
+  // Startup check: if the stored workspace points to a non-writable
+  // location (e.g. File Provider Storage from a legacy Browse on iOS),
+  // silently reset it to the app's writable Documents/ sandbox. This
+  // avoids confusing "not writable" errors on every git / file op.
+  useEffect(() => {
+    if (!workspaceUri) return;
+    (async () => {
+      try {
+        const sentinelName = `.__nomad_writable_check_${Date.now()}`;
+        const testUri = workspaceUri.endsWith('/')
+          ? `${workspaceUri}${sentinelName}`
+          : `${workspaceUri}/${sentinelName}`;
+        await FileSystemBridge.writeFile(testUri, 'ok');
+        await FileSystemBridge.deleteEntry(testUri);
+        // Workspace is writable — nothing to do.
+      } catch {
+        const fallback = FileSystemBridge.documentDirectory;
+        if (fallback && fallback !== workspaceUri) {
+          console.warn('[App] workspace not writable, falling back to', fallback);
+          setWorkspaceRoot({ uri: fallback, uriType: 'file', displayName: 'Documents' });
+        }
+      }
+    })();
+    // Run once per workspaceUri change.
+  }, [workspaceUri, setWorkspaceRoot]);
 
   // ── Auth store ────────────────────────────────────────────────────────────
   const hydrateAuth = useAuthStore((s) => s.hydrate);
