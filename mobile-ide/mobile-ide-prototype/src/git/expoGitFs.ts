@@ -148,12 +148,36 @@ export function buildExpoGitFs(): ExpoGitFs {
         return statFromInfo(info);
       },
 
-      readlink: async (_path: string): Promise<Uint8Array> => {
-        throw Object.assign(new Error('ENOSYS: readlink not supported'), { code: 'ENOSYS' });
+      readlink: async (path: string): Promise<Uint8Array> => {
+        // iOS sandbox has no symlink API. Fall back to reading the file as
+        // regular content (isomorphic-git stores the link target as UTF-8
+        // bytes in readlink's return value).
+        const text = await ExpoFS.readAsStringAsync(path, {
+          encoding: ExpoFS.EncodingType.UTF8,
+        });
+        const bytes = new Uint8Array(text.length);
+        for (let i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i);
+        return bytes;
       },
 
-      symlink: async (_target: string, _path: string): Promise<void> => {
-        throw Object.assign(new Error('ENOSYS: symlink not supported'), { code: 'ENOSYS' });
+      symlink: async (target: string, path: string): Promise<void> => {
+        // iOS sandbox has no symlink API. Materialise the symlink as a plain
+        // file whose contents are the target path. This loses symlink
+        // semantics but lets isomorphic-git finish the clone. Repos with
+        // meaningful symlinks (e.g. to content outside the working tree)
+        // will not behave correctly until EPIC-0019 adds native support.
+        const parentIdx = path.lastIndexOf('/');
+        if (parentIdx > 0) {
+          const parent = path.slice(0, parentIdx);
+          try {
+            await ExpoFS.makeDirectoryAsync(parent, { intermediates: true });
+          } catch {
+            // Ignore: may already exist
+          }
+        }
+        await ExpoFS.writeAsStringAsync(path, target, {
+          encoding: ExpoFS.EncodingType.UTF8,
+        });
       },
     },
   };

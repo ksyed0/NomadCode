@@ -86,7 +86,10 @@ export const GitBridge = {
     url: string,
     dir: string,
     token?: string,
-    options?: { onProgress?: (progress: { loaded: number; total: number }) => void },
+    options?: {
+      onProgress?: (progress: { loaded: number; total: number; phase?: string }) => void;
+      onMessage?: (message: string) => void;
+    },
   ): Promise<void> {
     assertGitWorkspace(dir);
     const d = normalizeDir(dir);
@@ -103,6 +106,7 @@ export const GitBridge = {
           singleBranch: true,
           ...(onAuth ? { onAuth } : {}),
           ...(options?.onProgress ? { onProgress: options.onProgress } : {}),
+          ...(options?.onMessage ? { onMessage: options.onMessage } : {}),
         }),
       'Clone',
     );

@@ -95,10 +95,23 @@ describe('buildExpoGitFs', () => {
     expect(s.isDirectory()).toBe(true);
   });
 
-  it('readlink and symlink reject with ENOSYS', async () => {
+  it('readlink reads the file contents as the link target (iOS fallback)', async () => {
+    mockReadAsStringAsync.mockResolvedValueOnce('../target/path');
     const fs = buildExpoGitFs();
-    await expect(fs.promises.readlink('/l')).rejects.toMatchObject({ code: 'ENOSYS' });
-    await expect(fs.promises.symlink('t', '/l')).rejects.toMatchObject({ code: 'ENOSYS' });
+    const bytes = await fs.promises.readlink('/l');
+    expect(mockReadAsStringAsync).toHaveBeenCalledWith('/l', { encoding: 'utf8' });
+    expect(bytes).toBeInstanceOf(Uint8Array);
+    expect(String.fromCharCode(...bytes)).toBe('../target/path');
+  });
+
+  it('symlink writes the target as a regular UTF-8 file (iOS fallback)', async () => {
+    mockMakeDirectoryAsync.mockResolvedValueOnce(undefined);
+    mockWriteAsStringAsync.mockResolvedValueOnce(undefined);
+    const fs = buildExpoGitFs();
+    await fs.promises.symlink('../target/path', '/a/link');
+    expect(mockWriteAsStringAsync).toHaveBeenCalledWith('/a/link', '../target/path', {
+      encoding: 'utf8',
+    });
   });
 
   it('unlink and rmdir delegate to deleteAsync', async () => {

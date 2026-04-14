@@ -35,9 +35,11 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
   ),
 }));
 
-const mockRequestWorkspacePermission = jest.fn(() => Promise.resolve(null));
+// Mock return type can be null (cancelled) or a WorkspaceRoot object
+type MockRoot = null | { uri: string; uriType: 'file' | 'saf'; displayName: string };
+const mockRequestWorkspacePermission = jest.fn<Promise<MockRoot>, []>(() => Promise.resolve(null));
 jest.mock('../../src/utils/FileSystemBridge', () => ({
-  requestWorkspacePermission: (...args: unknown[]) => mockRequestWorkspacePermission(...args),
+  requestWorkspacePermission: () => mockRequestWorkspacePermission(),
 }));
 
 jest.mock('expo-file-system/legacy', () => ({

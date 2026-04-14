@@ -6,6 +6,7 @@ import React, { useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -45,7 +46,14 @@ export default function GitCloneModal({
   const [subfolder, setSubfolder] = useState('');
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [phase, setPhase] = useState<string>('');
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [logLines, setLogLines] = useState<string[]>([]);
+
+  const appendLog = useCallback((line: string) => {
+    setLogLines((prev) => [...prev.slice(-199), line.trimEnd()]);
+  }, []);
 
   const onClone = useCallback(async () => {
     const u = url.trim();
@@ -62,6 +70,8 @@ export default function GitCloneModal({
     setLastError(null);
     setProgress(0);
     setCloneProgress(0);
+    setPhase('connecting');
+    setLogLines([`→ clone ${u}`, `→ destination ${dest}`]);
     try {
       let isGitHubHost = false;
       try {
@@ -80,8 +90,16 @@ export default function GitCloneModal({
           const t0 = p.total > 0 ? p.loaded / p.total : 0;
           setProgress(t0);
           setCloneProgress(t0);
+          if (p.phase && p.phase !== phase) {
+            setPhase(p.phase);
+            appendLog(`→ ${p.phase}`);
+          }
+        },
+        onMessage: (message: string) => {
+          appendLog(message);
         },
       });
+      appendLog('✓ clone complete');
       bumpFileTree();
       setUrl('');
       setSubfolder('');
@@ -89,6 +107,8 @@ export default function GitCloneModal({
     } catch (e) {
       console.error('[GitClone] clone failed:', e);
       let msg = e instanceof Error ? e.message : String(e);
+      appendLog(`✗ ${msg}`);
+      setShowDetails(true); // auto-open details on failure
       if (
         msg.includes('Authentication failed') ||
         msg.includes('401') ||
@@ -102,8 +122,9 @@ export default function GitCloneModal({
       setBusy(false);
       setCloneProgress(null);
       setProgress(0);
+      setPhase('');
     }
-  }, [url, subfolder, rootPath, authToken, bumpFileTree, onClose, setCloneProgress, setLastError]);
+  }, [url, subfolder, rootPath, authToken, phase, bumpFileTree, onClose, setCloneProgress, setLastError, appendLog]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -152,9 +173,43 @@ export default function GitCloneModal({
             <View style={styles.progressRow}>
               <ActivityIndicator color={t.accent} />
               <Text style={[styles.progressText, { color: t.textMuted }]}>
-                {Math.round(progress * 100)}%
+                {Math.round(progress * 100)}%{phase ? ` · ${phase}` : ''}
               </Text>
             </View>
+          )}
+          {(busy || logLines.length > 0) && (
+            <>
+              <TouchableOpacity
+                testID="clone-toggle-details"
+                onPress={() => setShowDetails((v) => !v)}
+                style={styles.detailsToggle}
+                accessibilityRole="button"
+                accessibilityLabel={showDetails ? 'Hide details' : 'Show details'}
+              >
+                <Text style={[styles.detailsToggleText, { color: t.textMuted }]}>
+                  {showDetails ? '▼ Hide details' : '▶ Show details'}
+                </Text>
+              </TouchableOpacity>
+              {showDetails && (
+                <ScrollView
+                  testID="clone-log"
+                  style={[styles.logBox, { borderColor: t.border, backgroundColor: t.bg }]}
+                  contentContainerStyle={styles.logContent}
+                >
+                  {logLines.map((line, i) => (
+                    <Text
+                      key={i}
+                      style={[
+                        styles.logLine,
+                        { color: line.startsWith('✗') ? '#EF4444' : line.startsWith('✓') ? '#22C55E' : t.text },
+                      ]}
+                    >
+                      {line}
+                    </Text>
+                  ))}
+                </ScrollView>
+              )}
+            </>
           )}
           <View style={styles.actions}>
             <TouchableOpacity
@@ -234,6 +289,28 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 13,
+  },
+  detailsToggle: {
+    minHeight: 32,
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  detailsToggleText: {
+    fontSize: 12,
+  },
+  logBox: {
+    borderWidth: 1,
+    borderRadius: 6,
+    maxHeight: 180,
+    marginBottom: 12,
+  },
+  logContent: {
+    padding: 8,
+  },
+  logLine: {
+    fontFamily: 'Menlo',
+    fontSize: 11,
+    lineHeight: 15,
   },
   actions: {
     flexDirection: 'row',
