@@ -128,7 +128,6 @@ describe('GlobalSearch', () => {
   });
 
   it('shows empty state when no results and not searching', () => {
-    mockState = { query: 'foo', results: [], isSearching: false };
     const { getByText } = renderSearch({ query: 'foo', results: [], isSearching: false });
     expect(getByText(/no results/i)).toBeTruthy();
   });
@@ -297,5 +296,17 @@ describe('replace mode', () => {
       expect(mockReplaceAll).toHaveBeenCalled();
       expect(spyAlert).toHaveBeenCalledWith('Replace All', '5 replacements in 2 files.');
     });
+    spyAlert.mockRestore();
+  });
+
+  it('does not call replaceAll when totalMatchCount is 0', async () => {
+    renderSearch({
+      mode: 'replace' as const,
+      query: 'foo',
+      results: [],
+      totalMatchCount: 0,
+    });
+    fireEvent.press(screen.getByText('Replace All'));
+    expect(mockReplaceAll).not.toHaveBeenCalled();
   });
 });

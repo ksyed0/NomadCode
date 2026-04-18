@@ -158,6 +158,7 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
           </Text>
           <TouchableOpacity
             disabled={!query || totalMatchCount === 0}
+            accessibilityState={{ disabled: !query || totalMatchCount === 0 }}
             style={[
               styles.replaceAllBtn,
               { backgroundColor: !query || totalMatchCount === 0 ? theme.border : theme.accent },
