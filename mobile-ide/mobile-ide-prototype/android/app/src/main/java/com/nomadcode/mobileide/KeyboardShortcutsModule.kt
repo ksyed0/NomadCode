@@ -13,6 +13,7 @@ class KeyboardShortcutsModule(private val reactContext: ReactApplicationContext)
 
     override fun getName(): String = "KeyboardShortcuts"
 
+    @ReactMethod
     fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         val isCmd = event.isMetaPressed || event.isCtrlPressed
         if (!isCmd) return false
