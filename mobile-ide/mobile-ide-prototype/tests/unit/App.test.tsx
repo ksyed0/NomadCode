@@ -417,7 +417,7 @@ describe('global search wiring', () => {
   });
 
   it('"Search: Find in Files" palette command switches to Search tab', async () => {
-    const { getByText, getByPlaceholderText } = render(<App />);
+    const { getByPlaceholderText } = render(<App />);
     // Open command palette (FAB icon changed from ⌘ to ≡; use accessibilityLabel for resilience)
     fireEvent.press(screen.getByLabelText('Open command palette'));
     await waitFor(() => getByPlaceholderText(/command/i));
