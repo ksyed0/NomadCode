@@ -508,7 +508,7 @@ export default function FileExplorer({
         accessibilityState={{ disabled: isSource }}
         activeOpacity={0.7}
       >
-        <Text style={[styles.icon, { color: t.textMuted }]}>▸</Text>
+        <Text style={[styles.folderChevron, { color: t.textMuted }]}>▸</Text>
         <Text style={[styles.name, { color: t.text, fontWeight: '500' }]} numberOfLines={1}>
           {item.name}
         </Text>
