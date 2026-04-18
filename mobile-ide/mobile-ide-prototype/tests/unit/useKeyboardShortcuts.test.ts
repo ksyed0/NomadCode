@@ -5,7 +5,6 @@ import { useKeyboardShortcuts } from '../../src/hooks/useKeyboardShortcuts';
 import type { ShortcutDefinition } from '../../src/hooks/useKeyboardShortcuts';
 
 // Mock the native module
-NativeModules.KeyboardShortcuts = {};
 const mockAddListener = jest.fn(() => ({ remove: jest.fn() }));
 jest.mock('react-native', () => {
   return {
@@ -59,5 +58,21 @@ describe('useKeyboardShortcuts', () => {
     const { unmount } = renderHook(() => useKeyboardShortcuts(shortcuts));
     unmount();
     expect(removeMock).toHaveBeenCalled();
+  });
+
+  it('does not subscribe when native module is absent', () => {
+    const savedModule = NativeModules.KeyboardShortcuts;
+    // @ts-ignore
+    delete NativeModules.KeyboardShortcuts;
+    const MockNativeEventEmitter = NativeEventEmitter as jest.Mock;
+    MockNativeEventEmitter.mockClear();
+
+    renderHook(() => useKeyboardShortcuts([
+      { key: 's', modifiers: ['cmd'], label: 'Save', action: jest.fn() },
+    ]));
+
+    expect(MockNativeEventEmitter).not.toHaveBeenCalled();
+    // Restore
+    NativeModules.KeyboardShortcuts = savedModule;
   });
 });

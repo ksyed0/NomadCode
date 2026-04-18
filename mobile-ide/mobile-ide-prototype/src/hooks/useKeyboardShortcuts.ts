@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { NativeModules, NativeEventEmitter } from 'react-native';
 
 export interface ShortcutDefinition {
@@ -9,13 +9,18 @@ export interface ShortcutDefinition {
 }
 
 export function useKeyboardShortcuts(shortcuts: ShortcutDefinition[]): void {
+  const shortcutsRef = useRef(shortcuts);
+  useEffect(() => {
+    shortcutsRef.current = shortcuts;
+  });
+
   useEffect(() => {
     if (!NativeModules.KeyboardShortcuts) return;
     const emitter = new NativeEventEmitter(NativeModules.KeyboardShortcuts);
     const subscription = emitter.addListener(
       'onShortcut',
       (event: { key: string; modifiers: string[] }) => {
-        const match = shortcuts.find(
+        const match = shortcutsRef.current.find(
           (s) =>
             s.key === event.key &&
             s.modifiers.length === event.modifiers.length &&
@@ -25,6 +30,5 @@ export function useKeyboardShortcuts(shortcuts: ShortcutDefinition[]): void {
       },
     );
     return () => subscription.remove();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(shortcuts.map((s) => ({ key: s.key, modifiers: s.modifiers })))]);
+  }, []);
 }
