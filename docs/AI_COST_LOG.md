@@ -332,3 +332,5 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-04-14 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | bugfix/sdk54-ui-fixes | 0 | 0 | 0 | 0.0000 |
 | 2026-04-14 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | bugfix/sdk54-ui-fixes | 0 | 0 | 0 | 0.0000 |
 | 2026-04-14 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | bugfix/sdk54-ui-fixes | 0 | 0 | 0 | 0.0000 |
+| 2026-04-14 | 0a2e6da0-02a3-4a55-a40b-08ca3eed3024 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-04-17 | 94254c22-1f78-4d42-91b3-1857d3a4f47d | develop | 0 | 0 | 0 | 0.0000 |
