@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator,
+  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
-import { useSearch } from '../hooks/useSearch';
+import { useReplace } from '../hooks/useReplace';
 import { useTheme } from '../theme/tokens';
 
 export interface GlobalSearchProps {
@@ -37,11 +37,33 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
     query, setQuery, options, setOptions,
     results, isSearching, fileCount, totalMatchCount, error,
     submit, clear,
-  } = useSearch(workspaceRoot);
+    mode, setMode, replaceQuery, setReplaceQuery,
+    excludedMatches, toggleExclude, replacePreview, replaceAll,
+  } = useReplace(workspaceRoot);
   const theme = useTheme();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      {/* Mode tabs */}
+      <View style={styles.modeTabs}>
+        <TouchableOpacity
+          style={[styles.modeTab, mode === 'search' && { borderBottomColor: theme.accent, borderBottomWidth: 2 }]}
+          onPress={() => setMode('search')}
+        >
+          <Text style={{ color: mode === 'search' ? theme.accent : theme.textMuted, fontSize: 11, fontWeight: '600' }}>
+            SEARCH
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.modeTab, mode === 'replace' && { borderBottomColor: theme.accent, borderBottomWidth: 2 }]}
+          onPress={() => setMode('replace')}
+        >
+          <Text style={{ color: mode === 'replace' ? theme.accent : theme.textMuted, fontSize: 11, fontWeight: '600' }}>
+            REPLACE
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Search input row */}
       <View style={[styles.inputRow, { borderColor: theme.border }]}>
         <TextInput
@@ -61,6 +83,26 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Replace input row */}
+      {mode === 'replace' && (
+        <View style={[styles.inputRow, { borderColor: theme.border, marginTop: 4 }]}>
+          <TextInput
+            style={[styles.input, { color: theme.text }]}
+            value={replaceQuery}
+            onChangeText={setReplaceQuery}
+            placeholder="Replace with..."
+            placeholderTextColor={theme.textMuted}
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+        </View>
+      )}
+      {mode === 'replace' && replacePreview.length > 0 && (
+        <Text style={{ color: theme.textMuted, fontSize: 11, paddingHorizontal: 8, paddingVertical: 2 }}>
+          {replacePreview}
+        </Text>
+      )}
 
       {/* Toggle buttons */}
       <View style={styles.toggleRow}>
@@ -108,6 +150,24 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
         </Text>
       ) : null}
 
+      {/* Replace All bar */}
+      {mode === 'replace' && (
+        <View style={[styles.summaryRow, { justifyContent: 'space-between', alignItems: 'center' }]}>
+          <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+            {totalMatchCount > 0 ? `${fileCount} files · ${totalMatchCount} matches` : 'No matches'}
+          </Text>
+          <TouchableOpacity
+            style={[styles.replaceAllBtn, { backgroundColor: theme.accent }]}
+            onPress={async () => {
+              const r = await replaceAll();
+              Alert.alert('Replace All', `${r.matchesReplaced} replacements in ${r.filesChanged} files.`);
+            }}
+          >
+            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Replace All</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Results list */}
       <ScrollView style={styles.resultList} keyboardShouldPersistTaps="handled">
         {!isSearching && results.length === 0 && query.length > 0 && !error && (
@@ -124,9 +184,18 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
             {fileResult.matches.map((match) => (
               <TouchableOpacity
                 key={`${fileResult.filePath}:${match.lineNumber}`}
-                onPress={() => onNavigate(fileResult.filePath, match.lineNumber, match.matchStart, match.matchEnd)}
+                onPress={() =>
+                  mode === 'replace'
+                    ? toggleExclude(`${fileResult.filePath}:${match.lineNumber}:${match.matchStart}`)
+                    : onNavigate(fileResult.filePath, match.lineNumber, match.matchStart, match.matchEnd)
+                }
                 style={styles.matchRow}
               >
+                {mode === 'replace' && (
+                  <Text style={{ color: theme.textMuted, marginRight: 6, fontSize: 12 }}>
+                    {excludedMatches.has(`${fileResult.filePath}:${match.lineNumber}:${match.matchStart}`) ? '☐' : '☑'}
+                  </Text>
+                )}
                 <Text style={[styles.lineNum, { color: theme.textMuted }]}>
                   {match.lineNumber}
                 </Text>
@@ -144,6 +213,8 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  modeTabs: { flexDirection: 'row' },
+  modeTab: { flex: 1, alignItems: 'center', paddingVertical: 6 },
   inputRow: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, paddingHorizontal: 8 },
   input: { flex: 1, height: 36, fontFamily: 'JetBrains Mono', fontSize: 13 },
   clearBtn: { padding: 6 },
@@ -152,6 +223,8 @@ const styles = StyleSheet.create({
   globInput: { marginHorizontal: 8, marginBottom: 4, height: 30, fontSize: 11, borderBottomWidth: 1 },
   statusText: { paddingHorizontal: 8, paddingVertical: 4, fontSize: 11 },
   loadingRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4 },
+  summaryRow: { flexDirection: 'row', paddingHorizontal: 8, paddingVertical: 4 },
+  replaceAllBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 4 },
   resultList: { flex: 1 },
   emptyText: { paddingHorizontal: 12, paddingVertical: 8, fontSize: 12 },
   filePath: { paddingHorizontal: 8, paddingTop: 8, paddingBottom: 2, fontSize: 11, fontWeight: '600' },

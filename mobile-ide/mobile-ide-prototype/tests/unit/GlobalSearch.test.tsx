@@ -1,18 +1,27 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, screen } from '@testing-library/react-native';
 import { GlobalSearch } from '../../src/components/GlobalSearch';
 import { UseSearchReturn } from '../../src/hooks/useSearch';
 
-// Mock useSearch
+// Mock useReplace
 const mockSubmit = jest.fn();
 const mockClear = jest.fn();
 const mockSetQuery = jest.fn();
 const mockSetOptions = jest.fn();
+const mockSetMode = jest.fn();
+const mockSetReplaceQuery = jest.fn();
+const mockToggleExclude = jest.fn();
+const mockReplaceAll = jest.fn().mockResolvedValue({ filesChanged: 0, matchesReplaced: 0 });
 
-let mockState: Partial<UseSearchReturn> = {};
+let mockState: Partial<UseSearchReturn> & {
+  mode?: 'search' | 'replace';
+  replaceQuery?: string;
+  excludedMatches?: Set<string>;
+  replacePreview?: string;
+} = {};
 
-jest.mock('../../src/hooks/useSearch', () => ({
-  useSearch: () => ({
+jest.mock('../../src/hooks/useReplace', () => ({
+  useReplace: () => ({
     query: '',
     setQuery: mockSetQuery,
     options: { caseSensitive: false, regex: false, wholeWord: false, glob: '' },
@@ -24,6 +33,14 @@ jest.mock('../../src/hooks/useSearch', () => ({
     error: null,
     submit: mockSubmit,
     clear: mockClear,
+    mode: 'search',
+    setMode: mockSetMode,
+    replaceQuery: '',
+    setReplaceQuery: mockSetReplaceQuery,
+    excludedMatches: new Set(),
+    toggleExclude: mockToggleExclude,
+    replacePreview: '',
+    replaceAll: mockReplaceAll,
     ...mockState,
   }),
 }));
@@ -51,7 +68,7 @@ jest.mock('../../src/theme/tokens', () => ({
 const WORKSPACE = 'file:///workspace';
 const onNavigate = jest.fn();
 
-function renderSearch(state: Partial<UseSearchReturn> = {}) {
+function renderSearch(state: typeof mockState = {}) {
   mockState = state;
   return render(<GlobalSearch workspaceRoot={WORKSPACE} onNavigate={onNavigate} />);
 }
@@ -160,5 +177,100 @@ describe('GlobalSearch', () => {
   it('shows error message when error is set', () => {
     const { getByText } = renderSearch({ error: 'Invalid regex: bad pattern' });
     expect(getByText(/Invalid regex/)).toBeTruthy();
+  });
+});
+
+describe('replace mode', () => {
+  it('shows SEARCH and REPLACE tab buttons', () => {
+    renderSearch();
+    expect(screen.getByText('SEARCH')).toBeTruthy();
+    expect(screen.getByText('REPLACE')).toBeTruthy();
+  });
+
+  it('replace input is hidden in search mode', () => {
+    renderSearch();
+    expect(screen.queryByPlaceholderText('Replace with...')).toBeNull();
+  });
+
+  it('pressing REPLACE tab calls setMode', () => {
+    renderSearch();
+    fireEvent.press(screen.getByText('REPLACE'));
+    expect(mockSetMode).toHaveBeenCalledWith('replace');
+  });
+
+  it('replace input is visible in replace mode', () => {
+    renderSearch({ mode: 'replace' });
+    expect(screen.getByPlaceholderText('Replace with...')).toBeTruthy();
+  });
+
+  it('Replace All button is visible in replace mode', () => {
+    renderSearch({ mode: 'replace' });
+    expect(screen.getByText('Replace All')).toBeTruthy();
+  });
+
+  it('replace input is not visible in search mode', () => {
+    renderSearch({ mode: 'search' });
+    expect(screen.queryByPlaceholderText('Replace with...')).toBeNull();
+  });
+
+  it('tapping a match in replace mode calls toggleExclude instead of onNavigate', () => {
+    renderSearch({
+      mode: 'replace',
+      results: [
+        {
+          filePath: 'file:///workspace/src/App.tsx',
+          matches: [
+            { lineNumber: 10, preview: 'const bar = 2;', matchStart: 6, matchEnd: 9 },
+          ],
+        },
+      ],
+    });
+    fireEvent.press(screen.getByText('const bar = 2;'));
+    expect(mockToggleExclude).toHaveBeenCalledWith('file:///workspace/src/App.tsx:10:6');
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows checked checkbox for included matches in replace mode', () => {
+    renderSearch({
+      mode: 'replace',
+      results: [
+        {
+          filePath: 'file:///workspace/src/App.tsx',
+          matches: [
+            { lineNumber: 10, preview: 'const bar = 2;', matchStart: 6, matchEnd: 9 },
+          ],
+        },
+      ],
+      excludedMatches: new Set(),
+    });
+    // ☑ means included (not excluded)
+    expect(screen.getByText('☑')).toBeTruthy();
+  });
+
+  it('shows unchecked checkbox for excluded matches in replace mode', () => {
+    renderSearch({
+      mode: 'replace',
+      results: [
+        {
+          filePath: 'file:///workspace/src/App.tsx',
+          matches: [
+            { lineNumber: 10, preview: 'const bar = 2;', matchStart: 6, matchEnd: 9 },
+          ],
+        },
+      ],
+      excludedMatches: new Set(['file:///workspace/src/App.tsx:10:6']),
+    });
+    // ☐ means excluded
+    expect(screen.getByText('☐')).toBeTruthy();
+  });
+
+  it('shows replacePreview text when set', () => {
+    renderSearch({ mode: 'replace', replacePreview: '"foo" → "bar"' });
+    expect(screen.getByText('"foo" → "bar"')).toBeTruthy();
+  });
+
+  it('does not show Replace All bar in search mode', () => {
+    renderSearch({ mode: 'search' });
+    expect(screen.queryByText('Replace All')).toBeNull();
   });
 });
