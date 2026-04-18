@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react-native';
+import { render, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import { GlobalSearch } from '../../src/components/GlobalSearch';
 import { UseSearchReturn } from '../../src/hooks/useSearch';
 
@@ -74,7 +75,8 @@ function renderSearch(state: typeof mockState = {}) {
 }
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  jest.resetAllMocks();
+  mockReplaceAll.mockResolvedValue({ filesChanged: 0, matchesReplaced: 0 });
   mockState = {};
 });
 
@@ -272,5 +274,28 @@ describe('replace mode', () => {
   it('does not show Replace All bar in search mode', () => {
     renderSearch({ mode: 'search' });
     expect(screen.queryByText('Replace All')).toBeNull();
+  });
+
+  it('pressing Replace All shows Alert with results', async () => {
+    const spyAlert = jest.spyOn(Alert, 'alert');
+    mockReplaceAll.mockResolvedValue({ filesChanged: 2, matchesReplaced: 5 });
+    renderSearch({
+      mode: 'replace',
+      query: 'foo',
+      totalMatchCount: 3,
+      results: [
+        {
+          filePath: 'file:///workspace/src/App.tsx',
+          matches: [
+            { lineNumber: 1, preview: 'const foo = 1;', matchStart: 6, matchEnd: 9 },
+          ],
+        },
+      ],
+    });
+    fireEvent.press(screen.getByText('Replace All'));
+    await waitFor(() => {
+      expect(mockReplaceAll).toHaveBeenCalled();
+      expect(spyAlert).toHaveBeenCalledWith('Replace All', '5 replacements in 2 files.');
+    });
   });
 });

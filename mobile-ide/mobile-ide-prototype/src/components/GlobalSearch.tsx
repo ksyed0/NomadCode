@@ -157,7 +157,11 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
             {totalMatchCount > 0 ? `${fileCount} files · ${totalMatchCount} matches` : 'No matches'}
           </Text>
           <TouchableOpacity
-            style={[styles.replaceAllBtn, { backgroundColor: theme.accent }]}
+            disabled={!query || totalMatchCount === 0}
+            style={[
+              styles.replaceAllBtn,
+              { backgroundColor: !query || totalMatchCount === 0 ? theme.border : theme.accent },
+            ]}
             onPress={async () => {
               const r = await replaceAll();
               Alert.alert('Replace All', `${r.matchesReplaced} replacements in ${r.filesChanged} files.`);
@@ -183,7 +187,7 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
             </Text>
             {fileResult.matches.map((match) => (
               <TouchableOpacity
-                key={`${fileResult.filePath}:${match.lineNumber}`}
+                key={`${fileResult.filePath}:${match.lineNumber}:${match.matchStart}`}
                 onPress={() =>
                   mode === 'replace'
                     ? toggleExclude(`${fileResult.filePath}:${match.lineNumber}:${match.matchStart}`)
