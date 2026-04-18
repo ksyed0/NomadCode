@@ -277,6 +277,17 @@ Acceptance Criteria:
   - [x] AC-0020: Move to valid destination calls moveEntry + onFileMove + tree reloaded (TC-0066..TC-0077)
   - [x] AC-0021: Self-move and descendant-move blocked with error alert (TC-0073..TC-0074)
 Dependencies: US-0007, US-0008, US-0009, US-0010
+
+US-0099 (EPIC-0002): As a developer, I want file type icons in the Explorer sidebar, so that I can distinguish file types at a glance without reading every filename.
+Priority: Medium (P1)
+Estimate: S
+Status: Done
+Branch: feature/ui-improvements-phase1
+Acceptance Criteria:
+  - [x] AC-0300: File entries display a coloured monospace badge (TSX, TS, JS, PY, MD, JSON, etc.) derived from the file extension, replacing the undifferentiated '·' bullet
+  - [x] AC-0301: Special filenames (.gitignore, package.json, Dockerfile, README.md, .env, etc.) receive distinct contextual badge labels (GIT, PKG, DOCK, DOC, ENV) regardless of extension
+  - [x] AC-0302: Directory entries retain the ▸/▾ chevron toggle icon and are visually distinct from file entries at all times
+Dependencies: US-0007
 ```
 
 ### EPIC-0003: Terminal
@@ -487,6 +498,29 @@ Notes:
 - The original BUG-0044 fix attempted this by returning the raw ThemeId, but
   never called defineTheme — Monaco silently ignored the unknown theme name
   and kept vs-dark. That behaviour is now documented and tested against.
+
+US-0100 (EPIC-0005): As a power user, I want to browse and install extensions directly from the VS Code Marketplace inside NomadCode, so that I can discover and add tools without leaving the IDE.
+Priority: Low (P2)
+Estimate: XL
+Status: Planned
+Release Target: Release 1.2
+Acceptance Criteria:
+  - [ ] AC-0303: An "Extensions" panel is accessible from the sidebar or command palette, displaying a searchable list of VS Code Marketplace extensions
+  - [ ] AC-0304: Each extension listing shows name, publisher, rating, download count, description, and a one-tap Install button
+  - [ ] AC-0305: Installing an extension downloads only the pure-JS / WASM portions of the extension package; any native binary components are silently omitted with an explanatory note (App Store §2.5.2 compliance — no runtime native code download)
+  - [ ] AC-0306: Installed extensions appear in the Extensions panel under "Installed" and are activated via the existing WASM-sandbox ExtensionHost
+  - [ ] AC-0307: Extension data (search results, extension metadata) is cached locally for offline browsing; install requires network
+Dependencies: US-0020
+
+Notes:
+- The VS Code Marketplace Open VSIX API (https://open-vsx.org) or Microsoft's
+  Marketplace REST API can be used as the data source. Open VSX is preferred
+  as it has no Microsoft ToS dependency and is the standard for non-Microsoft
+  editors (Theia, Gitpod, Cursor).
+- Extension execution must go through the existing WASM-sandbox ExtensionHost
+  (see US-0020); no direct filesystem or native API access is permitted.
+- Native-binary extensions (e.g. C/C++ IntelliSense) will not run on-device;
+  the install flow should detect and warn for extensions requiring native binaries.
 ```
 
 ### EPIC-0006: Plan Visualizer

@@ -543,6 +543,35 @@
       ]
     },
     {
+      "id": "US-0099",
+      "epicId": "EPIC-0002",
+      "title": "As a developer, I want file type icons in the Explorer sidebar, so that I can distinguish file types at a glance without reading every filename.",
+      "priority": "P1",
+      "estimate": "S",
+      "status": "Done",
+      "branch": "feature/ui-improvements-phase1",
+      "acs": [
+        {
+          "id": "AC-0300",
+          "text": "File entries display a coloured monospace badge (TSX, TS, JS, PY, MD, JSON, etc.) derived from the file extension, replacing the undifferentiated '·' bullet",
+          "done": true
+        },
+        {
+          "id": "AC-0301",
+          "text": "Special filenames (.gitignore, package.json, Dockerfile, README.md, .env, etc.) receive distinct contextual badge labels (GIT, PKG, DOCK, DOC, ENV) regardless of extension",
+          "done": true
+        },
+        {
+          "id": "AC-0302",
+          "text": "Directory entries retain the ▸/▾ chevron toggle icon and are visually distinct from file entries at all times",
+          "done": true
+        }
+      ],
+      "dependencies": [
+        "US-0007"
+      ]
+    },
+    {
       "id": "US-0012",
       "epicId": "EPIC-0003",
       "title": "As a developer, I want to open an integrated terminal, so that I can run commands without leaving the app.",
@@ -1048,6 +1077,45 @@
       "dependencies": [
         "EPIC-0005 (existing)",
         "prior BUG-0044 (superseded)"
+      ]
+    },
+    {
+      "id": "US-0100",
+      "epicId": "EPIC-0005",
+      "title": "As a power user, I want to browse and install extensions directly from the VS Code Marketplace inside NomadCode, so that I can discover and add tools without leaving the IDE.",
+      "priority": "P2",
+      "estimate": "XL",
+      "status": "Planned",
+      "branch": "",
+      "acs": [
+        {
+          "id": "AC-0303",
+          "text": "An \"Extensions\" panel is accessible from the sidebar or command palette, displaying a searchable list of VS Code Marketplace extensions",
+          "done": false
+        },
+        {
+          "id": "AC-0304",
+          "text": "Each extension listing shows name, publisher, rating, download count, description, and a one-tap Install button",
+          "done": false
+        },
+        {
+          "id": "AC-0305",
+          "text": "Installing an extension downloads only the pure-JS / WASM portions of the extension package; any native binary components are silently omitted with an explanatory note (App Store §2.5.2 compliance — no runtime native code download)",
+          "done": false
+        },
+        {
+          "id": "AC-0306",
+          "text": "Installed extensions appear in the Extensions panel under \"Installed\" and are activated via the existing WASM-sandbox ExtensionHost",
+          "done": false
+        },
+        {
+          "id": "AC-0307",
+          "text": "Extension data (search results, extension metadata) is cached locally for offline browsing; install requires network",
+          "done": false
+        }
+      ],
+      "dependencies": [
+        "US-0020"
       ]
     },
     {
@@ -5172,6 +5240,61 @@
       "fixBranch": "bugfix/misc-bugs",
       "lessonEncoded": "No",
       "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0050",
+      "title": "Save indicator uses Coral (#EF4444) error colour for unsaved state — misleading semantics (UX-4)",
+      "severity": "Medium",
+      "relatedStory": "US-0003",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/ui-improvements-phase1",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0051",
+      "title": "Command palette FAB uses Mac-specific ⌘ symbol — confusing on Android (UX-5)",
+      "severity": "Medium",
+      "relatedStory": "US-0015",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/ui-improvements-phase1",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0052",
+      "title": "Editor path breadcrumb displays full absolute sandbox path — unreadable on all screen sizes (UX-6)",
+      "severity": "Medium",
+      "relatedStory": "US-0001",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/ui-improvements-phase1",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0053",
+      "title": "Settings gear icon floats at the top of the sidebar without visual hierarchy (UX-7)",
+      "severity": "Low",
+      "relatedStory": "US-0018",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/ui-improvements-phase1",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
+    },
+    {
+      "id": "BUG-0054",
+      "title": "Terminal FAB shows no active/inactive visual distinction — user cannot tell if terminal panel is open (UX-8)",
+      "severity": "Medium",
+      "relatedStory": "US-0012",
+      "relatedTask": "",
+      "status": "Fixed",
+      "fixBranch": "feature/ui-improvements-phase1",
+      "lessonEncoded": "No",
+      "estimatedCostUsd": 0
     }
   ],
   "costs": {
@@ -5237,6 +5360,12 @@
     },
     "US-0011": {
       "projectedUsd": 1600,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0099": {
+      "projectedUsd": 400,
       "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
@@ -5345,6 +5474,12 @@
     },
     "US-0067": {
       "projectedUsd": 800,
+      "costUsd": 0,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "US-0100": {
+      "projectedUsd": 3200,
       "costUsd": 0,
       "inputTokens": 0,
       "outputTokens": 0
@@ -6143,6 +6278,46 @@
         "isEstimated": false,
         "projectedUsd": 800
       },
+      "BUG-0050": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0051": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0052": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0053": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
+      "BUG-0054": {
+        "costUsd": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "sessions": 0,
+        "isEstimated": false,
+        "projectedUsd": 400
+      },
       "_totals": {
         "costUsd": 0,
         "inputTokens": 0,
@@ -6223,6 +6398,13 @@
     },
     "US-0011": {
       "missingTCs": false,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": false
+    },
+    "US-0099": {
+      "missingTCs": true,
       "noBranch": false,
       "failedTCNoBug": false,
       "openCriticalBug": false,
@@ -6348,6 +6530,13 @@
       "isAtRisk": false
     },
     "US-0067": {
+      "missingTCs": true,
+      "noBranch": false,
+      "failedTCNoBug": false,
+      "openCriticalBug": false,
+      "isAtRisk": true
+    },
+    "US-0100": {
       "missingTCs": true,
       "noBranch": false,
       "failedTCNoBug": false,
@@ -6883,9 +7072,9 @@
       "date": "2026-03-20"
     }
   ],
-  "generatedAt": "2026-04-18T14:04:16.974Z",
-  "commitSha": "fff4fd5",
-  "buildNumber": "266",
+  "generatedAt": "2026-04-18T14:39:17.072Z",
+  "commitSha": "81260b5",
+  "buildNumber": "267",
   "sessionTimeline": [
     {
       "date": "2026-03-01",
