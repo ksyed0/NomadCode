@@ -7,7 +7,6 @@ import {
   FlatList,
   StyleSheet,
   useWindowDimensions,
-  Dimensions,
 } from 'react-native';
 import { useTheme } from '../theme/tokens';
 import type { ShortcutDefinition } from '../hooks/useKeyboardShortcuts';
@@ -25,7 +24,7 @@ function formatShortcut(s: ShortcutDefinition): string {
 
 export function KeyboardShortcutsSheet({ visible, shortcuts, onClose }: Props) {
   const theme = useTheme();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const isTablet = width >= 768;
 
   if (!visible) return null;
@@ -37,7 +36,7 @@ export function KeyboardShortcutsSheet({ visible, shortcuts, onClose }: Props) {
           style={[
             styles.sheet,
             isTablet ? styles.centered : styles.bottom,
-            { backgroundColor: theme.bgElevated, borderColor: theme.border },
+            { backgroundColor: theme.bgElevated, borderColor: theme.border, maxHeight: height * 0.7 },
           ]}
         >
           <View style={styles.header}>
@@ -74,7 +73,6 @@ const styles = StyleSheet.create({
   sheet: {
     borderRadius: 12,
     borderWidth: 1,
-    maxHeight: Dimensions.get('window').height * 0.7,
     paddingBottom: 24,
   },
   centered: {
