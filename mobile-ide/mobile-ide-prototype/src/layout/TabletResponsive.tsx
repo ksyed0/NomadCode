@@ -128,16 +128,17 @@ export default function TabletResponsive({
     />
   );
 
-  // Gear icon button — opens settings
+  // Gear icon button — opens settings (rendered in a footer strip at the bottom of the sidebar)
   const gearButton = (
     <TouchableOpacity
       testID="settings-gear"
       onPress={() => onOpenSettings?.()}
-      style={styles.gearBtn}
+      style={[styles.gearBtn, { borderTopColor: t.border }]}
       accessibilityLabel="Open settings"
       accessibilityRole="button"
     >
       <Text style={[styles.gearIcon, { color: t.textMuted }]}>⚙</Text>
+      <Text style={[styles.gearLabel, { color: t.textMuted }]}>Settings</Text>
     </TouchableOpacity>
   );
 
@@ -151,8 +152,10 @@ export default function TabletResponsive({
       <View style={isTablet ? styles.row : styles.phoneMainArea}>
         {isTablet && (
           <View style={[styles.sidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
+            <View style={styles.sidebarContent}>
+              {sidebar}
+            </View>
             {gearButton}
-            {sidebar}
           </View>
         )}
         <View style={styles.mainArea}>
@@ -209,8 +212,10 @@ export default function TabletResponsive({
               />
               {/* Drawer panel */}
               <Animated.View style={[styles.phoneSidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
+                <View style={styles.sidebarContent}>
+                  {sidebar}
+                </View>
                 {gearButton}
-                {sidebar}
               </Animated.View>
             </>
           )}
@@ -235,6 +240,10 @@ const styles = StyleSheet.create({
   },
   sidebar: {
     borderRightWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'column',
+  },
+  sidebarContent: {
+    flex: 1,
   },
   mainArea: {
     flex: 1,
@@ -292,8 +301,16 @@ const styles = StyleSheet.create({
     zIndex: 11,
     borderRightWidth: StyleSheet.hairlineWidth,
   },
-  gearBtn: { padding: 10, alignItems: 'center', justifyContent: 'center' },
-  gearIcon: { fontSize: 18 },
+  gearBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 8,
+  },
+  gearIcon: { fontSize: 15 },
+  gearLabel: { fontSize: 12, fontWeight: '500' },
   // Hides the resize handle in phone mode while keeping it in the React tree,
   // so terminal stays at a stable child index regardless of layout mode.
   hidden: { display: 'none' },

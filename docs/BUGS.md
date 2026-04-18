@@ -702,3 +702,79 @@ Status: Fixed
 Fix Branch: bugfix/misc-bugs
 Notes: Removed android:screenOrientation="landscape" from AndroidManifest.xml; added smallestScreenSize to configChanges so layout reflows correctly on orientation change.
 Lesson Encoded: No
+
+BUG-0050: Save indicator uses Coral (#EF4444) error colour for unsaved state — misleading semantics (UX-4)
+Severity: Medium
+Related Story: US-0003
+Related Task:
+Steps to Reproduce:
+  1. Open any file and make an edit (marking the tab dirty)
+  2. Observe the save pill in the status bar
+Expected: Amber or warning colour indicating a pending action
+Actual: Coral red (#EF4444) — same colour used for errors — implies something is wrong rather than a benign unsaved state
+Root Cause: Save indicator styled with t.error token which maps to Coral #EF4444; unsaved is a neutral pending state, not an error condition
+Status: Fixed
+Fix Branch: feature/ui-improvements-phase1
+Notes: Changed to Sand amber (#D97706) from the NomadCode design token palette — conveys "attention needed" without implying an error.
+Lesson Encoded: No
+
+BUG-0051: Command palette FAB uses Mac-specific ⌘ symbol — confusing on Android (UX-5)
+Severity: Medium
+Related Story: US-0015
+Related Task:
+Steps to Reproduce:
+  1. Open the app on an Android device or Android emulator
+  2. Observe the primary floating action button icon
+Expected: A universal symbol that communicates "menu" or "commands" on all platforms
+Actual: ⌘ (Mac Command key glyph) — meaningless on Android; users unfamiliar with macOS may not associate it with a command palette
+Root Cause: Icon chosen from Mac keyboard conventions; not cross-platform
+Status: Fixed
+Fix Branch: feature/ui-improvements-phase1
+Notes: Changed to ≡ (IDENTICAL TO — U+2261) which universally communicates "menu / commands" without platform bias. Primary FAB also enlarged from 46×46 to 52×52 for easier touch targeting.
+Lesson Encoded: No
+
+BUG-0052: Editor path breadcrumb displays full absolute sandbox path — unreadable on all screen sizes (UX-6)
+Severity: Medium
+Related Story: US-0001
+Related Task:
+Steps to Reproduce:
+  1. Open a file nested several levels deep in the project
+  2. Observe the path breadcrumb bar below the tab bar
+Expected: Readable truncated path showing only the relevant end segments (e.g. "src › components › App.tsx")
+Actual: Full absolute path shown — begins with /var/mobile/Containers/Data/Application/... Expo sandbox prefix that is never meaningful to the user; overflows the container
+Root Cause: Path rendered verbatim without trimming the host-level sandbox prefix
+Status: Fixed
+Fix Branch: feature/ui-improvements-phase1
+Notes: Breadcrumb now strips any file:// prefix, splits on '/', filters empty segments, then shows the last 3 meaningful segments joined with ' › '.
+Lesson Encoded: No
+
+BUG-0053: Settings gear icon floats at the top of the sidebar without visual hierarchy (UX-7)
+Severity: Low
+Related Story: US-0018
+Related Task:
+Steps to Reproduce:
+  1. Open the app on a tablet (split-pane layout)
+  2. Observe the sidebar — a ⚙ icon appears near the top of the explorer header area
+Expected: Settings entry point anchored at the bottom of the sidebar with a clear label and separator, per conventional IDE layout (VS Code, JetBrains)
+Actual: ⚙ icon renders inline near the top with no label and no visual separation from the file tree — easy to miss or accidentally trigger
+Root Cause: Gear button placed in the sidebar header row rather than a dedicated footer zone
+Status: Fixed
+Fix Branch: feature/ui-improvements-phase1
+Notes: Moved to a sticky footer row at the bottom of the sidebar — hairline border separator, row layout with ⚙ glyph + "Settings" label, uniform padding. Applied to both the tablet sidebar and the phone drawer.
+Lesson Encoded: No
+
+BUG-0054: Terminal FAB shows no active/inactive visual distinction — user cannot tell if terminal panel is open (UX-8)
+Severity: Medium
+Related Story: US-0012
+Related Task:
+Steps to Reproduce:
+  1. Open the terminal panel via the >_ FAB
+  2. Close the terminal panel
+  3. Compare FAB appearance in both states
+Expected: FAB visually indicates terminal panel state (e.g. teal accent when open, neutral when closed)
+Actual: FAB colour and icon are identical in both states; no toggle feedback; user must look at the layout to determine panel visibility
+Root Cause: Terminal FAB styled with a single static style; no conditional styling based on terminalVisible state
+Status: Fixed
+Fix Branch: feature/ui-improvements-phase1
+Notes: Terminal FAB now uses Teal accent (#0D9488) background when active (terminal open) and standard dark surface colour when inactive. Icon >_ is consistent in both states.
+Lesson Encoded: No

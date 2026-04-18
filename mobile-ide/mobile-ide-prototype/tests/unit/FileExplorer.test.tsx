@@ -193,12 +193,15 @@ describe('FileExplorer — rendering', () => {
     expect(screen.getByText('▸')).toBeTruthy();
   });
 
-  it('renders file entries with the bullet icon ·', async () => {
+  it('renders file entries with file type icon badges', async () => {
     mockListDirectory.mockResolvedValue(FILES);
     renderExplorer();
     await waitFor(() => expect(screen.getByText('App.tsx')).toBeTruthy());
-    // Both files should have a dot icon
-    expect(screen.getAllByText('·')).toHaveLength(2);
+    // File type badges replaced the old '·' bullet — no bullets should appear
+    expect(screen.queryAllByText('·')).toHaveLength(0);
+    // At least one badge label should be visible (e.g. 'TSX' or 'MD')
+    const badges = screen.queryAllByText(/^[A-Z]{1,4}$/);
+    expect(badges.length).toBeGreaterThan(0);
   });
 });
 

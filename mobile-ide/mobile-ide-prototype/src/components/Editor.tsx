@@ -470,7 +470,8 @@ export default function Editor({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0} // Update when navigation header is added
       >
-        <Text style={styles.emptyTitle}>No files open</Text>
+        <Text style={styles.emptyIcon}>{'>_'}</Text>
+        <Text style={styles.emptyTitle}>No file open</Text>
         <Text style={styles.emptyHint}>Select a file from the Explorer</Text>
       </KeyboardAvoidingView>
     );
@@ -523,10 +524,17 @@ export default function Editor({
         })}
       </ScrollView>
 
-      {/* ── Path breadcrumb ── */}
+      {/* ── Path breadcrumb — shows the last 3 meaningful path segments ── */}
       {activeTab && (
         <View testID="editor-path-breadcrumb" style={styles.pathBar}>
-          <Text style={styles.pathText} numberOfLines={1}>{activeTab.path}</Text>
+          <Text style={styles.pathText} numberOfLines={1}>
+            {activeTab.path
+              .replace(/^file:\/\//, '')       // strip file:// scheme
+              .split('/')
+              .filter(Boolean)
+              .slice(-3)                        // grandparent › parent › file
+              .join(' › ')}
+          </Text>
         </View>
       )}
 
@@ -765,8 +773,9 @@ function makeStyles(t: ThemeTokens) {
     },
     pathText: { color: t.textMuted, fontSize: 11 },
     // Empty state
-    empty:      { flex: 1, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center' },
-    emptyTitle: { color: t.textMuted, fontSize: 16 },
-    emptyHint:  { color: t.border, fontSize: 13, marginTop: 8 },
+    empty:      { flex: 1, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', gap: 8 },
+    emptyIcon:  { color: t.accent, fontSize: 36, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', opacity: 0.6 },
+    emptyTitle: { color: t.textMuted, fontSize: 16, fontWeight: '600' },
+    emptyHint:  { color: t.border, fontSize: 12 },
   });
 }
