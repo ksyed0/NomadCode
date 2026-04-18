@@ -27,6 +27,8 @@ beforeEach(() => {
     workspaceDisplayName: '',
     hasCompletedSetup: false,
     installedExtensions: [],
+    formatOnSave: false,
+    snippets: [],
   });
   jest.clearAllMocks();
 });
@@ -184,5 +186,30 @@ describe('useSettingsStore — actions', () => {
       act(() => { result.current.removeExtension('unknown.id'); });
     }).not.toThrow();
     expect(result.current.installedExtensions).toHaveLength(0);
+  });
+
+  it('formatOnSave defaults to false and toggles', () => {
+    const state = useSettingsStore.getState();
+    expect(state.formatOnSave).toBe(false);
+    act(() => state.setFormatOnSave(true));
+    expect(useSettingsStore.getState().formatOnSave).toBe(true);
+  });
+
+  it('addSnippet deduplicates by prefix+language', () => {
+    const state = useSettingsStore.getState();
+    const s1 = { prefix: 'clg', body: 'console.log($1)', description: 'log', language: 'all' };
+    const s2 = { prefix: 'clg', body: 'console.log("updated")', description: 'log2', language: 'all' };
+    act(() => state.addSnippet(s1));
+    act(() => state.addSnippet(s2));
+    expect(useSettingsStore.getState().snippets).toHaveLength(1);
+    expect(useSettingsStore.getState().snippets[0].body).toBe('console.log("updated")');
+  });
+
+  it('removeSnippet removes by prefix+language', () => {
+    const state = useSettingsStore.getState();
+    const s = { prefix: 'fn', body: 'function $1() {}', description: 'fn', language: 'javascript' };
+    act(() => state.addSnippet(s));
+    act(() => state.removeSnippet('fn', 'javascript'));
+    expect(useSettingsStore.getState().snippets).toHaveLength(0);
   });
 });

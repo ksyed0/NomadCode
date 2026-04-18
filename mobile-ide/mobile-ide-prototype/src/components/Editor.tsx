@@ -52,6 +52,7 @@ export interface EditorTab {
     matchStart: number;
     matchEnd: number;
   } | null;
+  viewState?: string;
 }
 
 interface EditorProps {
