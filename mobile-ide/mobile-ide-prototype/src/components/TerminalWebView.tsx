@@ -123,6 +123,7 @@ export function TerminalWebView({
           { borderBottomColor: t.border, backgroundColor: t.bgElevated },
         ]}
       >
+        <Text style={[styles.headerIcon, { color: t.accent }]}>{'>_'}</Text>
         <Text style={[styles.headerText, { color: t.textMuted }]}>
           TERMINAL
         </Text>
@@ -183,8 +184,16 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  headerIcon: {
+    fontSize: 12,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   headerText: {
     fontSize: 11,

@@ -144,9 +144,9 @@ function renderEditor(
 // ---------------------------------------------------------------------------
 
 describe('Editor — empty state', () => {
-  it('shows "No files open" when tabs array is empty', () => {
+  it('shows "No file open" when tabs array is empty', () => {
     renderEditor([], null);
-    expect(screen.getByText('No files open')).toBeTruthy();
+    expect(screen.getByText('No file open')).toBeTruthy();
   });
 
   it('shows hint text when tabs array is empty', () => {
@@ -249,12 +249,13 @@ describe('Editor — path breadcrumb', () => {
   it('shows the active file path below the tab bar', () => {
     renderEditor([TAB_A], TAB_A.path);
     expect(screen.getByTestId('editor-path-breadcrumb')).toBeTruthy();
-    expect(screen.getByText('/docs/App.tsx')).toBeTruthy();
+    // Path is truncated to last 3 segments joined with ' › '
+    expect(screen.getByText('docs \u203a App.tsx')).toBeTruthy();
   });
 
   it('updates path when a different tab is active', () => {
     renderEditor([TAB_A, TAB_B], TAB_B.path);
-    expect(screen.getByText('/docs/index.ts')).toBeTruthy();
+    expect(screen.getByText('docs \u203a index.ts')).toBeTruthy();
   });
 
   it('does not render path bar in empty state', () => {

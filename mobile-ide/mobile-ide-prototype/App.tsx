@@ -483,23 +483,21 @@ export default function App() {
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
       <View style={[styles.statusBar, statusBarStyles.bar, { backgroundColor: t.bgElevated, borderBottomColor: t.border }]}>
+        {/* Branch pill — tapping opens Git panel */}
         <TouchableOpacity
           onPress={gitStatus}
-          style={styles.statusItem}
+          style={[styles.statusBranchPill, { backgroundColor: t.bgHighlight, borderColor: t.border }]}
           accessibilityLabel={`Git branch ${gitBranch}, open git panel`}
         >
-          <Text style={[styles.statusText, statusBarStyles.branch, { color: t.text }]}>⎇ {gitBranch}</Text>
+          <Text style={[styles.statusText, statusBarStyles.branch, { color: t.accent }]}>⎇ {gitBranch}</Text>
         </TouchableOpacity>
         <Text style={[styles.statusTitle, statusBarStyles.title, { color: t.text }]}>
-          NomadCode{' '}
-          <Text style={[styles.statusVersion, statusBarStyles.version, { color: t.textMuted }]}>
-            v{APP_VERSION}
-          </Text>
+          NomadCode
         </Text>
         <View style={styles.statusRight}>
-          {tabs.find((t) => t.path === activeTabPath)?.isDirty && (
-            <TouchableOpacity onPress={saveActiveFile}>
-              <Text style={[styles.statusDirty, statusBarStyles.branch, { color: t.error }]}>● Save</Text>
+          {tabs.find((tab) => tab.path === activeTabPath)?.isDirty && (
+            <TouchableOpacity onPress={saveActiveFile} style={styles.savePill} accessibilityLabel="Save file">
+              <Text style={[styles.statusDirty, statusBarStyles.branch, { color: '#D97706' }]}>● Save</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => setShowAbout(true)} style={styles.aboutBtn} accessibilityLabel="About NomadCode">
@@ -562,24 +560,24 @@ export default function App() {
 
       {/* ── Floating action buttons (bottom-right) ───────────────────────── */}
       <View style={styles.fab}>
-        {/* Command palette */}
+        {/* Command palette — ≡ is universally recognised as "menu/commands" */}
         <TouchableOpacity
           style={[styles.fabBtn, styles.fabPalette]}
           onPress={() => setShowPalette(true)}
           activeOpacity={0.85}
           accessibilityLabel="Open command palette"
         >
-          <Text style={styles.fabIcon}>⌘</Text>
+          <Text style={styles.fabIcon}>≡</Text>
         </TouchableOpacity>
 
-        {/* Terminal toggle */}
+        {/* Terminal toggle — >_ is the universal terminal symbol */}
         <TouchableOpacity
-          style={[styles.fabBtn, showTerminal && styles.fabActive]}
+          style={[styles.fabBtn, showTerminal ? styles.fabTerminalActive : styles.fabTerminal]}
           onPress={() => setShowTerminal((v) => !v)}
           activeOpacity={0.85}
           accessibilityLabel="Toggle terminal"
         >
-          <Text style={styles.fabIcon}>{'>'}_</Text>
+          <Text style={[styles.fabIcon, showTerminal && styles.fabIconActive]}>{'>_'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -655,30 +653,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statusBar: {
-    height: 28,
-    // backgroundColor + borderBottomColor applied inline from theme tokens
+    height: 34,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 6,
   },
-  statusItem: {
-    marginRight: 12,
+  statusBranchPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 5,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   statusText: {
-    // color applied inline from theme tokens for proper contrast
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   statusTitle: {
     flex: 1,
-    // color applied inline from theme tokens
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     textAlign: 'center',
+    letterSpacing: 0.3,
   },
   statusVersion: {
-    // color applied inline from theme tokens
     fontSize: 10,
     fontWeight: '400',
   },
@@ -686,13 +687,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
+    gap: 4,
     minWidth: 60,
   },
+  savePill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
   statusDirty: {
-    // color applied inline from theme tokens (t.error)
     fontSize: 11,
     fontWeight: '600',
-    marginRight: 10,
   },
   aboutBtn: {
     marginLeft: 10,
@@ -749,36 +754,49 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 28 : 16,
+    bottom: Platform.OS === 'ios' ? 32 : 20,
     right: 16,
     gap: 10,
     alignItems: 'center',
   },
   fabBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#1E293B',
     borderWidth: 1,
     borderColor: '#334155',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 3,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
   },
   fabPalette: {
     backgroundColor: '#2563EB',
     borderColor: '#3B82F6',
+    // Slightly larger — the primary action
+    width: 52,
+    height: 52,
+    borderRadius: 26,
   },
-  fabActive: {
-    borderColor: '#22C55E',
+  fabTerminal: {
+    backgroundColor: '#1E293B',
+    borderColor: '#334155',
+  },
+  fabTerminalActive: {
+    backgroundColor: '#0D9488',
+    borderColor: '#0D9488',
   },
   fabIcon: {
     color: '#E2E8F0',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  fabIconActive: {
+    color: '#FFFFFF',
   },
 });

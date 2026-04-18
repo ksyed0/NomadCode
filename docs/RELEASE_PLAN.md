@@ -107,6 +107,54 @@ Description: Custom native module wrapping UIDocumentPickerViewController in dir
 Release Target: Release 1.2 (Post-Launch)
 Status: Deferred
 Dependencies: EPIC-0002
+
+EPIC-0020: Advanced Git Workflows
+Description: Branch create/switch UI, merge conflict resolution editor, git gutter indicators, stash management, and git blame — completing a professional git workflow on mobile.
+Release Target: Release 1.0 (GA)
+Status: Planned
+Dependencies: EPIC-0008
+
+EPIC-0021: Advanced Editor Features
+Description: Search & replace across files, hardware keyboard shortcuts (⌘S / ⌘` / ⌘N / ⌘P), code folding, Prettier auto-format, breadcrumbs navigation, and snippet expansion.
+Release Target: Release 1.1 (Post-Launch)
+Status: Planned
+Dependencies: EPIC-0001, EPIC-0014
+
+EPIC-0022: Code Navigation
+Description: Go to Definition, Find All References, Peek Definition, and workspace symbol search — powered by Monaco's built-in AST support before full LSP lands.
+Release Target: Release 1.1 (Post-Launch)
+Status: Planned
+Dependencies: EPIC-0001
+
+EPIC-0023: AI Code Intelligence
+Description: Inline AI edit (Cmd+K equivalent), project-scoped AI rules, AI-generated commit messages, and multi-model provider support (Claude, GPT-4, Gemini) — extends EPIC-0010 with intelligence beyond raw completions.
+Release Target: Release 1.1 (Post-Launch)
+Status: Planned
+Dependencies: EPIC-0010
+
+EPIC-0024: Language Server Protocol
+Description: LSP worker integration delivering real IntelliSense completions, hover documentation, and real-time error diagnostics with inline squiggles for TypeScript, Python, and Go.
+Release Target: Release 1.2 (Post-Launch)
+Status: Planned
+Dependencies: EPIC-0022
+
+EPIC-0025: AI Codebase Indexing
+Description: Semantic vector indexing of the open workspace enabling @file and @codebase context references in AI chat/completions, with a privacy mode to disable indexing for sensitive repos.
+Release Target: Release 1.2 (Post-Launch)
+Status: Planned
+Dependencies: EPIC-0010, EPIC-0023
+
+EPIC-0026: Mobile Debugging
+Description: Breakpoints, watch expressions, call stack panel, and debug console — adapted for mobile touch interaction and targeting JS/TS runtimes via WASI debug adapters.
+Release Target: Release 1.2 (Post-Launch)
+Status: Planned
+Dependencies: EPIC-0003, EPIC-0024
+
+EPIC-0027: Collaboration & Sharing
+Description: Settings sync across devices, shareable code snippet links, and a lightweight Live Share-style session for real-time collaborative editing (viewer + single editor).
+Release Target: Release 1.2 (Post-Launch)
+Status: Planned
+Dependencies: EPIC-0012, EPIC-0007
 ```
 
 ---
@@ -890,6 +938,364 @@ Dependencies: EPIC-0002
 
 ---
 
+### EPIC-0020: Advanced Git Workflows
+
+```
+US-0068 (EPIC-0020): As a developer, I want to create and switch branches from the mobile UI, so that I can manage feature work without needing a desktop.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0207: The Git panel exposes a "New Branch" action that accepts a name and creates the branch locally via isomorphic-git
+  - [ ] AC-0208: A branch picker (bottom sheet on phone, sidebar section on tablet) lists local and remote branches and switches HEAD on tap
+  - [ ] AC-0209: The active branch name is shown in the status bar and updates immediately after a switch without requiring an app restart
+Dependencies: EPIC-0008
+
+US-0069 (EPIC-0020): As a developer, I want a merge conflict resolution UI, so that I can resolve conflicts without leaving the app.
+Priority: High (P0)
+Estimate: L
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0210: Files with merge conflicts are marked with a conflict badge in the File Explorer; tapping opens a 3-panel diff view (ours / base / theirs)
+  - [ ] AC-0211: Each conflicted hunk has Accept Ours, Accept Theirs, and Accept Both buttons; accepting a choice writes the resolved content to the file
+  - [ ] AC-0212: Once all conflicts are resolved, a "Mark Resolved & Stage" action is available; the conflict badge clears and the file is staged automatically
+Dependencies: US-0068
+
+US-0070 (EPIC-0020): As a developer, I want git gutter indicators in the editor, so that I can see which lines have been added, modified, or deleted since the last commit.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0213: Lines added since HEAD are marked with a green bar in the Monaco gutter; modified lines show amber; deleted positions show a red triangle
+  - [ ] AC-0214: Gutter indicators update within 500 ms of saving the file (diff is computed against the HEAD version in isomorphic-git's object store)
+  - [ ] AC-0215: Tapping a gutter indicator opens a compact inline diff popup showing the original line(s) with a Revert Hunk action
+Dependencies: EPIC-0008
+
+US-0071 (EPIC-0020): As a developer, I want to stash and pop changes, so that I can context-switch without losing work in progress.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0216: The Git panel has a "Stash Changes" action that stashes all unstaged modifications with an optional message
+  - [ ] AC-0217: A stash list shows all named stashes; tapping a stash offers Pop (apply + drop) and Apply (apply, keep stash) actions
+  - [ ] AC-0218: Popping or applying a stash updates the working tree and refreshes gutter indicators without requiring a manual refresh
+Dependencies: EPIC-0008
+
+US-0072 (EPIC-0020): As a developer, I want to see git blame annotations, so that I can understand the history of each line of code.
+Priority: Low (P2)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0219: A "Toggle Blame" action in the editor toolbar overlays each line with the commit hash, author, and relative timestamp
+  - [ ] AC-0220: Tapping a blame annotation opens a detail sheet with the full commit message, author, date, and a "View Diff" link that opens the commit diff
+  - [ ] AC-0221: Blame data is loaded asynchronously; a loading skeleton is shown while git log is computed so the editor remains responsive
+Dependencies: EPIC-0008
+```
+
+---
+
+### EPIC-0021: Advanced Editor Features
+
+```
+US-0073 (EPIC-0021): As a developer, I want to search and replace across all files in my project, so that I can do global refactors without a desktop IDE.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0222: The Global Search panel (EPIC-0014) gains a Replace field; entering a replacement term and pressing Replace All writes changes to every matching file simultaneously
+  - [ ] AC-0223: A preview mode shows all replacements highlighted before confirmation; the developer can exclude individual matches with a checkbox
+  - [ ] AC-0224: Replace supports regex with capture groups (e.g. $1); the preview updates in real time as the pattern changes
+Dependencies: EPIC-0014
+
+US-0074 (EPIC-0021): As a developer using a hardware keyboard, I want standard shortcuts like ⌘S, ⌘`, ⌘N, and ⌘P, so that I can edit at desktop speed on a tablet.
+Priority: High (P0)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0225: ⌘S saves the current file immediately; ⌘⇧S saves all open dirty files
+  - [ ] AC-0226: ⌘` opens/focuses the integrated terminal; pressing again cycles between terminal and editor
+  - [ ] AC-0227: ⌘N creates a new untitled file in the editor; ⌘P opens the Command Palette; all shortcuts are discoverable in a Keyboard Shortcuts help sheet
+Dependencies: EPIC-0004
+
+US-0075 (EPIC-0021): As a developer, I want to fold and unfold code blocks, so that I can reduce visual noise when navigating large files.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0228: Monaco gutter displays fold/unfold chevrons for all foldable regions (functions, classes, blocks, comments)
+  - [ ] AC-0229: A "Fold All" and "Unfold All" action is available in the editor context menu and Command Palette
+  - [ ] AC-0230: Folded state persists per file within a session; reopening a tab restores the previous fold state
+Dependencies: EPIC-0001
+
+US-0076 (EPIC-0021): As a developer, I want my code auto-formatted on save, so that I don't have to think about style consistency.
+Priority: Medium (P1)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0231: Prettier (bundled as a WASM module) runs on file save for JS, TS, JSON, CSS, HTML, and Markdown files
+  - [ ] AC-0232: Format on save is toggleable in Settings; when disabled, a "Format Document" action is still available in the Command Palette
+  - [ ] AC-0233: Prettier config is read from the project root (.prettierrc, prettier.config.js) if present; defaults apply otherwise
+Dependencies: EPIC-0001
+
+US-0077 (EPIC-0021): As a developer, I want breadcrumb navigation at the top of the editor, so that I can quickly understand and jump to any scope in a large file.
+Priority: Low (P2)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0234: A breadcrumb bar above the editor shows the file path segments and the current symbol hierarchy (e.g. File › ClassName › methodName)
+  - [ ] AC-0235: Tapping any breadcrumb segment opens a picker listing sibling symbols at that depth; selecting one navigates the cursor to that symbol
+  - [ ] AC-0236: Breadcrumbs update within one animation frame of moving the cursor to a new symbol
+Dependencies: EPIC-0001
+
+US-0078 (EPIC-0021): As a developer, I want snippet expansion, so that I can scaffold common patterns with a short prefix.
+Priority: Low (P2)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0237: Built-in snippets for JS/TS (e.g. `clg` → console.log, `afn` → arrow function), Python (`def`, `cls`), and React (`rfc`, `useEffect`) ship with the app
+  - [ ] AC-0238: Users can define custom snippets in Settings using a JSON schema; snippets support tab stops ($1, $2) and default values ($\{1:name\})
+  - [ ] AC-0239: Snippets appear in Monaco's autocomplete list with a snippet icon; Tab accepts the first suggestion matching the typed prefix
+Dependencies: EPIC-0001
+```
+
+---
+
+### EPIC-0022: Code Navigation
+
+```
+US-0079 (EPIC-0022): As a developer, I want Go to Definition, so that I can jump to where a symbol is declared without manual searching.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0240: Long-pressing a symbol opens a context menu with "Go to Definition"; tapping navigates the editor to the declaration line, opening the file if necessary
+  - [ ] AC-0241: ⌘Click (hardware keyboard) also triggers Go to Definition inline with VS Code muscle memory
+  - [ ] AC-0242: If the definition is in an external node_modules package, a read-only preview of the declaration is shown in an overlay panel rather than opening the file
+Dependencies: EPIC-0001
+
+US-0080 (EPIC-0022): As a developer, I want Find All References, so that I can see every place a symbol is used before renaming or deleting it.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0243: "Find All References" in the symbol context menu opens a References panel listing every usage grouped by file with line previews
+  - [ ] AC-0244: Tapping any result navigates to that line in the editor; the panel stays open so the developer can step through each reference
+  - [ ] AC-0245: Result count is shown in the panel header; empty results display a "No references found" state rather than crashing or silently closing
+Dependencies: US-0079
+
+US-0081 (EPIC-0022): As a developer, I want workspace symbol search, so that I can jump to any function or class by name without knowing which file it's in.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0246: The Command Palette gains a "Go to Symbol in Workspace" action (⌘T shortcut on hardware keyboard) that fuzzy-searches all exported symbols across all project files
+  - [ ] AC-0247: Results show symbol name, type (function/class/variable), and file path; selecting one navigates directly to the declaration
+  - [ ] AC-0248: Symbol index is built lazily on first use and refreshed on file save; an incremental spinner indicates a background refresh without blocking the UI
+Dependencies: EPIC-0004, US-0079
+```
+
+---
+
+### EPIC-0023: AI Code Intelligence
+
+```
+US-0082 (EPIC-0023): As a developer, I want to select code and describe a change in plain language, so that I can make AI-driven edits without leaving the editor.
+Priority: High (P0)
+Estimate: L
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0249: Selecting a code range and invoking "AI Edit" (⌘K on hardware keyboard or long-press context menu) opens an inline prompt bar above the selection
+  - [ ] AC-0250: After the developer types an instruction and submits, the AI returns a diff which is applied in a preview mode — Accept and Reject buttons confirm or discard
+  - [ ] AC-0251: The inline AI edit is only available to Pro+AI subscribers; Free and Pro users see an upgrade prompt when invoking the action
+Dependencies: EPIC-0010
+
+US-0083 (EPIC-0023): As a developer, I want to define project-scoped AI instructions, so that AI suggestions follow my team's conventions without me repeating them every session.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0252: A `.nomadcode/ai-rules.md` file in the project root is automatically loaded as system context for all AI requests in that project
+  - [ ] AC-0253: The Settings screen exposes a global "AI Rules" editor for rules that apply across all projects; project-level rules override global rules where they conflict
+  - [ ] AC-0254: AI rules are never sent to the AI provider if the session has privacy mode enabled (US-0091); a banner informs the user that rules are suppressed
+Dependencies: EPIC-0010
+
+US-0084 (EPIC-0023): As a developer, I want AI-generated commit messages, so that I can write better commit history with less effort.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0255: The Git Commit panel has a "Generate Message" button that sends the staged diff to the AI and populates the message field with a conventional-commit formatted summary
+  - [ ] AC-0256: The developer can regenerate or manually edit the suggestion before committing; the generated text is never committed automatically
+  - [ ] AC-0257: The feature is gated behind Pro+AI; Free/Pro users see a disabled button with an upgrade tooltip
+Dependencies: EPIC-0010, EPIC-0008
+
+US-0085 (EPIC-0023): As a power user, I want to choose which AI model powers my completions and chat, so that I am not locked into a single provider.
+Priority: Medium (P1)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0258: Settings exposes a Model Picker with options for Claude (default), GPT-4o, and Gemini 1.5 Pro; selecting one updates all subsequent AI requests
+  - [ ] AC-0259: Each provider requires the user to enter their own API key; keys are stored in the platform keychain (iOS Keychain / Android Keystore)
+  - [ ] AC-0260: If the selected provider returns an authentication error, a non-blocking banner prompts the user to re-enter their key; the previous working provider is used as fallback
+Dependencies: EPIC-0010
+```
+
+---
+
+### EPIC-0024: Language Server Protocol
+
+```
+US-0086 (EPIC-0024): As a developer, I want a TypeScript language server running in a WASM worker, so that I get accurate completions and type information without a server round-trip.
+Priority: High (P0)
+Estimate: XL
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0261: TypeScript language server (typescript-language-server compiled to WASM) initialises in a Web Worker within 3 s of opening the first .ts or .tsx file
+  - [ ] AC-0262: The LSP worker communicates with the Monaco editor via the Language Client protocol; completions, hover docs, and go-to-definition results are served from the worker
+  - [ ] AC-0263: The WASM bundle is shipped with the app (not downloaded at runtime) to comply with App Store §2.5.2 and Google Play equivalent
+Dependencies: EPIC-0022
+
+US-0087 (EPIC-0024): As a developer, I want IntelliSense completions, so that I get context-aware suggestions including imported symbols, methods, and types.
+Priority: High (P0)
+Estimate: L
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0264: Typing in a .ts file triggers LSP-powered completions within 200 ms; suggestions include local variables, imported symbols, and type members
+  - [ ] AC-0265: Hovering (or long-pressing on touch) a symbol shows a hover card with the TypeScript type signature and JSDoc documentation if available
+  - [ ] AC-0266: Completions rank exact-match prefixes highest; accepted completions auto-import the module if not already imported
+Dependencies: US-0086
+
+US-0088 (EPIC-0024): As a developer, I want real-time error and warning squiggles, so that I can see type errors without running the compiler.
+Priority: High (P0)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0267: TypeScript diagnostics from the LSP worker are rendered as red (error) or amber (warning) squiggles under the relevant tokens in the editor
+  - [ ] AC-0268: Tapping a squiggle opens an inline tooltip with the error message, error code, and a "Quick Fix" button when an LSP code action is available
+  - [ ] AC-0269: A Problems panel (accessible from the status bar) lists all errors and warnings across open files; tapping an entry navigates to the offending line
+Dependencies: US-0087
+```
+
+---
+
+### EPIC-0025: AI Codebase Indexing
+
+```
+US-0089 (EPIC-0025): As a developer, I want my project indexed semantically, so that the AI understands the full codebase — not just the current file.
+Priority: High (P0)
+Estimate: XL
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0270: On first open of a project, a background indexer computes vector embeddings for all source files (JS, TS, Python, Go, Swift, Kotlin) using a bundled embedding model
+  - [ ] AC-0271: The index is stored on-device in SQLite (using the sqlite-vec extension); incremental re-indexing runs on file save, touching only changed files
+  - [ ] AC-0272: A status bar indicator shows indexing progress; the AI features degrade gracefully (file-only context) until indexing completes
+Dependencies: EPIC-0010, EPIC-0002
+
+US-0090 (EPIC-0025): As a developer, I want to reference @file and @codebase in AI chat, so that the AI can answer questions about specific files or the whole project.
+Priority: High (P0)
+Estimate: L
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0273: Typing @ in the AI chat panel opens a completion picker showing project files; selecting one appends its content (up to 8 k tokens) to the AI context
+  - [ ] AC-0274: @codebase triggers a semantic search of the index and appends the top-5 most relevant chunks to the AI context automatically
+  - [ ] AC-0275: Token budget for attached context is displayed in the chat input bar; exceeding the limit truncates the oldest attachment first and shows a warning
+Dependencies: US-0089, EPIC-0010
+
+US-0091 (EPIC-0025): As a developer working with sensitive code, I want a privacy mode that disables codebase indexing and AI context upload, so that proprietary code never leaves my device.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0276: A per-project Privacy Mode toggle in Settings disables all indexing and suppresses any code context from being sent to external AI providers
+  - [ ] AC-0277: When Privacy Mode is on, AI completions and chat fall back to prompt-only mode; a persistent banner reminds the user that context is limited
+  - [ ] AC-0278: Privacy Mode state is stored locally and is never synced to cloud storage; it defaults to off for new projects
+Dependencies: US-0089
+```
+
+---
+
+### EPIC-0026: Mobile Debugging
+
+```
+US-0092 (EPIC-0026): As a developer, I want to set breakpoints in the editor, so that I can pause execution and inspect state at any line.
+Priority: High (P0)
+Estimate: XL
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0279: Tapping the Monaco gutter toggles a breakpoint indicator (red dot); the breakpoint is registered with the WASI debug adapter
+  - [ ] AC-0280: When execution hits a breakpoint, the editor scrolls to the paused line and highlights it; a debug toolbar (Continue, Step Over, Step Into, Step Out) appears
+  - [ ] AC-0281: Breakpoints persist across sessions in a per-project SQLite store; they are automatically removed if the file is deleted
+Dependencies: EPIC-0003, EPIC-0024
+
+US-0093 (EPIC-0026): As a developer, I want a Watch panel, so that I can monitor specific expressions as I step through code.
+Priority: Medium (P1)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0282: The Debug sidebar has a Watch panel where the developer can add any expression; expressions are re-evaluated at each breakpoint pause
+  - [ ] AC-0283: Watch expressions that resolve to objects display an expandable tree; primitive values show inline
+  - [ ] AC-0284: Adding a watch expression while not paused shows a "Waiting for breakpoint" placeholder; it evaluates automatically at the next pause
+Dependencies: US-0092
+
+US-0094 (EPIC-0026): As a developer, I want a call stack panel, so that I can understand how execution reached the current breakpoint.
+Priority: Medium (P1)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0285: When paused, the Call Stack panel lists all active frames with function name, file, and line number
+  - [ ] AC-0286: Tapping a frame navigates the editor to that line and updates the Watch and Variables panels to reflect that frame's scope
+  - [ ] AC-0287: Async frames are visually distinguished from synchronous frames with an italic label and a different colour
+Dependencies: US-0092
+
+US-0095 (EPIC-0026): As a developer, I want a debug console, so that I can evaluate expressions and see console output while paused.
+Priority: Medium (P1)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0288: The Debug Console panel streams console.log / print / fmt.Println output from the running process in real time
+  - [ ] AC-0289: An input bar at the bottom accepts REPL-style expressions; results are printed inline in the console stream
+  - [ ] AC-0290: Console output is colour-coded: stdout in default text, stderr in coral (#EF4444), and evaluated results in teal (#0D9488)
+Dependencies: US-0092
+```
+
+---
+
+### EPIC-0027: Collaboration & Sharing
+
+```
+US-0096 (EPIC-0027): As a developer using multiple devices, I want my settings synced, so that my theme, keybindings, and AI rules are consistent everywhere.
+Priority: Medium (P1)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0291: Editor settings (theme, font size, keybindings, AI rules) are serialised to JSON and synced to the user's cloud storage bucket on change (EPIC-0012)
+  - [ ] AC-0292: On app launch, the latest settings JSON is fetched and applied before the editor renders; a conflict (two devices edited at the same time) shows a merge diff
+  - [ ] AC-0293: Settings sync is opt-in and off by default; a Settings screen toggle enables it and shows the last sync timestamp
+Dependencies: EPIC-0012
+
+US-0097 (EPIC-0027): As a developer, I want to share a code snippet as a public link, so that I can quickly show colleagues a piece of code without setting up a gist manually.
+Priority: Low (P2)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0294: Selecting a code range and choosing "Share Snippet" generates a short URL pointing to a syntax-highlighted, read-only web page hosted by NomadCode's share service
+  - [ ] AC-0295: The share URL is valid for 30 days and includes the language, filename, and highlighted range; the developer can extend or revoke it from Settings › Shared Snippets
+  - [ ] AC-0296: Shared snippets contain no auth tokens or personal data beyond the code content; the share service stores only the snippet and expiry timestamp
+Dependencies: EPIC-0007
+
+US-0098 (EPIC-0027): As a developer, I want to invite a collaborator to view my session in real time, so that we can pair-program without screen sharing overhead.
+Priority: Low (P2)
+Estimate: XL
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0297: The host generates a session invite link from the Collaboration menu; the collaborator opens it in NomadCode (or browser) and sees the editor state in real time (read-only by default)
+  - [ ] AC-0298: The host can grant edit access to one collaborator at a time; cursors are shown with name labels in distinct colours; concurrent edits are resolved with operational transforms
+  - [ ] AC-0299: The session is end-to-end encrypted (WebRTC DTLS); no code is stored on NomadCode servers — the relay only forwards encrypted packets between peers
+Dependencies: EPIC-0012, EPIC-0007
+```
+
+---
+
 ## Tasks (Phase 1 — Immediate)
 
 ```
@@ -927,6 +1333,7 @@ Notes: develop branch created; branch protection on main and develop enabled at 
 |---|---|---|---|
 | v0.1 Internal Alpha | Core editor + file system on tablet | EPIC-0001, EPIC-0002 | TBD |
 | v0.5 Public Beta | Full feature set for TestFlight/Play Beta | EPIC-0003, EPIC-0004 | TBD |
-| v1.0 GA | Extensions, auth, git, IAP, AI, App Store launch | EPIC-0005, EPIC-0007, EPIC-0008, EPIC-0009, EPIC-0010, EPIC-0011 | TBD |
-| v1.1 Post-Launch | Cloud sync, multi-language, global search, observability | EPIC-0012, EPIC-0013, EPIC-0014, EPIC-0015 | TBD |
+| v1.0 GA | Extensions, auth, git, IAP, AI, advanced git workflows, App Store launch | EPIC-0005, EPIC-0007, EPIC-0008, EPIC-0009, EPIC-0010, EPIC-0011, EPIC-0020 | TBD |
+| v1.1 Post-Launch | Cloud sync, multi-language, search, advanced editor, code nav, AI intelligence | EPIC-0012, EPIC-0013, EPIC-0014, EPIC-0015, EPIC-0021, EPIC-0022, EPIC-0023 | TBD |
+| v1.2 Post-Launch | LSP, AI indexing, mobile debugging, collaboration | EPIC-0024, EPIC-0025, EPIC-0026, EPIC-0027 | TBD |
 | v1.2 | Foldable device support, project templates, SSH/remote terminal | EPIC-0016, EPIC-0017, EPIC-0018 | TBD |

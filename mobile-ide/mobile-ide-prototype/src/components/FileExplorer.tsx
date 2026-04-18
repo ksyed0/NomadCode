@@ -59,6 +59,91 @@ interface MovePickerState {
 const MODAL_SWITCH_DELAY = Platform.OS === 'ios' ? 320 : 50;
 
 // ---------------------------------------------------------------------------
+// File type icon helpers
+// ---------------------------------------------------------------------------
+
+interface FileTypeInfo {
+  label: string;
+  color: string;
+}
+
+const FILE_TYPE_MAP: Record<string, FileTypeInfo> = {
+  ts:         { label: 'TS',   color: '#3178C6' },
+  tsx:        { label: 'TSX',  color: '#3178C6' },
+  mts:        { label: 'TS',   color: '#3178C6' },
+  cts:        { label: 'TS',   color: '#3178C6' },
+  js:         { label: 'JS',   color: '#F0A500' },
+  jsx:        { label: 'JSX',  color: '#F0A500' },
+  mjs:        { label: 'JS',   color: '#F0A500' },
+  cjs:        { label: 'JS',   color: '#F0A500' },
+  py:         { label: 'PY',   color: '#3776AB' },
+  rb:         { label: 'RB',   color: '#CC342D' },
+  swift:      { label: 'SW',   color: '#FA7343' },
+  kt:         { label: 'KT',   color: '#7F52FF' },
+  kts:        { label: 'KT',   color: '#7F52FF' },
+  java:       { label: 'JV',   color: '#ED8B00' },
+  go:         { label: 'GO',   color: '#00ACD7' },
+  rs:         { label: 'RS',   color: '#CE422B' },
+  cpp:        { label: 'C++',  color: '#659BD3' },
+  cc:         { label: 'C++',  color: '#659BD3' },
+  c:          { label: 'C',    color: '#A8B9CC' },
+  cs:         { label: 'C#',   color: '#9B4993' },
+  sh:         { label: 'SH',   color: '#89E051' },
+  bash:       { label: 'SH',   color: '#89E051' },
+  zsh:        { label: 'ZSH',  color: '#89E051' },
+  md:         { label: 'MD',   color: '#6B7280' },
+  mdx:        { label: 'MDX',  color: '#6B7280' },
+  json:       { label: '{}',   color: '#F59E0B' },
+  jsonc:      { label: '{}',   color: '#F59E0B' },
+  html:       { label: 'H',    color: '#E34F26' },
+  htm:        { label: 'H',    color: '#E34F26' },
+  css:        { label: 'CSS',  color: '#1572B6' },
+  scss:       { label: 'SCSS', color: '#CF649A' },
+  sass:       { label: 'SASS', color: '#CF649A' },
+  less:       { label: 'LESS', color: '#1D365D' },
+  vue:        { label: 'VUE',  color: '#42B883' },
+  svelte:     { label: 'SVE',  color: '#FF3E00' },
+  yaml:       { label: 'YML',  color: '#CB171E' },
+  yml:        { label: 'YML',  color: '#CB171E' },
+  toml:       { label: 'TML',  color: '#9C4121' },
+  xml:        { label: 'XML',  color: '#F0A500' },
+  svg:        { label: 'SVG',  color: '#FFB13B' },
+  sql:        { label: 'SQL',  color: '#E38D44' },
+  graphql:    { label: 'GQL',  color: '#E10098' },
+  gql:        { label: 'GQL',  color: '#E10098' },
+  dart:       { label: 'DT',   color: '#02569B' },
+  lua:        { label: 'LUA',  color: '#000080' },
+  r:          { label: 'R',    color: '#276DC3' },
+  txt:        { label: 'TXT',  color: '#8B8D93' },
+  log:        { label: 'LOG',  color: '#8B8D93' },
+  env:        { label: 'ENV',  color: '#ECD53F' },
+  lock:       { label: '🔒',   color: '#8B8D93' },
+  gitignore:  { label: 'GIT',  color: '#F05032' },
+};
+
+const SPECIAL_FILENAME_MAP: Record<string, FileTypeInfo> = {
+  'package.json':       { label: 'PKG', color: '#CB3837' },
+  'package-lock.json':  { label: 'PKG', color: '#CB3837' },
+  'yarn.lock':          { label: 'PKG', color: '#2C8EBB' },
+  'tsconfig.json':      { label: 'TSC', color: '#3178C6' },
+  'tsconfig.base.json': { label: 'TSC', color: '#3178C6' },
+  '.gitignore':         { label: 'GIT', color: '#F05032' },
+  '.gitattributes':     { label: 'GIT', color: '#F05032' },
+  '.env':               { label: 'ENV', color: '#ECD53F' },
+  '.env.local':         { label: 'ENV', color: '#ECD53F' },
+  'dockerfile':         { label: 'DOC', color: '#2496ED' },
+  'makefile':           { label: 'MK',  color: '#427819' },
+  'readme.md':          { label: 'MD',  color: '#6B7280' },
+};
+
+function getFileTypeInfo(name: string): FileTypeInfo {
+  const lower = name.toLowerCase();
+  if (SPECIAL_FILENAME_MAP[lower]) return SPECIAL_FILENAME_MAP[lower]!;
+  const ext = name.includes('.') ? lower.slice(lower.lastIndexOf('.') + 1) : '';
+  return FILE_TYPE_MAP[ext] ?? { label: '•', color: '#8B8D93' };
+}
+
+// ---------------------------------------------------------------------------
 // Helper functions
 // ---------------------------------------------------------------------------
 
@@ -366,25 +451,43 @@ export default function FileExplorer({
   // Renderers
   // ---------------------------------------------------------------------------
 
-  const renderNode = ({ item }: { item: TreeNode }) => (
-    <TouchableOpacity
-      style={[
-        styles.row,
-        { paddingLeft: 12 + item.depth * 16 },
-        item.path === selectedPath && [styles.selectedRow, { backgroundColor: t.accent + '22' }],
-      ]}
-      onPress={() => handlePress(item)}
-      onLongPress={() => setContextTarget(item)}
-      activeOpacity={0.7}
-    >
-      <Text style={[styles.icon, { color: t.textMuted }]}>
-        {item.isDirectory ? (item.expanded ? '▾' : '▸') : '·'}
-      </Text>
-      <Text style={[styles.name, { color: t.text }, item.isDirectory && { color: t.text, fontWeight: '500' }]} numberOfLines={1}>
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderNode = ({ item }: { item: TreeNode }) => {
+    const fileInfo = item.isDirectory ? null : getFileTypeInfo(item.name);
+    return (
+      <TouchableOpacity
+        style={[
+          styles.row,
+          { paddingLeft: 12 + item.depth * 16 },
+          item.path === selectedPath && [styles.selectedRow, { backgroundColor: t.accent + '22' }],
+        ]}
+        onPress={() => handlePress(item)}
+        onLongPress={() => setContextTarget(item)}
+        activeOpacity={0.7}
+      >
+        {item.isDirectory ? (
+          <Text style={[styles.folderChevron, { color: t.textMuted }]}>
+            {item.expanded ? '▾' : '▸'}
+          </Text>
+        ) : (
+          <View style={[styles.fileIconBadge, { backgroundColor: (fileInfo!.color) + '22' }]}>
+            <Text style={[styles.fileIconText, { color: fileInfo!.color }]} numberOfLines={1}>
+              {fileInfo!.label}
+            </Text>
+          </View>
+        )}
+        <Text
+          style={[
+            styles.name,
+            { color: t.text },
+            item.isDirectory && { fontWeight: '500' },
+          ]}
+          numberOfLines={1}
+        >
+          {item.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   const renderPickerNode = ({ item }: { item: TreeNode }) => {
     const isSource = movePicker ? isDescendantOrSelf(movePicker.sourceNode.path, item.path) || item.path === movePicker.sourceNode.path : false;
@@ -680,18 +783,32 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 5,
     paddingRight: 12,
   },
   selectedRow: {},
-  icon: {
+  folderChevron: {
     width: 16,
     fontSize: 12,
     textAlign: 'center',
   },
+  fileIconBadge: {
+    width: 28,
+    height: 17,
+    borderRadius: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 1,
+  },
+  fileIconText: {
+    fontSize: 8.5,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
   name: {
     fontSize: 13,
-    marginLeft: 4,
+    marginLeft: 5,
     flex: 1,
   },
   center: {
