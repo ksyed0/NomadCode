@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useSearch, UseSearchReturn } from './useSearch';
 import { replaceInFiles } from '../utils/replaceEngine';
 import { buildPattern } from '../utils/searchEngine';
@@ -30,18 +30,26 @@ export function useReplace(workspaceRoot: string): UseReplaceReturn {
     });
   }, []);
 
-  const replacePreview =
-    search.query && replaceQuery ? `"${search.query}" → "${replaceQuery}"` : '';
+  const replacePreview = useMemo(
+    () =>
+      search.query && replaceQuery
+        ? `"${search.query}" → "${replaceQuery}"`
+        : '',
+    [search.query, replaceQuery],
+  );
 
   const replaceAll = useCallback(async () => {
+    if (!search.query) return { filesChanged: 0, matchesReplaced: 0 };
     const pattern = buildPattern(search.query, search.options);
-    return replaceInFiles(
+    const result = await replaceInFiles(
       search.results,
       pattern,
       replaceQuery,
       excludedMatches,
       FileSystemBridge,
     );
+    setExcludedMatches(new Set());
+    return result;
   }, [search.query, search.options, search.results, replaceQuery, excludedMatches]);
 
   return {

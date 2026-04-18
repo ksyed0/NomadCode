@@ -51,7 +51,22 @@ describe('useReplace', () => {
 
   it('replaceAll calls replaceInFiles with correct args', async () => {
     mockedReplace.mockResolvedValue({ filesChanged: 1, matchesReplaced: 3 });
+    mockedUseSearch.mockReturnValue({
+      query: 'foo',
+      setQuery: jest.fn(),
+      options: { caseSensitive: false, regex: false, wholeWord: false, glob: '' },
+      setOptions: jest.fn(),
+      results: [],
+      isSearching: false,
+      fileCount: 0,
+      totalMatchCount: 0,
+      error: null,
+      submit: jest.fn(),
+      clear: jest.fn(),
+    });
     const { result } = renderHook(() => useReplace('/workspace'));
+    act(() => result.current.toggleExclude('/a.ts:1:0'));
+    expect(result.current.excludedMatches.size).toBe(1);
     act(() => result.current.setReplaceQuery('bar'));
     let r: { filesChanged: number; matchesReplaced: number } | undefined;
     await act(async () => {
@@ -60,6 +75,7 @@ describe('useReplace', () => {
     expect(mockedReplace).toHaveBeenCalled();
     expect(r?.filesChanged).toBe(1);
     expect(r?.matchesReplaced).toBe(3);
+    expect(result.current.excludedMatches.size).toBe(0);
   });
 
   it('replacePreview shows "query → replacement" when both set', () => {
@@ -89,7 +105,42 @@ describe('useReplace', () => {
 
   it('replacePreview is empty string when either field is empty', () => {
     const { result } = renderHook(() => useReplace('/workspace'));
-    act(() => result.current.setQuery('foo'));
+    act(() => result.current.setReplaceQuery('bar'));
     expect(result.current.replacePreview).toBe('');
+  });
+
+  it('replaceAll returns zero counts when query is empty', async () => {
+    const { result } = renderHook(() => useReplace('/workspace'));
+    let r: { filesChanged: number; matchesReplaced: number } | undefined;
+    await act(async () => {
+      r = await result.current.replaceAll();
+    });
+    expect(mockedReplace).not.toHaveBeenCalled();
+    expect(r).toEqual({ filesChanged: 0, matchesReplaced: 0 });
+  });
+
+  it('replaceAll clears excludedMatches on success', async () => {
+    mockedReplace.mockResolvedValue({ filesChanged: 1, matchesReplaced: 1 });
+    mockedUseSearch.mockReturnValue({
+      query: 'foo',
+      setQuery: jest.fn(),
+      options: { caseSensitive: false, regex: false, wholeWord: false, glob: '' },
+      setOptions: jest.fn(),
+      results: [],
+      isSearching: false,
+      fileCount: 0,
+      totalMatchCount: 0,
+      error: null,
+      submit: jest.fn(),
+      clear: jest.fn(),
+    });
+    const { result } = renderHook(() => useReplace('/workspace'));
+    act(() => result.current.toggleExclude('/a.ts:1:0'));
+    expect(result.current.excludedMatches.size).toBe(1);
+    act(() => result.current.setReplaceQuery('bar'));
+    await act(async () => {
+      await result.current.replaceAll();
+    });
+    expect(result.current.excludedMatches.size).toBe(0);
   });
 });
