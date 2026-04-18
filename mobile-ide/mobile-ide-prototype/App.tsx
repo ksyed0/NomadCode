@@ -46,6 +46,9 @@ import useGitStore from './src/stores/useGitStore';
 import { useTheme } from './src/theme/tokens';
 import type { OpenTabMeta, ConflictInfo, ConflictResolution } from './src/types/workspace';
 import splashImage from './assets/splash.png';
+import { useKeyboardShortcuts } from './src/hooks/useKeyboardShortcuts';
+import type { ShortcutDefinition } from './src/hooks/useKeyboardShortcuts';
+import { KeyboardShortcutsSheet } from './src/components/KeyboardShortcutsSheet';
 
 const APP_VERSION = '0.1.0';
 
@@ -153,6 +156,7 @@ export default function App() {
   const [showGitPanel, setShowGitPanel] = useState(false);
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [diffFilepath, setDiffFilepath] = useState<string | null>(null);
+  const [showShortcutsSheet, setShowShortcutsSheet] = useState(false);
 
   // ── Cloud-sync conflict detection ─────────────────────────────────────────
   // tabMetaRef holds a snapshot of each open tab's content hash at load/save
@@ -401,6 +405,23 @@ export default function App() {
   }, []);
 
   // ---------------------------------------------------------------------------
+  // Keyboard shortcuts (hardware keyboard via useKeyboardShortcuts)
+  // ---------------------------------------------------------------------------
+
+  const shortcuts: ShortcutDefinition[] = useMemo(() => [
+    { key: 's', modifiers: ['cmd'], label: 'Save File', action: saveActiveFile },
+    { key: 's', modifiers: ['cmd', 'shift'], label: 'Save All', action: () => {
+      tabs.forEach((tab) => { if (tab.isDirty) saveFile(tab.path, tab.content); });
+    }},
+    { key: '`', modifiers: ['cmd'], label: 'Toggle Terminal', action: () => setShowTerminal((v: boolean) => !v) },
+    { key: 'n', modifiers: ['cmd'], label: 'New File', action: () => setTriggerNewFile(true) },
+    { key: 'p', modifiers: ['cmd'], label: 'Command Palette', action: () => setShowPalette(true) },
+    { key: '/', modifiers: ['cmd'], label: 'Keyboard Shortcuts', action: () => setShowShortcutsSheet(true) },
+  ], [saveActiveFile, saveFile, tabs, setShowTerminal, setTriggerNewFile, setShowPalette]);
+
+  useKeyboardShortcuts(shortcuts);
+
+  // ---------------------------------------------------------------------------
   // Command palette commands
   // ---------------------------------------------------------------------------
 
@@ -456,10 +477,16 @@ export default function App() {
       description: 'Open global search panel',
       action: () => setSidebarTab('search'),
     },
+    {
+      id: 'keyboard-shortcuts',
+      label: 'Keyboard Shortcuts',
+      description: '⌘/',
+      action: () => setShowShortcutsSheet(true),
+    },
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
-  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setTriggerNewFile, setShowPalette]);
+  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setTriggerNewFile, setShowPalette, setShowShortcutsSheet]);
 
   const handlePaletteSelect = useCallback((cmd: Command) => {
     setShowPalette(false);
@@ -630,6 +657,13 @@ export default function App() {
 
       {/* ── Cloud-sync conflict resolution modal ─────────────────────────── */}
       <WorkspaceConflictModal conflict={conflict} onResolve={handleConflictResolve} />
+
+      {/* ── Keyboard shortcuts reference sheet ───────────────────────────── */}
+      <KeyboardShortcutsSheet
+        visible={showShortcutsSheet}
+        shortcuts={shortcuts}
+        onClose={() => setShowShortcutsSheet(false)}
+      />
 
       {/* ── Extension host (hidden, always mounted) ──────────────────────── */}
       <ExtensionHost
