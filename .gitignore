@@ -14,5 +14,6 @@ docs/plan-status.json
 
 # Git worktrees
 .worktrees/
+.claude/worktrees/
 docs/capture-cost-debug.json
 docs/cost-baseline.json

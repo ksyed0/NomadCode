@@ -4,6 +4,117 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 16 — 2026-04-18 (Feature Gap Analysis + UI Polish Phase 1)
+
+### What Was Done
+
+**Context:** Two-part session — (1) completed the competitive feature gap analysis plan from the previous session and appended EPIC-0020–0027 to the release plan; (2) conducted a live UI review of NomadCode in the iOS Simulator and implemented targeted UI improvements across 5 components.
+
+#### Feature Gap Analysis (docs)
+
+- **`docs/FEATURE_GAP_ANALYSIS.md`** — created new competitive analysis document benchmarking NomadCode against VS Code, Cursor, and Google Antigravity/Firebase Studio
+- **`docs/RELEASE_PLAN.md`** — appended EPIC-0020–0027 (Advanced Git Workflows, Advanced Editor Features, Code Navigation, AI Code Intelligence, LSP, AI Codebase Indexing, Mobile Debugging, Collaboration & Sharing) with 31 user stories (US-0068–0098) and ~93 ACs (AC-0207–0299)
+- **`docs/ID_REGISTRY.md`** — updated counters (EPIC→0028, US→0101, AC→0308, BUG→0055)
+- Key insight from analysis: no native mobile IDE exists — Firebase Studio is browser-only and "extremely small text on mobile"; this validates NomadCode's core thesis
+
+#### UI Polish Phase 1 (code — `feature/ui-improvements-phase1`)
+
+Five components improved across 5 source files. 935/935 tests pass.
+
+**FileExplorer.tsx** — file type badge icons
+- Added `FILE_TYPE_MAP` (~50 extension entries) and `SPECIAL_FILENAME_MAP` (~12 special filenames like `.gitignore`, `Dockerfile`, `package.json`)
+- File entries now show a coloured monospace badge (TSX, TS, JS, PY, MD, etc.) instead of the undifferentiated `·` bullet
+- Badge uses `color + '22'` for semi-transparent background tint matching the label colour
+
+**TabletResponsive.tsx** — settings gear footer
+- Moved gear button from inline sidebar header → dedicated sticky footer row
+- Footer has hairline border separator, `⚙ Settings` label in a row layout
+- Applied to both tablet sidebar and phone drawer; `sidebarContent: { flex: 1 }` makes file tree fill the remaining space
+
+**App.tsx** — status bar + FAB improvements
+- Save indicator: `t.error` (Coral red) → `#D97706` (Sand amber) — better semantic (pending, not error)
+- Branch display: plain text → styled pill with `t.bgHighlight` background + `t.accent` text
+- Removed version number from status bar title (less clutter)
+- Primary palette FAB: `⌘` → `≡` (cross-platform); enlarged 46→52px
+- Terminal FAB: teal `#0D9488` active state when terminal panel is open; distinct dark state when closed
+
+**TerminalWebView.tsx** — terminal header icon
+- Added `>_` monospace icon in accent colour before "TERMINAL" label; header is `flexDirection: 'row'` with `gap: 6`
+
+**Editor.tsx** — path breadcrumb + empty state
+- Breadcrumb truncated to last 3 meaningful path segments joined with ` › ` (strips `file://` prefix and long sandbox paths)
+- Empty state: `>_` accent icon added above "No file open" (text also corrected from "No files open")
+
+#### Bug logging (docs)
+- BUG-0050: save indicator red semantics (UX-4) → Fixed
+- BUG-0051: FAB ⌘ Mac-specific symbol (UX-5) → Fixed
+- BUG-0052: path breadcrumb full sandbox path (UX-6) → Fixed
+- BUG-0053: gear icon floating at sidebar top (UX-7) → Fixed
+- BUG-0054: terminal FAB no active state (UX-8) → Fixed
+
+#### New user stories (docs)
+- **US-0099** (EPIC-0002): file type badge icons in Explorer — Status: Done
+- **US-0100** (EPIC-0005): VS Code Marketplace browsing — Status: Planned, Release 1.2 (Open VSX API, WASM-only install, sandbox activation)
+
+### Current State
+- Branch: `feature/ui-improvements-phase1` — merged to `develop` via PR
+- All mobile unit tests: **935 tests, 0 failures** (34 suites)
+- Metro: running on :8081; iOS Simulator: iPad Pro 13" (M5) booted with latest build
+
+### Key Files Modified
+- `mobile-ide/mobile-ide-prototype/src/components/FileExplorer.tsx` — file type badge icons
+- `mobile-ide/mobile-ide-prototype/src/layout/TabletResponsive.tsx` — gear footer, sidebarContent flex
+- `mobile-ide/mobile-ide-prototype/App.tsx` — FAB icons, save colour, branch pill, terminal active state
+- `mobile-ide/mobile-ide-prototype/src/components/TerminalWebView.tsx` — terminal header icon
+- `mobile-ide/mobile-ide-prototype/src/components/Editor.tsx` — breadcrumb truncation, empty state icon
+- `docs/FEATURE_GAP_ANALYSIS.md` — new file
+- `docs/RELEASE_PLAN.md` — EPIC-0020–0027 + US-0068–0100
+- `docs/BUGS.md` — BUG-0050–0054
+
+### Next Session Pick-up
+1. Confirm PR merged to `develop`; pull develop locally
+2. Consider EPIC-0020 (Advanced Git Workflows) — branch create/switch UI and merge conflict resolution are the highest-value Release 1.0 gaps
+3. Consider EPIC-0021 (Advanced Editor Features) — search & replace across files is the single most-requested VS Code feature missing from NomadCode
+4. US-0067 (Monaco custom theme registration) remains deferred — good candidate for a focused half-session
+
+---
+
+## Session 16 (continued) — 2026-04-18 (EPIC-0021 Brainstorm + Design Spec)
+
+### What Was Done
+
+**Context:** Continuation of Session 16. PR #95 (`feature/ui-improvements-phase1`) was queued for auto-merge with CI re-running after a lint fix. Main work was a full brainstorming session for EPIC-0021 (Advanced Editor Features) using the visual companion.
+
+#### Brainstorming — EPIC-0021
+
+Six design decisions made via visual companion cards:
+1. **Search & Replace panel layout** → Tab-Switched mode (SEARCH / REPLACE tabs, per-match exclusion checkboxes)
+2. **Hardware keyboard shortcuts** → Dual native: Swift `UIKeyCommand` (iOS) + Kotlin `dispatchKeyEvent` (Android)
+3. **Code fold state storage** → `viewState?: string` on `EditorTab` (Monaco `saveViewState()` / `restoreViewState()`)
+4. **Auto-format** → Prettier inlined in Monaco WebView bundle, default off, `formatOnSave` toggle in Settings
+5. **Breadcrumbs** → Path + top-level symbol via regex (no AST), replaces existing path bar
+6. **Snippets** → `useSettingsStore.snippets` (Zustand + AsyncStorage), built-in catalogue in `builtinSnippets.ts`
+
+#### Design Spec — written, self-reviewed, committed
+
+- **`docs/superpowers/specs/2026-04-18-epic-0021-advanced-editor-features-design.md`** — 496-line spec covering all 6 stories (US-0073–0078), architecture diagram, full AC mappings, testing strategy, and file change manifest
+- Self-review corrections applied: `EditorBuffer` → `EditorTab`, wrong MonacoAssetManager path corrected, Android native module paths corrected, spurious `cursorPosition` reference removed, Prettier dev-dep note added
+- Committed on `feature/ui-improvements-phase1` branch
+
+### Current State
+- Branch: `feature/ui-improvements-phase1`
+- PR #95 queued for auto-merge to `develop`; CI re-running after lint fix
+- EPIC-0021 design spec: **complete and approved**
+- Next immediate step: invoke `writing-plans` skill to generate implementation plan for EPIC-0021
+
+### Next Session Pick-up
+1. Confirm PR #95 merged to `develop`; `git checkout develop && git pull`
+2. Create implementation branch: `git checkout -b feature/epic-0021-advanced-editor-features`
+3. Invoke `writing-plans` skill with the EPIC-0021 spec at `docs/superpowers/specs/2026-04-18-epic-0021-advanced-editor-features-design.md`
+4. Implement the 6 stories in priority order: US-0073 (Search/Replace), US-0074 (Keyboard Shortcuts), US-0075 (Folding), US-0076 (Format), US-0077 (Breadcrumbs), US-0078 (Snippets)
+
+---
+
 ## Session 15 — 2026-04-14 (SDK 54 Post-Upgrade Bug Fixes + Git UX)
 
 ### What Was Done
