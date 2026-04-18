@@ -337,3 +337,8 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | develop | 0 | 0 | 0 | 0.0000 |
 | 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | develop | 0 | 0 | 0 | 0.0000 |
 | 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | feature/ui-improvements-phase1 | — | — | — | — |
+| 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | feature/ui-improvements-phase1 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | feature/ui-improvements-phase1 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | feature/ui-improvements-phase1 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | feature/ui-improvements-phase1 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | feature/ui-improvements-phase1 | 0 | 0 | 0 | 0.0000 |

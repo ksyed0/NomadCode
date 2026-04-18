@@ -79,6 +79,42 @@ Five components improved across 5 source files. 935/935 tests pass.
 
 ---
 
+## Session 16 (continued) — 2026-04-18 (EPIC-0021 Brainstorm + Design Spec)
+
+### What Was Done
+
+**Context:** Continuation of Session 16. PR #95 (`feature/ui-improvements-phase1`) was queued for auto-merge with CI re-running after a lint fix. Main work was a full brainstorming session for EPIC-0021 (Advanced Editor Features) using the visual companion.
+
+#### Brainstorming — EPIC-0021
+
+Six design decisions made via visual companion cards:
+1. **Search & Replace panel layout** → Tab-Switched mode (SEARCH / REPLACE tabs, per-match exclusion checkboxes)
+2. **Hardware keyboard shortcuts** → Dual native: Swift `UIKeyCommand` (iOS) + Kotlin `dispatchKeyEvent` (Android)
+3. **Code fold state storage** → `viewState?: string` on `EditorTab` (Monaco `saveViewState()` / `restoreViewState()`)
+4. **Auto-format** → Prettier inlined in Monaco WebView bundle, default off, `formatOnSave` toggle in Settings
+5. **Breadcrumbs** → Path + top-level symbol via regex (no AST), replaces existing path bar
+6. **Snippets** → `useSettingsStore.snippets` (Zustand + AsyncStorage), built-in catalogue in `builtinSnippets.ts`
+
+#### Design Spec — written, self-reviewed, committed
+
+- **`docs/superpowers/specs/2026-04-18-epic-0021-advanced-editor-features-design.md`** — 496-line spec covering all 6 stories (US-0073–0078), architecture diagram, full AC mappings, testing strategy, and file change manifest
+- Self-review corrections applied: `EditorBuffer` → `EditorTab`, wrong MonacoAssetManager path corrected, Android native module paths corrected, spurious `cursorPosition` reference removed, Prettier dev-dep note added
+- Committed on `feature/ui-improvements-phase1` branch
+
+### Current State
+- Branch: `feature/ui-improvements-phase1`
+- PR #95 queued for auto-merge to `develop`; CI re-running after lint fix
+- EPIC-0021 design spec: **complete and approved**
+- Next immediate step: invoke `writing-plans` skill to generate implementation plan for EPIC-0021
+
+### Next Session Pick-up
+1. Confirm PR #95 merged to `develop`; `git checkout develop && git pull`
+2. Create implementation branch: `git checkout -b feature/epic-0021-advanced-editor-features`
+3. Invoke `writing-plans` skill with the EPIC-0021 spec at `docs/superpowers/specs/2026-04-18-epic-0021-advanced-editor-features-design.md`
+4. Implement the 6 stories in priority order: US-0073 (Search/Replace), US-0074 (Keyboard Shortcuts), US-0075 (Folding), US-0076 (Format), US-0077 (Breadcrumbs), US-0078 (Snippets)
+
+---
+
 ## Session 15 — 2026-04-14 (SDK 54 Post-Upgrade Bug Fixes + Git UX)
 
 ### What Was Done
