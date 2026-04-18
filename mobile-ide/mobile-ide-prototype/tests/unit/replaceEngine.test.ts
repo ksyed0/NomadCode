@@ -80,4 +80,36 @@ describe('replaceInFiles', () => {
     expect(r.filesChanged).toBe(2);
     expect(r.matchesReplaced).toBe(2);
   });
+
+  it('handles pattern that already has the g flag', async () => {
+    const files = { '/g.ts': 'foo foo foo' };
+    const bridge = makeBridge(files);
+    const results: FileSearchResult[] = [
+      { filePath: '/g.ts', matches: [{ lineNumber: 1, preview: 'foo foo foo', matchStart: 0, matchEnd: 3 }] },
+    ];
+    // buildPattern never returns g flag, so construct manually to test that branch
+    const pattern = new RegExp('foo', 'gi');
+    const r = await replaceInFiles(results, pattern, 'bar', new Set(), bridge as any);
+    expect(r.matchesReplaced).toBe(3);
+    expect(bridge._written['/g.ts']).toBe('bar bar bar');
+  });
+
+  it('skips excluded match at non-zero column offset', async () => {
+    const files = { '/h.ts': 'abc foo def foo' };
+    const bridge = makeBridge(files);
+    const results: FileSearchResult[] = [
+      {
+        filePath: '/h.ts',
+        matches: [
+          { lineNumber: 1, preview: 'abc foo def foo', matchStart: 4, matchEnd: 7 },
+          { lineNumber: 1, preview: 'abc foo def foo', matchStart: 12, matchEnd: 15 },
+        ],
+      },
+    ];
+    const pattern = buildPattern('foo', { caseSensitive: false, regex: false, wholeWord: false, glob: '' });
+    const excluded = new Set(['/h.ts:1:4']); // exclude first occurrence at col 4
+    const r = await replaceInFiles(results, pattern, 'bar', excluded, bridge as any);
+    expect(r.matchesReplaced).toBe(1);
+    expect(bridge._written['/h.ts']).toBe('abc foo def bar');
+  });
 });
