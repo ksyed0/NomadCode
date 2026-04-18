@@ -33,6 +33,10 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
 describe('useSettingsStore — default state', () => {
   it('defaults theme to nomad-dark', () => {
     const { result } = renderHook(() => useSettingsStore());
@@ -189,27 +193,34 @@ describe('useSettingsStore — actions', () => {
   });
 
   it('formatOnSave defaults to false and toggles', () => {
-    const state = useSettingsStore.getState();
-    expect(state.formatOnSave).toBe(false);
-    act(() => state.setFormatOnSave(true));
-    expect(useSettingsStore.getState().formatOnSave).toBe(true);
+    const { result, unmount } = renderHook(() => useSettingsStore());
+    expect(result.current.formatOnSave).toBe(false);
+    act(() => { result.current.setFormatOnSave(true); });
+    expect(result.current.formatOnSave).toBe(true);
+    unmount();
   });
 
   it('addSnippet deduplicates by prefix+language', () => {
-    const state = useSettingsStore.getState();
+    const { result, unmount } = renderHook(() => useSettingsStore());
     const s1 = { prefix: 'clg', body: 'console.log($1)', description: 'log', language: 'all' };
     const s2 = { prefix: 'clg', body: 'console.log("updated")', description: 'log2', language: 'all' };
-    act(() => state.addSnippet(s1));
-    act(() => state.addSnippet(s2));
-    expect(useSettingsStore.getState().snippets).toHaveLength(1);
-    expect(useSettingsStore.getState().snippets[0].body).toBe('console.log("updated")');
+    act(() => {
+      result.current.addSnippet(s1);
+      result.current.addSnippet(s2);
+    });
+    expect(result.current.snippets).toHaveLength(1);
+    expect(result.current.snippets[0].body).toBe('console.log("updated")');
+    unmount();
   });
 
   it('removeSnippet removes by prefix+language', () => {
-    const state = useSettingsStore.getState();
+    const { result, unmount } = renderHook(() => useSettingsStore());
     const s = { prefix: 'fn', body: 'function $1() {}', description: 'fn', language: 'javascript' };
-    act(() => state.addSnippet(s));
-    act(() => state.removeSnippet('fn', 'javascript'));
-    expect(useSettingsStore.getState().snippets).toHaveLength(0);
+    act(() => {
+      result.current.addSnippet(s);
+      result.current.removeSnippet('fn', 'javascript');
+    });
+    expect(result.current.snippets).toHaveLength(0);
+    unmount();
   });
 });
