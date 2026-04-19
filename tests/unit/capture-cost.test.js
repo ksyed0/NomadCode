@@ -1,4 +1,5 @@
 'use strict';
+const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { buildRow, diffModelUsage, TEMP_BASELINE_PATH } = require('../../tools/capture-cost');
@@ -147,7 +148,10 @@ describe('diffModelUsage', () => {
 });
 
 describe('TEMP_BASELINE_PATH', () => {
-  it('is located in os.tmpdir()', () => {
-    expect(TEMP_BASELINE_PATH).toBe(path.join(os.tmpdir(), '.nomadcode-cost-baseline.json'));
+  it('is a tmp-generated file with expected prefix and suffix', () => {
+    const realDir = fs.realpathSync(path.dirname(TEMP_BASELINE_PATH));
+    const realTmp = fs.realpathSync(os.tmpdir());
+    expect(realDir).toBe(realTmp);
+    expect(path.basename(TEMP_BASELINE_PATH)).toMatch(/^nomadcode-cost-baseline-.*\.json$/);
   });
 });
