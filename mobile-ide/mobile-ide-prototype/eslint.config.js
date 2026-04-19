@@ -45,7 +45,10 @@ module.exports = [
       'react-hooks': reactHooksPlugin,
     },
     settings: {
-      react: { version: 'detect' },
+      // Pin the React version explicitly. Using 'detect' triggers context.getFilename()
+      // inside eslint-plugin-react@7.x's version-detection utility, which was removed
+      // in ESLint 10. Pinning avoids that code path entirely.
+      react: { version: '19.1.0' },
     },
     rules: {
       // React recommended rules (manually spread — eslint-plugin-react@7.34 predates flat config)
