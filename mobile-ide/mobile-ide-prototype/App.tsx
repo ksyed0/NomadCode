@@ -37,6 +37,7 @@ import ExtensionHost from './src/components/ExtensionHost';
 import GitCloneModal from './src/components/GitCloneModal';
 import GitDiffModal from './src/components/GitDiffModal';
 import GitPanel from './src/components/GitPanel';
+import GitScreen from './src/components/GitScreen';
 import TabletResponsive from './src/layout/TabletResponsive';
 import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
 import { simpleHash } from './src/utils/hash';
@@ -116,6 +117,8 @@ export default function App() {
   const gitBranch = useGitStore((s) => s.branch);
   const fileTreeRevision = useGitStore((s) => s.fileTreeRevision);
   const setBranchInfo = useGitStore((s) => s.setBranchInfo);
+  const setIsGitScreenOpen = useGitStore((s) => s.setIsGitScreenOpen);
+  const setActiveGitTab = useGitStore((s) => s.setActiveGitTab);
 
   // Restore auth session from keychain on mount
   useEffect(() => {
@@ -560,9 +563,9 @@ export default function App() {
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
       <View style={[styles.statusBar, statusBarStyles.bar, { backgroundColor: t.bgElevated, borderBottomColor: t.border }]}>
-        {/* Branch pill — tapping opens Git panel */}
+        {/* Branch pill — tapping opens GitScreen */}
         <TouchableOpacity
-          onPress={gitStatus}
+          onPress={() => { setActiveGitTab('branches'); setIsGitScreenOpen(true); }}
           style={[styles.statusBranchPill, { backgroundColor: t.bgHighlight, borderColor: t.border }]}
           accessibilityLabel={`Git branch ${gitBranch}, open git panel`}
         >
@@ -707,6 +710,8 @@ export default function App() {
         rootPath={rootPath}
         filepath={diffFilepath}
       />
+
+      <GitScreen rootPath={rootPath} authToken={authToken} />
 
       {/* ── Cloud-sync conflict resolution modal ─────────────────────────── */}
       <WorkspaceConflictModal conflict={conflict} onResolve={handleConflictResolve} />

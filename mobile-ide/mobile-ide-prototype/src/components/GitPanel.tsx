@@ -40,6 +40,9 @@ export default function GitPanel({
   const setBranchInfo = useGitStore((s) => s.setBranchInfo);
   const setLastError = useGitStore((s) => s.setLastError);
   const bumpFileTree = useGitStore((s) => s.bumpFileTree);
+  const setIsGitScreenOpen = useGitStore((s) => s.setIsGitScreenOpen);
+  const setActiveGitTab = useGitStore((s) => s.setActiveGitTab);
+  const conflicts = useGitStore((s) => s.conflicts);
   const [status, setStatus] = useState<GitStatus | null>(null);
   const [commitMsg, setCommitMsg] = useState('');
   const [branches, setBranches] = useState<string[]>([]);
@@ -351,6 +354,19 @@ export default function GitPanel({
                   <Text style={{ color: t.text }}>{b === status?.branch ? `* ${b}` : `  ${b}`}</Text>
                 </TouchableOpacity>
               ))}
+              <TouchableOpacity
+                onPress={() => { setActiveGitTab('branches'); setIsGitScreenOpen(true); onClose(); }}
+                style={styles.moreBtn}
+                accessibilityLabel="Open advanced git workflows"
+                testID="more-btn"
+              >
+                <Text style={styles.moreBtnText}>Advanced Git →</Text>
+                {conflicts.length > 0 && (
+                  <View style={styles.conflictBadge}>
+                    <Text style={styles.conflictBadgeText}>{conflicts.length} conflict{conflicts.length > 1 ? 's' : ''}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
             </ScrollView>
           )}
         </View>
@@ -465,4 +481,15 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: 'center',
   },
+  moreBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginTop: 12, paddingVertical: 12, paddingHorizontal: 16,
+    backgroundColor: '#1e293b', borderRadius: 8,
+  },
+  moreBtnText: { color: '#2563EB', fontSize: 14, fontWeight: '600' },
+  conflictBadge: {
+    backgroundColor: '#EF4444', borderRadius: 10,
+    paddingHorizontal: 8, paddingVertical: 2,
+  },
+  conflictBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
 });
