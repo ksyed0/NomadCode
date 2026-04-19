@@ -2,6 +2,7 @@ package com.nomadcode.mobileide
 
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -39,6 +40,16 @@ class MainActivity : ReactActivity() {
               fabricEnabled
           ){})
   }
+
+  override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            val module = reactInstanceManager
+                ?.currentReactContext
+                ?.getNativeModule(KeyboardShortcutsModule::class.java)
+            if (module?.onKeyDown(event.keyCode, event) == true) return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
 
   /**
     * Align the back button behavior with Android S

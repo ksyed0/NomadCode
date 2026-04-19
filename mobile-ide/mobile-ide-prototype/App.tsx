@@ -26,7 +26,7 @@ import {
 } from 'react-native';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import Editor, { EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
+import Editor, { EditorHandle, EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
 import FileExplorer from './src/components/FileExplorer';
 import { TerminalWebView } from './src/components/TerminalWebView';
 import { Command, CommandPalette } from './src/components/CommandPalette';
@@ -46,6 +46,9 @@ import useGitStore from './src/stores/useGitStore';
 import { useTheme } from './src/theme/tokens';
 import type { OpenTabMeta, ConflictInfo, ConflictResolution } from './src/types/workspace';
 import splashImage from './assets/splash.png';
+import { useKeyboardShortcuts } from './src/hooks/useKeyboardShortcuts';
+import type { ShortcutDefinition } from './src/hooks/useKeyboardShortcuts';
+import { KeyboardShortcutsSheet } from './src/components/KeyboardShortcutsSheet';
 
 const APP_VERSION = '0.1.0';
 
@@ -64,6 +67,7 @@ export default function App() {
   const workspaceUri = useSettingsStore((s) => s.workspaceUri);
   const setWorkspaceRoot = useSettingsStore((s) => s.setWorkspaceRoot);
   const editorFontSize = useSettingsStore((s) => s.fontSize);
+  const formatOnSave = useSettingsStore((s) => s.formatOnSave);
 
   // Scale chrome text (status bar, etc.) proportionally to the user's
   // editor font size. Default editor size is 14 → scale factor 1.0.
@@ -136,6 +140,26 @@ export default function App() {
     };
   }, [rootPath, fileTreeRevision, setBranchInfo]);
 
+  // ── Editor ref (imperative handle for fold/view-state) ───────────────────
+  const editorRef = useRef<EditorHandle | null>(null);
+
+  // ── Prettier config resolution — reads .prettierrc* from root ─────────────
+  useEffect(() => {
+    if (!rootPath) return;
+    const CONFIG_FILES = ['.prettierrc', '.prettierrc.json', 'prettier.config.json'];
+    (async () => {
+      for (const name of CONFIG_FILES) {
+        try {
+          const content = await FileSystemBridge.readFile(`${rootPath}/${name}`);
+          const config = JSON.parse(content);
+          editorRef.current?.sendPrettierConfig(config);
+          return;
+        } catch { /* not found or invalid JSON */ }
+      }
+      editorRef.current?.sendPrettierConfig({});
+    })();
+  }, [rootPath]);
+
   // ── Editor state ──────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<EditorTab[]>([]);
   const [activeTabPath, setActiveTabPath] = useState<string | null>(null);
@@ -153,6 +177,7 @@ export default function App() {
   const [showGitPanel, setShowGitPanel] = useState(false);
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [diffFilepath, setDiffFilepath] = useState<string | null>(null);
+  const [showShortcutsSheet, setShowShortcutsSheet] = useState(false);
 
   // ── Cloud-sync conflict detection ─────────────────────────────────────────
   // tabMetaRef holds a snapshot of each open tab's content hash at load/save
@@ -300,6 +325,17 @@ export default function App() {
     setTabs((prev) => prev.map((t) => t.path === path ? { ...t, scrollTo: null } : t));
   }, []);
 
+  const handleTabViewStateChange = useCallback((path: string, viewState: string) => {
+    setTabs((prev) =>
+      prev.map((t) => t.path === path ? { ...t, viewState } : t)
+    );
+  }, []);
+
+  const handleTabChange = useCallback((path: string) => {
+    editorRef.current?.requestViewStateSave?.(activeTabPath ?? '');
+    setActiveTabPath(path);
+  }, [activeTabPath]);
+
   const replaceEditorContent = useCallback((text: string) => {
     if (!activeTabPath) return;
     updateContent(activeTabPath, text);
@@ -401,6 +437,23 @@ export default function App() {
   }, []);
 
   // ---------------------------------------------------------------------------
+  // Keyboard shortcuts (hardware keyboard via useKeyboardShortcuts)
+  // ---------------------------------------------------------------------------
+
+  const shortcuts: ShortcutDefinition[] = useMemo(() => [
+    { key: 's', modifiers: ['cmd'], label: 'Save File', action: saveActiveFile },
+    { key: 's', modifiers: ['cmd', 'shift'], label: 'Save All', action: () => {
+      tabs.forEach((tab) => { if (tab.isDirty) saveFile(tab.path, tab.content); });
+    }},
+    { key: '`', modifiers: ['cmd'], label: 'Toggle Terminal', action: () => setShowTerminal((v: boolean) => !v) },
+    { key: 'n', modifiers: ['cmd'], label: 'New File', action: () => setTriggerNewFile(true) },
+    { key: 'p', modifiers: ['cmd'], label: 'Command Palette', action: () => setShowPalette(true) },
+    { key: '/', modifiers: ['cmd'], label: 'Keyboard Shortcuts', action: () => setShowShortcutsSheet(true) },
+  ], [saveActiveFile, saveFile, tabs, setShowTerminal, setTriggerNewFile, setShowPalette]);
+
+  useKeyboardShortcuts(shortcuts);
+
+  // ---------------------------------------------------------------------------
   // Command palette commands
   // ---------------------------------------------------------------------------
 
@@ -451,15 +504,39 @@ export default function App() {
       action: () => { setShowPalette(false); setShowCloneModal(true); },
     },
     {
+      id: 'editor-fold-all',
+      label: 'Editor: Fold All',
+      description: 'Fold all code regions',
+      action: () => { editorRef.current?.sendFoldAll(); },
+    },
+    {
+      id: 'editor-unfold-all',
+      label: 'Editor: Unfold All',
+      description: 'Unfold all code regions',
+      action: () => { editorRef.current?.sendUnfoldAll(); },
+    },
+    {
+      id: 'format-document',
+      label: 'Format Document',
+      description: 'Run Prettier on current file',
+      action: () => { editorRef.current?.sendFormat(); },
+    },
+    {
       id: 'search-global',
       label: 'Search: Find in Files',
       description: 'Open global search panel',
       action: () => setSidebarTab('search'),
     },
+    {
+      id: 'keyboard-shortcuts',
+      label: 'Keyboard Shortcuts',
+      description: '⌘/',
+      action: () => setShowShortcutsSheet(true),
+    },
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
-  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setTriggerNewFile, setShowPalette]);
+  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setTriggerNewFile, setShowPalette, setShowShortcutsSheet]);
 
   const handlePaletteSelect = useCallback((cmd: Command) => {
     setShowPalette(false);
@@ -542,13 +619,16 @@ export default function App() {
         }
         main={
           <Editor
+            ref={editorRef}
             tabs={tabs}
             activeTabPath={activeTabPath}
-            onTabChange={setActiveTabPath}
+            onTabChange={handleTabChange}
             onTabClose={closeTab}
             onContentChange={updateContent}
             onSave={saveFile}
             onTabScrollConsumed={handleTabScrollConsumed}
+            onTabViewStateChange={handleTabViewStateChange}
+            formatOnSave={formatOnSave}
           />
         }
         terminal={<TerminalWebView workingDirectory={rootPath} onCommand={handleCommandComplete} visible={showTerminal} />}
@@ -630,6 +710,13 @@ export default function App() {
 
       {/* ── Cloud-sync conflict resolution modal ─────────────────────────── */}
       <WorkspaceConflictModal conflict={conflict} onResolve={handleConflictResolve} />
+
+      {/* ── Keyboard shortcuts reference sheet ───────────────────────────── */}
+      <KeyboardShortcutsSheet
+        visible={showShortcutsSheet}
+        shortcuts={shortcuts}
+        onClose={() => setShowShortcutsSheet(false)}
+      />
 
       {/* ── Extension host (hidden, always mounted) ──────────────────────── */}
       <ExtensionHost

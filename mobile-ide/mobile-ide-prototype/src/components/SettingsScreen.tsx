@@ -17,6 +17,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Switch,
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
@@ -31,6 +32,7 @@ WebBrowser.maybeCompleteAuthSession();
 import useSettingsStore from '../stores/useSettingsStore';
 import useAuthStore from '../stores/useAuthStore';
 import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, useTheme } from '../theme/tokens';
+import { BUILTIN_SNIPPETS } from '../utils/builtinSnippets';
 import type { ThemeId } from '../theme/tokens';
 
 export interface SettingsScreenProps {
@@ -52,6 +54,11 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const installedExtensions = useSettingsStore((s) => s.installedExtensions);
   const addExtension = useSettingsStore((s) => s.addExtension);
   const removeExtension = useSettingsStore((s) => s.removeExtension);
+  const formatOnSave = useSettingsStore((s) => s.formatOnSave);
+  const setFormatOnSave = useSettingsStore((s) => s.setFormatOnSave);
+  const snippets = useSettingsStore((s) => s.snippets);
+  const addSnippet = useSettingsStore((s) => s.addSnippet);
+  const removeSnippet = useSettingsStore((s) => s.removeSnippet);
 
   // Auth store selectors
   const authToken = useAuthStore((s) => s.token);
@@ -121,6 +128,11 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const [extName, setExtName] = useState('');
   const [extSource, setExtSource] = useState('');
   const [showPat, setShowPat] = useState(false);
+  const [showAddSnippet, setShowAddSnippet] = useState(false);
+  const [newPrefix, setNewPrefix] = useState('');
+  const [newBody, setNewBody] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [newLanguage, setNewLanguage] = useState('all');
   const [patValue, setPatValue] = useState('');
   const [workspacePicking, setWorkspacePicking] = useState(false);
 
@@ -455,6 +467,16 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
             </View>
           </View>
 
+          <View style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}>
+            <Text style={[styles.editorRowLabel, { color: tokens.text }]}>Format on Save</Text>
+            <Switch
+              testID="format-on-save-toggle"
+              value={formatOnSave}
+              onValueChange={setFormatOnSave}
+              trackColor={{ true: tokens.accent }}
+            />
+          </View>
+
           {/* ── Section: Extensions ─────────────────────────────────────── */}
           <Text style={[styles.sectionLabel, dynamicSectionLabel]}>EXTENSIONS</Text>
 
@@ -514,6 +536,92 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
               Install
             </Text>
           </TouchableOpacity>
+
+          {/* ── Section: Snippets ───────────────────────────────────────── */}
+          <Text style={[styles.sectionLabel, { color: tokens.textMuted }]}>SNIPPETS</Text>
+          {snippets.map((s) => (
+            <View key={`${s.prefix}:${s.language}`} style={[styles.row, { justifyContent: 'space-between' }]}>
+              <View>
+                <Text style={[styles.label, { color: tokens.text }]}>{s.prefix}</Text>
+                <Text style={{ color: tokens.textMuted, fontSize: 11 }}>{s.description} · {s.language}</Text>
+              </View>
+              <TouchableOpacity
+                testID={`remove-snippet-${s.prefix}`}
+                accessibilityLabel={`Remove snippet ${s.prefix}`}
+                onPress={() => removeSnippet(s.prefix, s.language)}
+              >
+                <Text style={{ color: '#EF4444', fontSize: 13 }}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          {BUILTIN_SNIPPETS.map((s) => (
+            <View key={`builtin-${s.prefix}:${s.language}`} style={[styles.row, { opacity: 0.5 }]}>
+              <Text style={[styles.label, { color: tokens.text }]}>{s.prefix}</Text>
+              <Text style={{ color: tokens.textMuted, fontSize: 11 }}>{s.language} (built-in)</Text>
+            </View>
+          ))}
+          <TouchableOpacity style={[styles.addBtn, { borderColor: tokens.accent }]} onPress={() => setShowAddSnippet(true)}>
+            <Text style={{ color: tokens.accent }}>Add Snippet</Text>
+          </TouchableOpacity>
+
+          <Modal visible={showAddSnippet} transparent animationType="slide" onRequestClose={() => setShowAddSnippet(false)}>
+            <View style={styles.modalBackdrop}>
+              <View style={[styles.modalContent, { backgroundColor: tokens.bgElevated }]}>
+                <Text style={[styles.sectionHeader, { color: tokens.text }]}>New Snippet</Text>
+                <TextInput
+                  style={[styles.snippetInput, { color: tokens.text, borderColor: tokens.border }]}
+                  placeholder="Prefix (trigger)"
+                  placeholderTextColor={tokens.textMuted}
+                  value={newPrefix}
+                  onChangeText={setNewPrefix}
+                  autoCapitalize="none"
+                />
+                <TextInput
+                  style={[styles.snippetInput, { color: tokens.text, borderColor: tokens.border, height: 80 }]}
+                  placeholder="Expansion body"
+                  placeholderTextColor={tokens.textMuted}
+                  value={newBody}
+                  onChangeText={setNewBody}
+                  multiline
+                  autoCapitalize="none"
+                />
+                <TextInput
+                  style={[styles.snippetInput, { color: tokens.text, borderColor: tokens.border }]}
+                  placeholder="Description"
+                  placeholderTextColor={tokens.textMuted}
+                  value={newDescription}
+                  onChangeText={setNewDescription}
+                />
+                <TextInput
+                  style={[styles.snippetInput, { color: tokens.text, borderColor: tokens.border }]}
+                  placeholder="Language (e.g. typescript, python, all)"
+                  placeholderTextColor={tokens.textMuted}
+                  value={newLanguage}
+                  onChangeText={setNewLanguage}
+                  autoCapitalize="none"
+                />
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                  <TouchableOpacity style={[styles.addBtn, { flex: 1, borderColor: tokens.border }]} onPress={() => setShowAddSnippet(false)}>
+                    <Text style={{ color: tokens.textMuted }}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.addBtn, { flex: 1, borderColor: tokens.accent, backgroundColor: tokens.accent }]}
+                    onPress={() => {
+                      const trimmedPrefix = newPrefix.trim();
+                      const trimmedBody = newBody.trim();
+                      if (trimmedPrefix && trimmedBody) {
+                        addSnippet({ prefix: trimmedPrefix, body: trimmedBody, description: newDescription.trim() || trimmedPrefix, language: newLanguage.trim() || 'all' });
+                        setNewPrefix(''); setNewBody(''); setNewDescription(''); setNewLanguage('all');
+                        setShowAddSnippet(false);
+                      }
+                    }}
+                  >
+                    <Text style={{ color: '#fff' }}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
 
         </ScrollView>
       </View>
@@ -658,5 +766,44 @@ const styles = StyleSheet.create({
   removeText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  addBtn: {
+    borderWidth: 1,
+    borderRadius: 6,
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginVertical: 4,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    padding: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  snippetInput: {
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 8,
+    marginVertical: 4,
+    fontSize: 13,
   },
 });

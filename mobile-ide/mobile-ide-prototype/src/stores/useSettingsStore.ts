@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { ThemeId } from '../theme/tokens';
 import type { ExtensionManifest } from '../extensions/sandbox';
 import type { WorkspaceRoot, WorkspaceUriType } from '../types/workspace';
+import type { SnippetDefinition } from '../utils/builtinSnippets';
 
 interface SettingsState {
   theme: ThemeId;
@@ -18,6 +19,8 @@ interface SettingsState {
   workspaceDisplayName: string;
   hasCompletedSetup: boolean;
   installedExtensions: ExtensionManifest[];
+  formatOnSave: boolean;
+  snippets: SnippetDefinition[];
   setTheme: (id: ThemeId) => void;
   setFontSize: (n: number) => void;
   /** @deprecated Use setWorkspaceRoot() to keep URI and type in sync. */
@@ -27,6 +30,9 @@ interface SettingsState {
   completeSetup: () => void;
   addExtension: (manifest: ExtensionManifest) => void;
   removeExtension: (id: string) => void;
+  setFormatOnSave: (v: boolean) => void;
+  addSnippet: (s: SnippetDefinition) => void;
+  removeSnippet: (prefix: string, language: string) => void;
 }
 
 const useSettingsStore = create<SettingsState>()(
@@ -40,6 +46,8 @@ const useSettingsStore = create<SettingsState>()(
       workspaceDisplayName: '',
       hasCompletedSetup: false,
       installedExtensions: [],
+      formatOnSave: false,
+      snippets: [],
       setTheme: (theme) => set({ theme }),
       setFontSize: (n) => set({ fontSize: Math.min(32, Math.max(8, n)) }),
       setWorkspacePath: (p) => set({ workspacePath: p }),
@@ -58,6 +66,9 @@ const useSettingsStore = create<SettingsState>()(
         set((s) => ({
           installedExtensions: s.installedExtensions.filter((m) => m.id !== id),
         })),
+      setFormatOnSave: (formatOnSave) => set({ formatOnSave }),
+      addSnippet: (s) => set((state) => ({ snippets: [...state.snippets.filter((x) => !(x.prefix === s.prefix && x.language === s.language)), s] })),
+      removeSnippet: (prefix, language) => set((state) => ({ snippets: state.snippets.filter((x) => !(x.prefix === prefix && x.language === language)) })),
     }),
     {
       name: 'nomadcode-settings',

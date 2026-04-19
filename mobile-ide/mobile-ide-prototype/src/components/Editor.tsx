@@ -17,9 +17,10 @@
  *   CLOUD_HOOK: sync content after save via CloudSync.enqueueUpload(path, content)
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -32,6 +33,8 @@ import {
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { marked } from 'marked';
 import { buildMonacoHtml, MonacoAssetManager } from '../utils/MonacoAssetManager';
+import { BUILTIN_SNIPPETS } from '../utils/builtinSnippets';
+import { Breadcrumb } from './Breadcrumb';
 import { getLanguageRules } from '../utils/languageRules';
 import { useTheme, getMonacoTheme, THEMES } from '../theme/tokens';
 import type { ThemeTokens } from '../theme/tokens';
@@ -52,6 +55,15 @@ export interface EditorTab {
     matchStart: number;
     matchEnd: number;
   } | null;
+  viewState?: string;
+}
+
+export interface EditorHandle {
+  sendFoldAll: () => void;
+  sendUnfoldAll: () => void;
+  requestViewStateSave: (path: string) => void;
+  sendPrettierConfig: (config: Record<string, unknown>) => void;
+  sendFormat: () => void;
 }
 
 interface EditorProps {
@@ -62,6 +74,8 @@ interface EditorProps {
   onContentChange: (path: string, content: string) => void;
   onSave: (path: string, content: string) => void;
   onTabScrollConsumed?: (path: string) => void;
+  onTabViewStateChange?: (path: string, viewState: string) => void;
+  formatOnSave?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -298,7 +312,7 @@ const TOOLTIP_LABELS: Readonly<Record<string, string>> = {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function Editor({
+const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   tabs,
   activeTabPath,
   onTabChange,
@@ -306,7 +320,9 @@ export default function Editor({
   onContentChange,
   onSave,
   onTabScrollConsumed,
-}: EditorProps) {
+  onTabViewStateChange,
+  formatOnSave,
+}, ref) {
   const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
 
@@ -314,6 +330,7 @@ export default function Editor({
   const fontSize    = useSettingsStore((s) => s.fontSize);
   const setFontSize = useSettingsStore((s) => s.setFontSize);
   const themeId     = useSettingsStore((s) => s.theme);
+  const snippets    = useSettingsStore((s) => s.snippets);
   const monacoTheme = getMonacoTheme(themeId);
 
   const [editorReady, setEditorReady] = useState(false);
@@ -322,6 +339,7 @@ export default function Editor({
   const [multiCursor, setMultiCursor] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [tooltipId,   setTooltipId]   = useState<string | null>(null);
+  const [symbol,      setSymbol]      = useState<string | null>(null);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeTab      = tabs.find((tab) => tab.path === activeTabPath) ?? null;
@@ -331,10 +349,13 @@ export default function Editor({
   // Pass the user's current theme so the editor boots in the right mode
   // and avoids a flash of vs-dark on light themes.
   useEffect(() => {
-    MonacoAssetManager.resolve().then(({ baseUrl, isOffline: offline }) => {
-      setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme));
+    async function init() {
+      const { baseUrl, isOffline: offline } = await MonacoAssetManager.resolve();
       setIsOffline(offline);
-    }).catch(console.error);
+      const prettierSource = await MonacoAssetManager.loadPrettierSource();
+      setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme, prettierSource ?? undefined));
+    }
+    init().catch(console.error);
     // monacoTheme intentionally excluded from deps — Monaco only boots once;
     // subsequent theme changes are handled by the setTheme effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -361,6 +382,14 @@ export default function Editor({
     if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
   }, []);
 
+  // ── Send a command to Monaco ─────────────────────────────────────────────
+  const sendToEditor = useCallback((type: string, extra: object = {}) => {
+    const msg = JSON.stringify({ type, ...extra });
+    webViewRef.current?.injectJavaScript(
+      `window.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));true;`,
+    );
+  }, []);
+
   // ── Send content to Monaco when active tab changes ───────────────────────
   useEffect(() => {
     if (!editorReady || !activeTab) return;
@@ -384,7 +413,12 @@ export default function Editor({
     if (activeTab.scrollTo) {
       onTabScrollConsumed?.(activeTab.path);
     }
-  }, [editorReady, activeTab, onTabScrollConsumed]);
+    if (activeTab.viewState) {
+      setTimeout(() => {
+        sendToEditor('RESTORE_VIEW_STATE', { viewState: activeTab.viewState });
+      }, 50);
+    }
+  }, [editorReady, activeTab, onTabScrollConsumed, sendToEditor]);
 
   // ── Apply Monaco theme when editor is ready or theme changes ─────────────
   useEffect(() => {
@@ -393,6 +427,17 @@ export default function Editor({
       `if(typeof monaco!=='undefined'){monaco.editor.setTheme(${JSON.stringify(monacoTheme)});}true;`,
     );
   }, [editorReady, monacoTheme]);
+
+  // ── Send SET_OPTIONS when formatOnSave or snippets change ────────────────
+  useEffect(() => {
+    if (!editorReady || !activeTab) return;
+    const allSnippets = [...BUILTIN_SNIPPETS, ...snippets];
+    sendToEditor('SET_OPTIONS', {
+      formatOnSave: formatOnSave ?? false,
+      snippets: allSnippets,
+      language: activeTab.language,
+    });
+  }, [editorReady, formatOnSave, snippets, activeTab?.language, sendToEditor]);
 
   // ── Messages from Monaco ─────────────────────────────────────────────────
   const handleMessage = useCallback(
@@ -412,19 +457,33 @@ export default function Editor({
           case 'fontSizeChanged':
             setFontSize(msg.fontSize);
             break;
+          case 'SAVE_VIEW_STATE':
+            if (msg.viewState && msg.path) {
+              onTabViewStateChange?.(msg.path, msg.viewState);
+            }
+            break;
+          case 'BREADCRUMB_UPDATE':
+            setSymbol(msg.symbol ?? null);
+            break;
+          case 'FORMAT_COMPLETE':
+            if (msg.error) {
+              Alert.alert('Format Failed', msg.error);
+            }
+            break;
         }
       } catch { /* ignore */ }
     },
-    [activeTabPath, onContentChange, onSave, setFontSize],
+    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange],
   );
 
-  // ── Send a command to Monaco ─────────────────────────────────────────────
-  const sendToEditor = useCallback((type: string, extra: object = {}) => {
-    const msg = JSON.stringify({ type, ...extra });
-    webViewRef.current?.injectJavaScript(
-      `window.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));true;`,
-    );
-  }, []);
+  // ── Expose imperative handle (fold commands, view state, prettier) ───────
+  useImperativeHandle(ref, () => ({
+    sendFoldAll: () => sendToEditor('FOLD_ALL'),
+    sendUnfoldAll: () => sendToEditor('UNFOLD_ALL'),
+    requestViewStateSave: (path: string) => sendToEditor('REQUEST_VIEW_STATE', { path }),
+    sendPrettierConfig: (config: Record<string, unknown>) => sendToEditor('PRETTIER_CONFIG', { config }),
+    sendFormat: () => sendToEditor('FORMAT'),
+  }), [sendToEditor]);
 
   // ── Toolbar action dispatcher ────────────────────────────────────────────
   const handleToolbarAction = useCallback(
@@ -524,18 +583,19 @@ export default function Editor({
         })}
       </ScrollView>
 
-      {/* ── Path breadcrumb — shows the last 3 meaningful path segments ── */}
+      {/* ── Path breadcrumb — tappable segments + current symbol ── */}
       {activeTab && (
-        <View testID="editor-path-breadcrumb" style={styles.pathBar}>
-          <Text style={styles.pathText} numberOfLines={1}>
-            {activeTab.path
-              .replace(/^file:\/\//, '')       // strip file:// scheme
-              .split('/')
-              .filter(Boolean)
-              .slice(-3)                        // grandparent › parent › file
-              .join(' › ')}
-          </Text>
-        </View>
+        <Breadcrumb
+          segments={activeTab.path
+            .replace(/^file:\/\//, '')
+            .split('/')
+            .filter(Boolean)
+            .slice(-4)}
+          symbol={symbol}
+          onSegmentPress={(_index, _parentPath) => {
+            // Future: navigate to parent in FileExplorer
+          }}
+        />
       )}
 
       {/* ── Editor + optional preview split ── */}
@@ -677,7 +737,10 @@ export default function Editor({
       </View>
     </KeyboardAvoidingView>
   );
-}
+});
+
+Editor.displayName = 'Editor';
+export default Editor;
 
 // ---------------------------------------------------------------------------
 // Styles — generated from theme tokens

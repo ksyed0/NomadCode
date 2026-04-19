@@ -14,11 +14,16 @@ const mockSetFontSize = jest.fn();
 const mockAddExtension = jest.fn();
 const mockRemoveExtension = jest.fn();
 const mockSetWorkspaceRoot = jest.fn();
+const mockSetFormatOnSave = jest.fn();
+const mockAddSnippet = jest.fn();
+const mockRemoveSnippet = jest.fn();
 let mockTheme = 'nomad-dark';
 let mockFontSize = 14;
 let mockWorkspaceUri = '';
 let mockWorkspaceDisplayName = '';
 let mockInstalledExtensions: Array<{ id: string; name: string; version: string; source: string }> = [];
+let mockFormatOnSave = false;
+let mockSnippets: Array<{ prefix: string; body: string; description: string; language: string }> = [];
 
 jest.mock('../../src/stores/useSettingsStore', () => ({
   __esModule: true,
@@ -29,11 +34,16 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
       workspaceUri: mockWorkspaceUri,
       workspaceDisplayName: mockWorkspaceDisplayName,
       installedExtensions: mockInstalledExtensions,
+      formatOnSave: mockFormatOnSave,
+      snippets: mockSnippets,
       setTheme: mockSetTheme,
       setFontSize: mockSetFontSize,
       setWorkspaceRoot: mockSetWorkspaceRoot,
       addExtension: mockAddExtension,
       removeExtension: mockRemoveExtension,
+      setFormatOnSave: mockSetFormatOnSave,
+      addSnippet: mockAddSnippet,
+      removeSnippet: mockRemoveSnippet,
     })
   ),
 }));
@@ -111,6 +121,8 @@ beforeEach(() => {
   mockWorkspaceUri = '';
   mockWorkspaceDisplayName = '';
   mockInstalledExtensions = [];
+  mockFormatOnSave = false;
+  mockSnippets = [];
   mockAuthToken = null;
   mockAuthUsername = null;
   mockAuthError = null;
@@ -120,6 +132,7 @@ beforeEach(() => {
   mockSetError.mockReset();
   mockRequestWorkspacePermission.mockReset();
   mockSetWorkspaceRoot.mockReset();
+  mockSetFormatOnSave.mockReset();
 });
 
 describe('SettingsScreen', () => {
@@ -413,5 +426,51 @@ describe('SettingsScreen — Workspace section', () => {
       expect(mockRequestWorkspacePermission).toHaveBeenCalled();
     });
     expect(mockSetWorkspaceRoot).not.toHaveBeenCalled();
+  });
+});
+
+describe('SettingsScreen — format on save', () => {
+  it('renders Format on Save toggle', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByText('Format on Save')).toBeTruthy();
+  });
+
+  it('toggle calls setFormatOnSave with true when toggled on', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent(screen.getByTestId('format-on-save-toggle'), 'valueChange', true);
+    expect(mockSetFormatOnSave).toHaveBeenCalledWith(true);
+  });
+
+  it('toggle calls setFormatOnSave with false when toggled off', () => {
+    mockFormatOnSave = true;
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent(screen.getByTestId('format-on-save-toggle'), 'valueChange', false);
+    expect(mockSetFormatOnSave).toHaveBeenCalledWith(false);
+  });
+
+  it('toggle value reflects formatOnSave from the store', () => {
+    mockFormatOnSave = true;
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    const toggle = screen.getByTestId('format-on-save-toggle');
+    expect(toggle.props.value).toBe(true);
+  });
+});
+
+describe('SettingsScreen — snippets section', () => {
+  it('renders Snippets section heading', () => {
+    render(<SettingsScreen visible onClose={jest.fn()} />);
+    expect(screen.getByText('SNIPPETS')).toBeTruthy();
+  });
+
+  it('shows Add Snippet button', () => {
+    render(<SettingsScreen visible onClose={jest.fn()} />);
+    expect(screen.getByText('Add Snippet')).toBeTruthy();
+  });
+
+  it('Add Snippet opens modal with form fields', () => {
+    render(<SettingsScreen visible onClose={jest.fn()} />);
+    fireEvent.press(screen.getByText('Add Snippet'));
+    expect(screen.getByPlaceholderText('Prefix (trigger)')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Expansion body')).toBeTruthy();
   });
 });
