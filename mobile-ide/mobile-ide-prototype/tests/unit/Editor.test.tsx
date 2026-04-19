@@ -49,6 +49,7 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
 jest.mock('../../src/utils/MonacoAssetManager', () => ({
   MonacoAssetManager: {
     resolve: jest.fn().mockResolvedValue({ baseUrl: 'https://cdn.test', isOffline: false }),
+    loadPrettierSource: jest.fn().mockResolvedValue(null),
   },
   buildMonacoHtml: jest.fn().mockReturnValue('<html>monaco</html>'),
 }));

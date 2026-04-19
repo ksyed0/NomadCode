@@ -42,6 +42,20 @@ const CORE_FILES = [
   'base/worker/workerMain.js',
 ];
 
+const PRETTIER_VERSION = '3.5.3';
+const PRETTIER_CDN_BASE = `https://cdn.jsdelivr.net/npm/prettier@${PRETTIER_VERSION}`;
+const PRETTIER_CACHE_DIR = () => `${ExpoFS.documentDirectory ?? '/'}prettier/${PRETTIER_VERSION}/`;
+
+const PRETTIER_FILES = [
+  { remote: `${PRETTIER_CDN_BASE}/standalone.js`,         local: 'standalone.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/babel.js`,      local: 'plugins/babel.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/typescript.js`, local: 'plugins/typescript.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/postcss.js`,    local: 'plugins/postcss.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/html.js`,       local: 'plugins/html.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/markdown.js`,   local: 'plugins/markdown.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/estree.js`,     local: 'plugins/estree.js' },
+];
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -119,6 +133,36 @@ export const MonacoAssetManager = {
   get cacheDir(): string {
     return localDir();
   },
+
+  /**
+   * Load Prettier standalone + plugins as a single concatenated JS string.
+   * Uses a local cache in documentDirectory/prettier/{version}/; downloads
+   * from the CDN on first use and serves from cache thereafter.
+   * Returns null on any error (Prettier will simply not be available).
+   */
+  async loadPrettierSource(): Promise<string | null> {
+    try {
+      const dir = PRETTIER_CACHE_DIR();
+      await ExpoFS.makeDirectoryAsync(dir + 'plugins/', { intermediates: true }).catch(() => {});
+
+      const parts: string[] = [];
+      for (const f of PRETTIER_FILES) {
+        const localPath = dir + f.local;
+        let content: string;
+        const info = await ExpoFS.getInfoAsync(localPath);
+        if (info.exists) {
+          content = await ExpoFS.readAsStringAsync(localPath);
+        } else {
+          const resp = await ExpoFS.downloadAsync(f.remote, localPath);
+          content = await ExpoFS.readAsStringAsync(resp.uri);
+        }
+        parts.push(content);
+      }
+      return parts.join('\n;\n');
+    } catch {
+      return null;
+    }
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -132,7 +176,7 @@ export const MonacoAssetManager = {
  *                   - CDN:    "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs"
  *                   - Local:  "file:///path/to/documentDirectory/monaco/0.45.0/vs"
  */
-export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark' = 'vs-dark'): string {
+export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark' = 'vs-dark', prettierSource?: string): string {
   // Safely embed the URL in JS (no injection vector since it's our own constant)
   const safeBase = JSON.stringify(vsBaseUrl);
   const safeTheme = JSON.stringify(initialTheme);
@@ -178,6 +222,7 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
   <div id="container"></div>
   <div id="mc-overlay" title="Tap to place additional cursor — press ✕ to exit"></div>
 
+  ${prettierSource ? `<script>${prettierSource}</script>` : '<!-- prettier not loaded -->'}
   <script src="${vsBaseUrl}/loader.js" onerror="onLoaderError()"></script>
   <script>
   (function () {
@@ -188,6 +233,33 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
     var currentFontSize = 14;
     var addCursorMode   = false;
     var mcOverlay       = document.getElementById('mc-overlay');
+    var PARSER_MAP = {
+      typescript: 'typescript', javascript: 'babel',
+      css: 'css', scss: 'css', html: 'html', markdown: 'markdown', json: 'json'
+    };
+    var formatOnSave = false;
+    var prettierConfig = {};
+
+    // ── Prettier format helper ─────────────────────────────────────────────
+    async function runPrettier() {
+      if (typeof prettier === 'undefined' || !prettier || !editor) return false;
+      var model = editor.getModel();
+      if (!model) return false;
+      var langId = model.getLanguageId();
+      var parser = PARSER_MAP[langId];
+      if (!parser) return false;
+      try {
+        var content = editor.getValue();
+        var plugins = typeof prettierPlugins !== 'undefined' ? Object.values(prettierPlugins || {}) : [];
+        var formatted = await prettier.format(content, Object.assign({}, prettierConfig, { parser: parser, plugins: plugins }));
+        if (formatted === content) return true;
+        var fullRange = model.getFullModelRange();
+        editor.executeEdits('prettier', [{ range: fullRange, text: formatted }]);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
 
     // ── Loader error fallback (offline → CDN) ─────────────────────────────
     function onLoaderError() {
@@ -244,9 +316,15 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
           post({ type: 'contentChanged', content: editor.getValue() });
         });
 
-        // ── Cmd/Ctrl+S → save ────────────────────────────────────────────
+        // ── Cmd/Ctrl+S → save (with optional format-on-save) ─────────────
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
-          post({ type: 'save', content: editor.getValue() });
+          if (formatOnSave) {
+            runPrettier().then(function() {
+              post({ type: 'save', content: editor.getValue() });
+            });
+          } else {
+            post({ type: 'save', content: editor.getValue() });
+          }
         });
 
         // ── Multi-cursor: click adds cursor when overlay is active ────────
@@ -456,6 +534,21 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
               options: { inlineClassName: 'search-match-highlight' }
             }]);
             setTimeout(function() { editor.deltaDecorations(dec2, []); }, 4000);
+            break;
+          }
+          case 'SET_OPTIONS': {
+            if (typeof msg.formatOnSave === 'boolean') { formatOnSave = msg.formatOnSave; }
+            if (msg.prettierConfig) { prettierConfig = msg.prettierConfig; }
+            break;
+          }
+          case 'FORMAT': {
+            runPrettier().then(function(ok) {
+              post({ type: 'FORMAT_COMPLETE', success: ok });
+            });
+            break;
+          }
+          case 'PRETTIER_CONFIG': {
+            prettierConfig = msg.config || {};
             break;
           }
           default:

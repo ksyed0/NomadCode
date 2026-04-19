@@ -340,10 +340,13 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   // Pass the user's current theme so the editor boots in the right mode
   // and avoids a flash of vs-dark on light themes.
   useEffect(() => {
-    MonacoAssetManager.resolve().then(({ baseUrl, isOffline: offline }) => {
-      setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme));
+    async function init() {
+      const { baseUrl, isOffline: offline } = await MonacoAssetManager.resolve();
       setIsOffline(offline);
-    }).catch(console.error);
+      const prettierSource = await MonacoAssetManager.loadPrettierSource();
+      setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme, prettierSource ?? undefined));
+    }
+    init().catch(console.error);
     // monacoTheme intentionally excluded from deps — Monaco only boots once;
     // subsequent theme changes are handled by the setTheme effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
