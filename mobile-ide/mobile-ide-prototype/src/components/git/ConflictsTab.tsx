@@ -28,9 +28,14 @@ export default function ConflictsTab({ rootPath }: ConflictsTabProps): React.Rea
     try {
       const files = await GitBridge.getConflicts(rootPath);
       setConflicts(files);
-      if (files.length > 0 && !selectedFile) setSelectedFile(files[0]);
+      setSelectedFile((prev) => {
+        if (prev === null && files.length > 0) return files[0];
+        // Keep selection if the file is still in the list, otherwise move to first.
+        const stillPresent = files.find((f) => f.path === prev?.path);
+        return stillPresent ?? (files.length > 0 ? files[0] : null);
+      });
     } catch { /* silent */ }
-  }, [rootPath, setConflicts, selectedFile]);
+  }, [rootPath, setConflicts]);
 
   useEffect(() => { void loadConflicts(); }, [loadConflicts]);
 
@@ -49,6 +54,8 @@ export default function ConflictsTab({ rootPath }: ConflictsTabProps): React.Rea
     try {
       await GitBridge.add(rootPath, selectedFile.path);
       setStagedFiles((prev) => new Set([...prev, selectedFile.path]));
+      setResolvedHunks(new Set());
+      setSelectedFile(null);
       bumpFileTree();
       await loadConflicts();
     } catch (e) {

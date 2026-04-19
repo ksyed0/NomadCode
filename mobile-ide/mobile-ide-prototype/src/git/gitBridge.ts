@@ -230,23 +230,26 @@ function applyHunkChoice(
   let i = 0;
   while (i < lines.length) {
     if (lines[i].startsWith('<<<<<<<')) {
+      const startMarker = lines[i];
       const ours: string[] = [];
       const theirs: string[] = [];
       i++;
       while (i < lines.length && !lines[i].startsWith('=======')) {
         ours.push(lines[i++]);
       }
+      const sepMarker = i < lines.length ? lines[i] : '=======';
       i++; // skip =======
       while (i < lines.length && !lines[i].startsWith('>>>>>>>')) {
         theirs.push(lines[i++]);
       }
+      const endMarker = i < lines.length ? lines[i] : '>>>>>>> incoming';
       i++; // skip >>>>>>>
       if (currentHunk === hunkIndex) {
         if (choice === 'ours') result.push(...ours);
         else if (choice === 'theirs') result.push(...theirs);
         else { result.push(...ours); result.push(...theirs); }
       } else {
-        result.push('<<<<<<< HEAD', ...ours, '=======', ...theirs, '>>>>>>> incoming');
+        result.push(startMarker, ...ours, sepMarker, ...theirs, endMarker);
       }
       currentHunk++;
     } else {
@@ -596,6 +599,18 @@ export const GitBridge = {
       files[filepath] = await ExpoFS.readAsStringAsync(fullPath, { encoding: ExpoFS.EncodingType.UTF8 }).catch(() => '');
     }
 
+    // Write stash entry BEFORE modifying working tree so no data loss if write fails.
+    const existing = await readStashFile(repoDir);
+    const branchName = await git.currentBranch({ fs, dir: repoDir, fullname: false, cache } as Parameters<typeof git.currentBranch>[0]).catch(() => 'main') ?? 'main';
+    const entry: import('../types/git').StashEntry = {
+      index: 0,
+      message: message ?? `WIP on ${branchName}`,
+      timestamp: Date.now(),
+      fileCount: dirtyPaths.length,
+      files,
+    };
+    await writeStashFile(repoDir, [entry, ...existing].map((e, i) => ({ ...e, index: i })));
+
     for (const filepath of dirtyPaths) {
       const fullPath = repoDir.startsWith('file://') ? `${repoDir}/${filepath}` : `file://${repoDir}/${filepath}`;
       let headContent = '';
@@ -609,17 +624,6 @@ export const GitBridge = {
       }
       await ExpoFS.writeAsStringAsync(fullPath, headContent, { encoding: ExpoFS.EncodingType.UTF8 });
     }
-
-    const existing = await readStashFile(repoDir);
-    const branchName = await git.currentBranch({ fs, dir: repoDir, fullname: false, cache } as Parameters<typeof git.currentBranch>[0]).catch(() => 'main') ?? 'main';
-    const entry: import('../types/git').StashEntry = {
-      index: 0,
-      message: message ?? `WIP on ${branchName}`,
-      timestamp: Date.now(),
-      fileCount: dirtyPaths.length,
-      files,
-    };
-    await writeStashFile(repoDir, [entry, ...existing].map((e, i) => ({ ...e, index: i })));
     invalidateGitCache(repoDir);
   },
 
