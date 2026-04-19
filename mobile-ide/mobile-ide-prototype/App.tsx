@@ -764,6 +764,12 @@ export default function App() {
         onClose={() => setBlameSheetVisible(false)}
         onViewDiff={(hash) => {
           setBlameSheetVisible(false);
+          // TODO: GitDiffModal currently only supports working-tree diffs
+          // (HEAD vs working tree via `filepath`). It does not accept a
+          // commitHash prop. To fully implement "View Diff" for a blame
+          // commit, GitDiffModal needs to be extended with a `commitHash`
+          // prop that calls GitBridge.show(repoPath, commitHash) or similar.
+          // Track as a follow-up task.
           console.log('View diff for commit:', hash);
         }}
       />

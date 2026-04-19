@@ -41,7 +41,6 @@ export default function GitPanel({
   const setLastError = useGitStore((s) => s.setLastError);
   const bumpFileTree = useGitStore((s) => s.bumpFileTree);
   const setIsGitScreenOpen = useGitStore((s) => s.setIsGitScreenOpen);
-  const setActiveGitTab = useGitStore((s) => s.setActiveGitTab);
   const conflicts = useGitStore((s) => s.conflicts);
   const [status, setStatus] = useState<GitStatus | null>(null);
   const [commitMsg, setCommitMsg] = useState('');
@@ -355,7 +354,7 @@ export default function GitPanel({
                 </TouchableOpacity>
               ))}
               <TouchableOpacity
-                onPress={() => { setActiveGitTab('branches'); setIsGitScreenOpen(true); onClose(); }}
+                onPress={() => { setIsGitScreenOpen(true); onClose(); }}
                 style={styles.moreBtn}
                 accessibilityLabel="Open advanced git workflows"
                 testID="more-btn"
