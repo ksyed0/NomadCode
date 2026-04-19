@@ -166,6 +166,7 @@ export function GlobalSearch({ workspaceRoot, onNavigate }: GlobalSearchProps) {
             onPress={async () => {
               const r = await replaceAll();
               Alert.alert('Replace All', `${r.matchesReplaced} replacements in ${r.filesChanged} files.`);
+              submit();
             }}
           >
             <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Replace All</Text>

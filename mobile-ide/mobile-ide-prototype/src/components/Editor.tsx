@@ -20,6 +20,7 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -463,6 +464,11 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
             break;
           case 'BREADCRUMB_UPDATE':
             setSymbol(msg.symbol ?? null);
+            break;
+          case 'FORMAT_COMPLETE':
+            if (msg.error) {
+              Alert.alert('Format Failed', msg.error);
+            }
             break;
         }
       } catch { /* ignore */ }
