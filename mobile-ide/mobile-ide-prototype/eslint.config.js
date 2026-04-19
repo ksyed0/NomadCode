@@ -6,23 +6,35 @@ const reactHooksPlugin = require('eslint-plugin-react-hooks');
 const globals = require('globals');
 
 module.exports = [
-  // Ignore patterns (replaces ignorePatterns in legacy config)
+  // Ignore patterns (replaces ignorePatterns in legacy config).
+  // Note: ESLint 10 flat config globs do NOT use matchBase, so `dist/**` only
+  // ignores a root-level dist/. Use `**/dist/**` to match nested dirs (e.g.
+  // src/terminal/bundle/dist/). The terminal bundle directory is fully excluded
+  // because it contains large generated/compiled artefacts, not hand-written source.
   {
     ignores: [
       'node_modules/**',
+      '**/node_modules/**',
       'coverage/**',
-      'dist/**',
+      '**/dist/**',
       '.expo/**',
       'android/**',
       'ios/**',
+      // Terminal bundle: contains generated JS bundles and build scripts.
+      // The old ESLint 8 config implicitly excluded these via --ext .ts,.tsx
+      // (which skipped all .js files). Explicitly list them here for ESLint 10.
+      'src/terminal/bundle/**',
     ],
   },
 
-  // Base JS recommended rules
-  js.configs.recommended,
+  // Base JS recommended rules — scoped to TS/TSX only so that generated .js
+  // artefacts outside the ignores list don't surface false positives.
+  { ...js.configs.recommended, files: ['**/*.ts', '**/*.tsx'] },
 
-  // TypeScript-ESLint flat/recommended (array — spread it)
-  ...tsPlugin.configs['flat/recommended'],
+  // TypeScript-ESLint flat/recommended (array — spread it, files-restricted)
+  ...tsPlugin.configs['flat/recommended'].map((c) =>
+    c.files ? c : { ...c, files: ['**/*.ts', '**/*.tsx'] }
+  ),
 
   // Main config for TS/TSX source files
   {
