@@ -49,7 +49,6 @@ function renderTopBar(data) {
   const pct = data.stories.length ? Math.round((done / data.stories.length) * 100) : 0;
   const cov = data.coverage;
   const covLabel = (cov.available !== false) ? `${cov.overall.toFixed(1)}%` : 'N/A';
-  const covClass = (cov.available !== false) ? (cov.meetsTarget ? 'text-green-400' : 'text-red-400') : 'text-slate-500';
   const branchSubtitle = (cov.available !== false) ? `Branches: ${Number(cov.branches).toFixed(1)}%` : 'N/A';
   const genAt = data.generatedAt;
   return `
