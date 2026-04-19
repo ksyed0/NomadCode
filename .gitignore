@@ -17,3 +17,9 @@ docs/plan-status.json
 .claude/worktrees/
 docs/capture-cost-debug.json
 docs/cost-baseline.json
+
+# Superpowers brainstorm sessions
+.superpowers/
+
+# Superpowers brainstorm sessions
+.superpowers/
