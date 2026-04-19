@@ -9,7 +9,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import Editor, { EditorTab, buildPreviewHtml, canPreview, getLanguageForFile, detectLanguageFromContent, TOOLBAR_ITEMS } from '../../src/components/Editor';
+import Editor, { EditorHandle, EditorTab, buildPreviewHtml, canPreview, getLanguageForFile, detectLanguageFromContent, TOOLBAR_ITEMS } from '../../src/components/Editor';
 
 // ---------------------------------------------------------------------------
 // Mock theme tokens
@@ -799,11 +799,46 @@ describe('Editor — language rules dispatch', () => {
 // ---------------------------------------------------------------------------
 
 describe('fold commands', () => {
-  it('sendToEditor FOLD_ALL when Fold All command triggered', async () => {
-    const onTabChange = jest.fn();
-    renderEditor([TAB_A], TAB_A.path, { onTabChange });
-    // onTabChange is a defined callback — verifying the editor renders without crash
-    expect(onTabChange).toBeDefined();
+  beforeEach(() => {
+    capturedInjectJS = undefined;
+  });
+
+  it('injects FOLD_ALL when sendFoldAll is called via ref', async () => {
+    const ref = React.createRef<EditorHandle>();
+    render(
+      <Editor
+        ref={ref}
+        tabs={[TAB_A]}
+        activeTabPath={TAB_A.path}
+        onTabChange={jest.fn()}
+        onTabClose={jest.fn()}
+        onContentChange={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+    await waitFor(() => screen.getByTestId('webview'));
+    act(() => { ref.current?.sendFoldAll(); });
+    const calls = (capturedInjectJS as jest.Mock).mock.calls.flat().join(' ');
+    expect(calls).toContain('FOLD_ALL');
+  });
+
+  it('injects UNFOLD_ALL when sendUnfoldAll is called via ref', async () => {
+    const ref = React.createRef<EditorHandle>();
+    render(
+      <Editor
+        ref={ref}
+        tabs={[TAB_A]}
+        activeTabPath={TAB_A.path}
+        onTabChange={jest.fn()}
+        onTabClose={jest.fn()}
+        onContentChange={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+    await waitFor(() => screen.getByTestId('webview'));
+    act(() => { ref.current?.sendUnfoldAll(); });
+    const calls = (capturedInjectJS as jest.Mock).mock.calls.flat().join(' ');
+    expect(calls).toContain('UNFOLD_ALL');
   });
 });
 
