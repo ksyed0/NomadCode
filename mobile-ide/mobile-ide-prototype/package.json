@@ -18,7 +18,7 @@
     "test:e2e:build:ios": "detox build --configuration ios.ipad.debug",
     "test:e2e:build:android": "detox build --configuration android.emu.debug",
     "build:terminal": "node src/terminal/bundle/build.js",
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -55,15 +55,15 @@
     "@typescript-eslint/parser": "^8.58.0",
     "detox": "^20.50.1",
     "esbuild": "^0.28.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react": "^7.34.0",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react": "^7.37.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "jest": "^30.3.0",
     "jest-expo": "~55.0.16",
     "jest-junit": "^16.0.0",
     "prettier": "^3.8.1",
     "size-limit": "^12.0.1",
-    "typescript": "~5.9.2"
+    "typescript": "~6.0.3"
   },
   "overrides": {
     "cacache": ">=20.0.0"
