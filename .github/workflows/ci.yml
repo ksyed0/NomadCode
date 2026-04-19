@@ -298,6 +298,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: mobile-ide
 
       - name: Install Detox CLI
         run: npm install -g detox-cli
@@ -358,6 +359,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: mobile-ide
 
       - name: Install Detox CLI
         run: npm install -g detox-cli
