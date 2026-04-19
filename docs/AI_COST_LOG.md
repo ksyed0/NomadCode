@@ -344,3 +344,6 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | feature/ui-improvements-phase1 | 0 | 0 | 0 | 0.0000 |
 | 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | develop | 0 | 0 | 0 | 0.0000 |
 | 2026-04-18 | 4ad227ed-5519-47ac-9651-a1f07fb55774 | develop | 0 | 0 | 0 | 0.0000 |
+| 2026-04-18 | 2b90599d-631b-4d6e-8e3f-2d2e27f16af3 | claude/pedantic-goodall-740e73 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-19 | 2b90599d-631b-4d6e-8e3f-2d2e27f16af3 | claude/pedantic-goodall-740e73 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-19 | 2b90599d-631b-4d6e-8e3f-2d2e27f16af3 | claude/pedantic-goodall-740e73 | 0 | 0 | 0 | 0.0000 |
