@@ -5,7 +5,7 @@ import { useKeyboardShortcuts } from '../../src/hooks/useKeyboardShortcuts';
 import type { ShortcutDefinition } from '../../src/hooks/useKeyboardShortcuts';
 
 // Mock the native module
-const mockAddListener = jest.fn(() => ({ remove: jest.fn() }));
+const mockAddListener = jest.fn<{ remove: jest.Mock }, [eventName: string, handler: (event: unknown) => void]>(() => ({ remove: jest.fn() }));
 jest.mock('react-native', () => {
   return {
     NativeModules: { KeyboardShortcuts: {} },
@@ -33,7 +33,7 @@ describe('useKeyboardShortcuts', () => {
     ];
     renderHook(() => useKeyboardShortcuts(shortcuts));
     // Get the registered handler
-    const handler = mockAddListener.mock.calls[0][1] as (event: { key: string; modifiers: string[] }) => void;
+    const handler = mockAddListener.mock.calls[0][1] as unknown as (event: { key: string; modifiers: string[] }) => void;
     handler({ key: 's', modifiers: ['cmd'] });
     expect(saveAction).toHaveBeenCalledTimes(1);
   });
@@ -44,7 +44,7 @@ describe('useKeyboardShortcuts', () => {
       { key: 's', modifiers: ['cmd'], label: 'Save File', action: saveAction },
     ];
     renderHook(() => useKeyboardShortcuts(shortcuts));
-    const handler = mockAddListener.mock.calls[0][1] as (event: { key: string; modifiers: string[] }) => void;
+    const handler = mockAddListener.mock.calls[0][1] as unknown as (event: { key: string; modifiers: string[] }) => void;
     handler({ key: 'z', modifiers: ['cmd'] });
     expect(saveAction).not.toHaveBeenCalled();
   });
@@ -62,8 +62,7 @@ describe('useKeyboardShortcuts', () => {
 
   it('does not subscribe when native module is absent', () => {
     const savedModule = NativeModules.KeyboardShortcuts;
-    // @ts-expect-error — deleting to simulate absent native module
-    delete NativeModules.KeyboardShortcuts;
+    delete (NativeModules as Record<string, unknown>).KeyboardShortcuts;
     const MockNativeEventEmitter = NativeEventEmitter as jest.Mock;
     MockNativeEventEmitter.mockClear();
 
