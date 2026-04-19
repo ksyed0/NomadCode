@@ -16,6 +16,8 @@ const mockBranch = jest.fn();
 const mockWalk = jest.fn();
 const mockResolveRef = jest.fn();
 const mockReadBlob = jest.fn();
+const mockDeleteBranch = jest.fn();
+const mockLog = jest.fn();
 
 jest.mock('isomorphic-git', () => ({
   __esModule: true,
@@ -34,6 +36,8 @@ jest.mock('isomorphic-git', () => ({
     walk: (...a: unknown[]) => mockWalk(...a),
     resolveRef: (...a: unknown[]) => mockResolveRef(...a),
     readBlob: (...a: unknown[]) => mockReadBlob(...a),
+    deleteBranch: (...a: unknown[]) => mockDeleteBranch(...a),
+    log: (...a: unknown[]) => mockLog(...a),
     TREE: jest.fn(() => ({})),
     WORKDIR: jest.fn(() => ({})),
   },
@@ -196,5 +200,33 @@ describe('GitBridge', () => {
     const d = await GitBridge.getWorkingDiff(dir, 'new.txt');
     expect(d.workText).toBe('local only');
     expect(d.headText).toBe('');
+  });
+});
+
+describe('GitBridge.deleteBranch', () => {
+  it('calls git.deleteBranch with correct args', async () => {
+    mockDeleteBranch.mockResolvedValue(undefined);
+    await GitBridge.deleteBranch('file:///workspace', 'old-branch');
+    expect(mockDeleteBranch).toHaveBeenCalledWith(
+      expect.objectContaining({ ref: 'old-branch' }),
+    );
+  });
+});
+
+describe('GitBridge.getBlame', () => {
+  it('returns BlameLine[] with one entry per line', async () => {
+    mockLog.mockResolvedValue([
+      { oid: 'abc1234def', commit: { author: { name: 'Alice', timestamp: 1000 }, message: 'init\n' } },
+    ]);
+    mockReadAsStringAsync.mockResolvedValue('line1\nline2\nline3');
+    const result = await GitBridge.getBlame('file:///workspace', 'src/index.ts');
+    expect(Array.isArray(result)).toBe(true);
+    result.forEach((line) => {
+      expect(line).toHaveProperty('lineNumber');
+      expect(line).toHaveProperty('commitHash');
+      expect(line).toHaveProperty('author');
+      expect(line).toHaveProperty('timestamp');
+      expect(line).toHaveProperty('message');
+    });
   });
 });

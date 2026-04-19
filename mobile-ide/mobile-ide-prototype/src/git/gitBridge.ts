@@ -412,6 +412,50 @@ export const GitBridge = {
     if (checkout) invalidateGitCache(d);
   },
 
+  async deleteBranch(dir: string, name: string): Promise<void> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const cache = getGitCache(d);
+    await git.deleteBranch({ fs, dir: d, ref: name, cache } as Parameters<typeof git.deleteBranch>[0]);
+    invalidateGitCache(d);
+  },
+
+  async getBlame(dir: string, filepath: string): Promise<import('../types/git').BlameLine[]> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+    const cache = getGitCache(repoDir);
+
+    const workPath = repoDir.startsWith('file://') ? `${repoDir}/${filepath}` : `file://${repoDir}/${filepath}`;
+    const workText = await ExpoFS.readAsStringAsync(workPath, {
+      encoding: ExpoFS.EncodingType.UTF8,
+    }).catch(() => '');
+    const lines = workText.split('\n');
+
+    const commits = await git.log({ fs, dir: repoDir, filepath, cache, depth: 50 } as Parameters<typeof git.log>[0]).catch(() => []);
+
+    if (commits.length === 0) {
+      return lines.map((_, i) => ({
+        lineNumber: i + 1,
+        commitHash: 'uncommitted',
+        author: 'You',
+        timestamp: Date.now(),
+        message: 'Uncommitted changes',
+      }));
+    }
+
+    const mostRecent = commits[0];
+    return lines.map((_, i) => ({
+      lineNumber: i + 1,
+      commitHash: mostRecent.oid.slice(0, 7),
+      author: mostRecent.commit.author.name,
+      timestamp: mostRecent.commit.author.timestamp * 1000,
+      message: mostRecent.commit.message.split('\n')[0],
+    }));
+  },
+
   /**
    * Line diff: HEAD vs working tree for one file (UTF-8 text).
    */
