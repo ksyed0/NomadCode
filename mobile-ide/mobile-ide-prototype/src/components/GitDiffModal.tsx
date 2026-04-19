@@ -20,6 +20,8 @@ export interface GitDiffModalProps {
   onClose: () => void;
   rootPath: string;
   filepath: string | null;
+  /** When set, show the diff introduced by this commit instead of HEAD vs working tree. */
+  commitHash?: string | null;
 }
 
 function simpleLineDiff(a: string, b: string): { line: number; type: 'add' | 'del' | 'ctx'; text: string }[] {
@@ -49,11 +51,12 @@ export default function GitDiffModal({
   onClose,
   rootPath,
   filepath,
+  commitHash,
 }: GitDiffModalProps): React.ReactElement {
   const t = useTheme();
   const [loading, setLoading] = useState(false);
-  const [headText, setHeadText] = useState('');
-  const [workText, setWorkText] = useState('');
+  const [beforeText, setBeforeText] = useState('');
+  const [afterText, setAfterText] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -61,21 +64,29 @@ export default function GitDiffModal({
     setLoading(true);
     setError(null);
     try {
-      const { headText: h, workText: w } = await GitBridge.getWorkingDiff(rootPath, filepath);
-      setHeadText(h);
-      setWorkText(w);
+      if (commitHash) {
+        const result = await GitBridge.getCommitDiff(rootPath, commitHash, filepath);
+        setBeforeText(result.beforeText);
+        setAfterText(result.afterText);
+      } else {
+        const { headText, workText } = await GitBridge.getWorkingDiff(rootPath, filepath);
+        setBeforeText(headText);
+        setAfterText(workText);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
-  }, [rootPath, filepath]);
+  }, [rootPath, filepath, commitHash]);
 
   useEffect(() => {
     if (visible && filepath) void load();
-  }, [visible, filepath, load]);
+  }, [visible, filepath, commitHash, load]);
 
-  const lines = simpleLineDiff(headText, workText);
+  const lines = simpleLineDiff(beforeText, afterText);
+
+  const title = commitHash ? `Commit ${commitHash}: ${filepath ?? ''}` : `Diff: ${filepath ?? ''}`;
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -83,7 +94,7 @@ export default function GitDiffModal({
         <View style={[styles.sheet, { backgroundColor: t.bgElevated, borderColor: t.border }]}>
           <View style={styles.header}>
             <Text style={[styles.title, { color: t.text }]} numberOfLines={2}>
-              Diff: {filepath ?? ''}
+              {title}
             </Text>
             <TouchableOpacity
               onPress={onClose}

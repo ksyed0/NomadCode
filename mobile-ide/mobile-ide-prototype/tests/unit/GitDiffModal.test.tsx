@@ -10,6 +10,7 @@ import { GitBridge } from '../../src/utils/FileSystemBridge';
 jest.mock('../../src/utils/FileSystemBridge', () => ({
   GitBridge: {
     getWorkingDiff: jest.fn().mockResolvedValue({ headText: 'a\nb', workText: 'a\nc' }),
+    getCommitDiff: jest.fn().mockResolvedValue({ beforeText: 'old\nline', afterText: 'new\nline' }),
   },
 }));
 
@@ -26,6 +27,7 @@ jest.mock('../../src/theme/tokens', () => ({
 }));
 
 const mockGetWorkingDiff = GitBridge.getWorkingDiff as jest.Mock;
+const mockGetCommitDiff = GitBridge.getCommitDiff as jest.Mock;
 
 describe('GitDiffModal', () => {
   const onClose = jest.fn();
@@ -48,5 +50,32 @@ describe('GitDiffModal', () => {
       <GitDiffModal visible onClose={onClose} rootPath="/repo" filepath="f.ts" />,
     );
     await waitFor(() => expect(screen.getByText('boom')).toBeTruthy());
+  });
+
+  it('loads commit diff when commitHash is provided', async () => {
+    render(
+      <GitDiffModal visible onClose={onClose} rootPath="/repo" filepath="src/x.ts" commitHash="abc1234" />,
+    );
+    await waitFor(() =>
+      expect(mockGetCommitDiff).toHaveBeenCalledWith('/repo', 'abc1234', 'src/x.ts'),
+    );
+    expect(mockGetWorkingDiff).not.toHaveBeenCalled();
+    expect(screen.getByText(/Commit abc1234: src\/x.ts/)).toBeTruthy();
+  });
+
+  it('shows error when getCommitDiff fails', async () => {
+    mockGetCommitDiff.mockRejectedValueOnce(new Error('no commit'));
+    render(
+      <GitDiffModal visible onClose={onClose} rootPath="/repo" filepath="f.ts" commitHash="deadbeef" />,
+    );
+    await waitFor(() => expect(screen.getByText('no commit')).toBeTruthy());
+  });
+
+  it('does not call getWorkingDiff when commitHash is provided', async () => {
+    render(
+      <GitDiffModal visible onClose={onClose} rootPath="/repo" filepath="src/x.ts" commitHash="abc1234" />,
+    );
+    await waitFor(() => expect(mockGetCommitDiff).toHaveBeenCalled());
+    expect(mockGetWorkingDiff).not.toHaveBeenCalled();
   });
 });

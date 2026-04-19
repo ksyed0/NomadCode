@@ -710,4 +710,39 @@ export const GitBridge = {
 
     return { headText, workText };
   },
+
+  async getCommitDiff(dir: string, commitHash: string, filepath: string): Promise<{ beforeText: string; afterText: string }> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+    const cache = getGitCache(repoDir);
+
+    // Resolve the short/full hash to a full OID.
+    const commitOid = await git.resolveRef({ fs, dir: repoDir, ref: commitHash, cache } as Parameters<typeof git.resolveRef>[0]);
+    const { commit } = await git.readCommit({ fs, dir: repoDir, oid: commitOid, cache } as Parameters<typeof git.readCommit>[0]);
+
+    // "after" side: file content at this commit.
+    let afterText = '';
+    try {
+      const { blob: afterBlob } = await git.readBlob({ fs, dir: repoDir, oid: commitOid, filepath, cache });
+      afterText = new TextDecoder().decode(afterBlob);
+    } catch {
+      // File was deleted in this commit — leave afterText empty.
+    }
+
+    // "before" side: file content at the first parent (empty for root commits).
+    let beforeText = '';
+    const parentOid = commit.parent[0];
+    if (parentOid) {
+      try {
+        const { blob: beforeBlob } = await git.readBlob({ fs, dir: repoDir, oid: parentOid, filepath, cache });
+        beforeText = new TextDecoder().decode(beforeBlob);
+      } catch {
+        // File didn't exist in parent — leave beforeText empty (net-new file).
+      }
+    }
+
+    return { beforeText, afterText };
+  },
 };

@@ -186,6 +186,7 @@ export default function App() {
   const [showGitPanel, setShowGitPanel] = useState(false);
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [diffFilepath, setDiffFilepath] = useState<string | null>(null);
+  const [diffCommitHash, setDiffCommitHash] = useState<string | null>(null);
   const [showShortcutsSheet, setShowShortcutsSheet] = useState(false);
   const [blameSheetVisible, setBlameSheetVisible] = useState(false);
   const [blameSheetLine, setBlameSheetLine] = useState<BlameLine | null>(null);
@@ -750,9 +751,10 @@ export default function App() {
 
       <GitDiffModal
         visible={diffFilepath !== null}
-        onClose={() => setDiffFilepath(null)}
+        onClose={() => { setDiffFilepath(null); setDiffCommitHash(null); }}
         rootPath={rootPath}
         filepath={diffFilepath}
+        commitHash={diffCommitHash}
       />
 
       <GitScreen rootPath={rootPath} authToken={authToken} />
@@ -764,13 +766,13 @@ export default function App() {
         onClose={() => setBlameSheetVisible(false)}
         onViewDiff={(hash) => {
           setBlameSheetVisible(false);
-          // TODO: GitDiffModal currently only supports working-tree diffs
-          // (HEAD vs working tree via `filepath`). It does not accept a
-          // commitHash prop. To fully implement "View Diff" for a blame
-          // commit, GitDiffModal needs to be extended with a `commitHash`
-          // prop that calls GitBridge.show(repoPath, commitHash) or similar.
-          // Track as a follow-up task.
-          console.log('View diff for commit:', hash);
+          if (activeTabPath) {
+            const relativePath = activeTabPath.startsWith(rootPath)
+              ? activeTabPath.slice(rootPath.length).replace(/^\//, '')
+              : activeTabPath;
+            setDiffFilepath(relativePath);
+            setDiffCommitHash(hash);
+          }
         }}
       />
 
