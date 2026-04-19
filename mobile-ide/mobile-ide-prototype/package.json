@@ -70,14 +70,16 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "coverageDirectory": "../../docs/coverage",
+    "rootDir": "..",
+    "roots": ["<rootDir>/mobile-ide-prototype"],
+    "coverageDirectory": "../docs/coverage",
     "collectCoverageFrom": [
-      "src/**/*.{ts,tsx}",
-      "!src/**/*.d.ts",
-      "!src/terminal/bundle/**",
-      "!src/components/SandboxDirectoryPicker.tsx",
-      "!src/types/workspace.ts",
-      "!src/terminal/protocol.ts"
+      "mobile-ide-prototype/src/**/*.{ts,tsx}",
+      "!mobile-ide-prototype/src/**/*.d.ts",
+      "!mobile-ide-prototype/src/terminal/bundle/**",
+      "!mobile-ide-prototype/src/components/SandboxDirectoryPicker.tsx",
+      "!mobile-ide-prototype/src/types/workspace.ts",
+      "!mobile-ide-prototype/src/terminal/protocol.ts"
     ],
     "coverageThreshold": {
       "global": {
