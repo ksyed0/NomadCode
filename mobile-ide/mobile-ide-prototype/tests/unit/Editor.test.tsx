@@ -979,3 +979,27 @@ describe('git gutter decorations', () => {
     await waitFor(() => expect(typeof ref.current?.sendBlameData).toBe('function'));
   });
 });
+
+// ---------------------------------------------------------------------------
+// Blame overlay toggle — TC-0340
+// ---------------------------------------------------------------------------
+
+describe('Editor — blame overlay toggle', () => {
+  it('calls onToggleBlame when blame toolbar button is pressed', async () => {
+    const onToggleBlame = jest.fn();
+    render(
+      <Editor
+        tabs={[TAB_A]}
+        activeTabPath={TAB_A.path}
+        onTabChange={jest.fn()}
+        onTabClose={jest.fn()}
+        onContentChange={jest.fn()}
+        onSave={jest.fn()}
+        onToggleBlame={onToggleBlame}
+      />,
+    );
+    const blameBtn = await waitFor(() => screen.getByTestId('toolbar-blame'));
+    fireEvent.press(blameBtn);
+    expect(onToggleBlame).toHaveBeenCalled();
+  });
+});

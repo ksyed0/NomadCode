@@ -81,6 +81,7 @@ interface EditorProps {
   formatOnSave?: boolean;
   onGutterTap?: (line: number) => void;
   onBlameTap?: (commitHash: string) => void;
+  onToggleBlame?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -302,6 +303,7 @@ export const TOOLBAR_ITEMS: ToolbarItem[] = [
   { id: 'select',      label: '⊞',   title: 'Select all',       action: 'selectAll' },
   { id: 'multicursor', label: '⊕',   title: 'Add cursor mode',  action: 'multicursor', toggle: true },
   { id: 'preview',     label: '◫',   title: 'Toggle preview',   action: 'preview',     toggle: true },
+  { id: 'blame',       label: '👤',  title: 'Toggle blame',     action: 'TOGGLE_BLAME', toggle: true },
 ];
 
 const FONT_DEC_ID = 'font-dec';
@@ -329,6 +331,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   formatOnSave,
   onGutterTap,
   onBlameTap,
+  onToggleBlame,
 }, ref) {
   const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
@@ -510,11 +513,13 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
         if (!next) sendToEditor('clearCursors');
       } else if (item.action === 'preview') {
         setShowPreview((v) => !v);
+      } else if (item.action === 'TOGGLE_BLAME') {
+        onToggleBlame?.();
       } else {
         sendToEditor(item.action);
       }
     },
-    [multiCursor, sendToEditor],
+    [multiCursor, sendToEditor, onToggleBlame],
   );
 
   const changeFontSize = useCallback(
@@ -713,6 +718,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
             return (
               <Pressable
                 key={item.id}
+                testID={`toolbar-${item.id}`}
                 style={[
                   styles.toolbarBtn,
                   isActive && styles.toolbarBtnActive,

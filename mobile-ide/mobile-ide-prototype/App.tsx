@@ -28,7 +28,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Editor, { EditorHandle, EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
 import { parseDiffToGutter } from './src/utils/gitGutter';
-import type { GutterDiff } from './src/types/git';
+import type { GutterDiff, BlameLine } from './src/types/git';
 import FileExplorer from './src/components/FileExplorer';
 import { TerminalWebView } from './src/components/TerminalWebView';
 import { Command, CommandPalette } from './src/components/CommandPalette';
@@ -40,6 +40,7 @@ import GitCloneModal from './src/components/GitCloneModal';
 import GitDiffModal from './src/components/GitDiffModal';
 import GitPanel from './src/components/GitPanel';
 import GitScreen from './src/components/GitScreen';
+import BlameDetailSheet from './src/components/git/BlameDetailSheet';
 import TabletResponsive from './src/layout/TabletResponsive';
 import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
 import { simpleHash } from './src/utils/hash';
@@ -122,6 +123,8 @@ export default function App() {
   const setIsGitScreenOpen = useGitStore((s) => s.setIsGitScreenOpen);
   const setActiveGitTab = useGitStore((s) => s.setActiveGitTab);
   const setGutterDecorations = useGitStore((s) => s.setGutterDecorations);
+  const blameData = useGitStore((s) => s.blameData);
+  const setBlameData = useGitStore((s) => s.setBlameData);
 
   // Restore auth session from keychain on mount
   useEffect(() => {
@@ -184,6 +187,8 @@ export default function App() {
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [diffFilepath, setDiffFilepath] = useState<string | null>(null);
   const [showShortcutsSheet, setShowShortcutsSheet] = useState(false);
+  const [blameSheetVisible, setBlameSheetVisible] = useState(false);
+  const [blameSheetLine, setBlameSheetLine] = useState<BlameLine | null>(null);
 
   // ── Cloud-sync conflict detection ─────────────────────────────────────────
   // tabMetaRef holds a snapshot of each open tab's content hash at load/save
@@ -308,6 +313,30 @@ export default function App() {
   const getEditorContent = useCallback((): string => {
     return tabs.find((t) => t.path === activeTabPath)?.content ?? '';
   }, [tabs, activeTabPath]);
+
+  const handleToggleBlame = useCallback(async () => {
+    if (blameData !== null) {
+      setBlameData(null);
+      editorRef.current?.sendBlameData([]);
+      return;
+    }
+    if (!activeTabPath) return;
+    try {
+      const relativePath = activeTabPath
+        .replace(rootPath + '/', '')
+        .replace(rootPath.replace('file://', '') + '/', '');
+      const lines = await GitBridge.getBlame(rootPath, relativePath);
+      setBlameData(lines);
+      editorRef.current?.sendBlameData(lines);
+    } catch { /* no blame available */ }
+  }, [blameData, activeTabPath, rootPath, setBlameData]);
+
+  const handleBlameTap = useCallback((commitHash: string) => {
+    const currentBlameData = useGitStore.getState().blameData;
+    const line = currentBlameData?.find((b) => b.commitHash === commitHash) ?? null;
+    setBlameSheetLine(line);
+    setBlameSheetVisible(true);
+  }, []);
 
   const handleSearchNavigate = useCallback(async (
     filePath: string, line: number, matchStart: number, matchEnd: number,
@@ -645,6 +674,8 @@ export default function App() {
             onTabScrollConsumed={handleTabScrollConsumed}
             onTabViewStateChange={handleTabViewStateChange}
             formatOnSave={formatOnSave}
+            onToggleBlame={handleToggleBlame}
+            onBlameTap={handleBlameTap}
           />
         }
         terminal={<TerminalWebView workingDirectory={rootPath} onCommand={handleCommandComplete} visible={showTerminal} />}
@@ -725,6 +756,17 @@ export default function App() {
       />
 
       <GitScreen rootPath={rootPath} authToken={authToken} />
+
+      {/* ── Blame detail sheet ────────────────────────────────────────────── */}
+      <BlameDetailSheet
+        visible={blameSheetVisible}
+        blame={blameSheetLine}
+        onClose={() => setBlameSheetVisible(false)}
+        onViewDiff={(hash) => {
+          setBlameSheetVisible(false);
+          console.log('View diff for commit:', hash);
+        }}
+      />
 
       {/* ── Cloud-sync conflict resolution modal ─────────────────────────── */}
       <WorkspaceConflictModal conflict={conflict} onResolve={handleConflictResolve} />
