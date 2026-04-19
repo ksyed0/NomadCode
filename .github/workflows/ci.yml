@@ -265,7 +265,7 @@ jobs:
   # ── 9. E2E Tests — iOS iPad Simulator ────────────────────────────────────
   e2e-ios:
     name: E2E Tests (iOS iPad Simulator)
-    runs-on: macos-14
+    runs-on: macos-15
     # Only run on PRs targeting main — E2E is slow and expensive
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
     needs: [lint-and-typecheck, test]
@@ -354,7 +354,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Install dependencies
         run: npm ci
