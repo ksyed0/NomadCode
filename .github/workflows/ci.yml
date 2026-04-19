@@ -298,7 +298,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: mobile-ide
 
       - name: Install Detox CLI
         run: npm install -g detox-cli
@@ -359,6 +358,18 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: mobile-ide
+
+      # react-native-document-picker@9.3.1 references GuardedResultAsyncTask which
+      # was removed in RN 0.76. Patch the hoisted copy before the Gradle build.
+      - name: Patch react-native-document-picker (GuardedResultAsyncTask removed in RN 0.76+)
+        run: |
+          FILE="node_modules/react-native-document-picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.java"
+          sed -i 's|import com.facebook.react.bridge.GuardedResultAsyncTask;|import android.os.AsyncTask;|' "$FILE"
+          sed -i 's|extends GuardedResultAsyncTask<ReadableArray>|extends AsyncTask<Void, Void, ReadableArray>|' "$FILE"
+          sed -i '/super(reactContext\.getExceptionHandler());/d' "$FILE"
+          sed -i 's|protected ReadableArray doInBackgroundGuarded()|protected ReadableArray doInBackground(Void... voids)|' "$FILE"
+          sed -i 's|protected void onPostExecuteGuarded(ReadableArray readableArray)|protected void onPostExecute(ReadableArray readableArray)|' "$FILE"
         working-directory: mobile-ide
 
       - name: Install Detox CLI
