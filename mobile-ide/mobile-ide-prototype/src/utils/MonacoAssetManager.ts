@@ -452,7 +452,10 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
             break;
           }
           case 'format':
-            editor.getAction('editor.action.formatDocument').run(); break;
+            runPrettier().then(function(ok) {
+              post({ type: 'FORMAT_COMPLETE', success: ok });
+            });
+            break;
           case 'findReplace':
             editor.getAction('editor.action.startFindReplaceAction').run(); break;
           case 'goToLine':
@@ -538,7 +541,6 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
           }
           case 'SET_OPTIONS': {
             if (typeof msg.formatOnSave === 'boolean') { formatOnSave = msg.formatOnSave; }
-            if (msg.prettierConfig) { prettierConfig = msg.prettierConfig; }
             break;
           }
           case 'FORMAT': {
