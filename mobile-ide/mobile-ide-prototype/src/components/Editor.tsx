@@ -17,7 +17,7 @@
  *   CLOUD_HOOK: sync content after save via CloudSync.enqueueUpload(path, content)
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -55,6 +55,12 @@ export interface EditorTab {
   viewState?: string;
 }
 
+export interface EditorHandle {
+  sendFoldAll: () => void;
+  sendUnfoldAll: () => void;
+  requestViewStateSave: (path: string) => void;
+}
+
 interface EditorProps {
   tabs: EditorTab[];
   activeTabPath: string | null;
@@ -63,6 +69,7 @@ interface EditorProps {
   onContentChange: (path: string, content: string) => void;
   onSave: (path: string, content: string) => void;
   onTabScrollConsumed?: (path: string) => void;
+  onTabViewStateChange?: (path: string, viewState: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -299,7 +306,7 @@ const TOOLTIP_LABELS: Readonly<Record<string, string>> = {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function Editor({
+const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   tabs,
   activeTabPath,
   onTabChange,
@@ -307,7 +314,8 @@ export default function Editor({
   onContentChange,
   onSave,
   onTabScrollConsumed,
-}: EditorProps) {
+  onTabViewStateChange,
+}, ref) {
   const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
 
@@ -362,6 +370,14 @@ export default function Editor({
     if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
   }, []);
 
+  // ── Send a command to Monaco ─────────────────────────────────────────────
+  const sendToEditor = useCallback((type: string, extra: object = {}) => {
+    const msg = JSON.stringify({ type, ...extra });
+    webViewRef.current?.injectJavaScript(
+      `window.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));true;`,
+    );
+  }, []);
+
   // ── Send content to Monaco when active tab changes ───────────────────────
   useEffect(() => {
     if (!editorReady || !activeTab) return;
@@ -385,7 +401,12 @@ export default function Editor({
     if (activeTab.scrollTo) {
       onTabScrollConsumed?.(activeTab.path);
     }
-  }, [editorReady, activeTab, onTabScrollConsumed]);
+    if (activeTab.viewState) {
+      setTimeout(() => {
+        sendToEditor('RESTORE_VIEW_STATE', { viewState: activeTab.viewState });
+      }, 50);
+    }
+  }, [editorReady, activeTab, onTabScrollConsumed, sendToEditor]);
 
   // ── Apply Monaco theme when editor is ready or theme changes ─────────────
   useEffect(() => {
@@ -413,19 +434,23 @@ export default function Editor({
           case 'fontSizeChanged':
             setFontSize(msg.fontSize);
             break;
+          case 'SAVE_VIEW_STATE':
+            if (msg.viewState && msg.path) {
+              onTabViewStateChange?.(msg.path, msg.viewState);
+            }
+            break;
         }
       } catch { /* ignore */ }
     },
-    [activeTabPath, onContentChange, onSave, setFontSize],
+    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange],
   );
 
-  // ── Send a command to Monaco ─────────────────────────────────────────────
-  const sendToEditor = useCallback((type: string, extra: object = {}) => {
-    const msg = JSON.stringify({ type, ...extra });
-    webViewRef.current?.injectJavaScript(
-      `window.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));true;`,
-    );
-  }, []);
+  // ── Expose imperative handle (fold commands, view state) ─────────────────
+  useImperativeHandle(ref, () => ({
+    sendFoldAll: () => sendToEditor('FOLD_ALL'),
+    sendUnfoldAll: () => sendToEditor('UNFOLD_ALL'),
+    requestViewStateSave: (path: string) => sendToEditor('REQUEST_VIEW_STATE', { path }),
+  }), [sendToEditor]);
 
   // ── Toolbar action dispatcher ────────────────────────────────────────────
   const handleToolbarAction = useCallback(
@@ -678,7 +703,10 @@ export default function Editor({
       </View>
     </KeyboardAvoidingView>
   );
-}
+});
+
+Editor.displayName = 'Editor';
+export default Editor;
 
 // ---------------------------------------------------------------------------
 // Styles — generated from theme tokens

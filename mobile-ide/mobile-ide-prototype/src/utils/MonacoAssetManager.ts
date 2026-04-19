@@ -230,6 +230,9 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
           bracketPairColorization: { enabled: true },
           scrollbar: { verticalScrollbarSize: 4, horizontalScrollbarSize: 4 },
           overviewRulerLanes: 0,
+          // Code folding — gutter chevrons always visible
+          folding: true,
+          showFoldingControls: 'always',
           // Alt+click adds cursor on external keyboards
           multiCursorModifier: 'alt',
           // Needed for pointer-event pinch detection
@@ -423,6 +426,25 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
                 autoClosingBrackets: msg.rules.autoClose.autoClosingBrackets,
                 autoClosingQuotes:   msg.rules.autoClose.autoClosingQuotes,
               });
+            }
+            break;
+          }
+          case 'FOLD_ALL':
+            if (editor) editor.getAction('editor.foldAll').run();
+            break;
+          case 'UNFOLD_ALL':
+            if (editor) editor.getAction('editor.unfoldAll').run();
+            break;
+          case 'REQUEST_VIEW_STATE': {
+            var vs = editor ? editor.saveViewState() : null;
+            post({ type: 'SAVE_VIEW_STATE', path: msg.path, viewState: vs ? JSON.stringify(vs) : null });
+            break;
+          }
+          case 'RESTORE_VIEW_STATE': {
+            if (editor && msg.viewState) {
+              try {
+                editor.restoreViewState(JSON.parse(msg.viewState));
+              } catch (e) { /* ignore invalid state */ }
             }
             break;
           }

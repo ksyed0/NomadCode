@@ -26,7 +26,7 @@ import {
 } from 'react-native';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import Editor, { EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
+import Editor, { EditorHandle, EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
 import FileExplorer from './src/components/FileExplorer';
 import { TerminalWebView } from './src/components/TerminalWebView';
 import { Command, CommandPalette } from './src/components/CommandPalette';
@@ -138,6 +138,9 @@ export default function App() {
       cancelled = true;
     };
   }, [rootPath, fileTreeRevision, setBranchInfo]);
+
+  // ── Editor ref (imperative handle for fold/view-state) ───────────────────
+  const editorRef = useRef<EditorHandle | null>(null);
 
   // ── Editor state ──────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<EditorTab[]>([]);
@@ -303,6 +306,17 @@ export default function App() {
   const handleTabScrollConsumed = useCallback((path: string) => {
     setTabs((prev) => prev.map((t) => t.path === path ? { ...t, scrollTo: null } : t));
   }, []);
+
+  const handleTabViewStateChange = useCallback((path: string, viewState: string) => {
+    setTabs((prev) =>
+      prev.map((t) => t.path === path ? { ...t, viewState } : t)
+    );
+  }, []);
+
+  const handleTabChange = useCallback((path: string) => {
+    editorRef.current?.requestViewStateSave?.(activeTabPath ?? '');
+    setActiveTabPath(path);
+  }, [activeTabPath]);
 
   const replaceEditorContent = useCallback((text: string) => {
     if (!activeTabPath) return;
@@ -472,6 +486,18 @@ export default function App() {
       action: () => { setShowPalette(false); setShowCloneModal(true); },
     },
     {
+      id: 'editor-fold-all',
+      label: 'Editor: Fold All',
+      description: 'Fold all code regions',
+      action: () => { editorRef.current?.sendFoldAll(); },
+    },
+    {
+      id: 'editor-unfold-all',
+      label: 'Editor: Unfold All',
+      description: 'Unfold all code regions',
+      action: () => { editorRef.current?.sendUnfoldAll(); },
+    },
+    {
       id: 'search-global',
       label: 'Search: Find in Files',
       description: 'Open global search panel',
@@ -569,13 +595,15 @@ export default function App() {
         }
         main={
           <Editor
+            ref={editorRef}
             tabs={tabs}
             activeTabPath={activeTabPath}
-            onTabChange={setActiveTabPath}
+            onTabChange={handleTabChange}
             onTabClose={closeTab}
             onContentChange={updateContent}
             onSave={saveFile}
             onTabScrollConsumed={handleTabScrollConsumed}
+            onTabViewStateChange={handleTabViewStateChange}
           />
         }
         terminal={<TerminalWebView workingDirectory={rootPath} onCommand={handleCommandComplete} visible={showTerminal} />}
