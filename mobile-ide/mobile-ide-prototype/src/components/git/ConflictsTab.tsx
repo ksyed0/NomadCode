@@ -10,7 +10,6 @@ import {
 import { GitBridge } from '../../utils/FileSystemBridge';
 import useGitStore from '../../stores/useGitStore';
 import { useTheme } from '../../theme/tokens';
-import type { ConflictFile } from '../../types/git';
 
 export interface ConflictsTabProps { rootPath: string; }
 
@@ -20,7 +19,11 @@ export default function ConflictsTab({ rootPath }: ConflictsTabProps): React.Rea
   const setConflicts = useGitStore((s) => s.setConflicts);
   const bumpFileTree = useGitStore((s) => s.bumpFileTree);
 
-  const [selectedFile, setSelectedFile] = useState<ConflictFile | null>(null);
+  // Store only the selected path; derive the full ConflictFile object so we
+  // never need to call setState inside an effect to keep selection in sync.
+  const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
+  const selectedFile =
+    conflicts.find((f) => f.path === selectedFilePath) ?? conflicts[0] ?? null;
   const [resolvedHunks, setResolvedHunks] = useState<Set<number>>(new Set());
   const [stagedFiles, setStagedFiles] = useState<Set<string>>(new Set());
 
@@ -28,12 +31,6 @@ export default function ConflictsTab({ rootPath }: ConflictsTabProps): React.Rea
     try {
       const files = await GitBridge.getConflicts(rootPath);
       setConflicts(files);
-      setSelectedFile((prev) => {
-        if (prev === null && files.length > 0) return files[0];
-        // Keep selection if the file is still in the list, otherwise move to first.
-        const stillPresent = files.find((f) => f.path === prev?.path);
-        return stillPresent ?? (files.length > 0 ? files[0] : null);
-      });
     } catch { /* silent */ }
   }, [rootPath, setConflicts]);
 
@@ -55,7 +52,7 @@ export default function ConflictsTab({ rootPath }: ConflictsTabProps): React.Rea
       await GitBridge.add(rootPath, selectedFile.path);
       setStagedFiles((prev) => new Set([...prev, selectedFile.path]));
       setResolvedHunks(new Set());
-      setSelectedFile(null);
+      setSelectedFilePath(null);
       bumpFileTree();
       await loadConflicts();
     } catch (e) {
@@ -93,7 +90,7 @@ export default function ConflictsTab({ rootPath }: ConflictsTabProps): React.Rea
       {conflicts.map((file) => (
         <TouchableOpacity
           key={file.path}
-          onPress={() => { setSelectedFile(file); setResolvedHunks(new Set()); }}
+          onPress={() => { setSelectedFilePath(file.path); setResolvedHunks(new Set()); }}
           style={[s.fileRow, selectedFile?.path === file.path && s.fileRowActive]}
           accessibilityLabel={file.path}
         >
