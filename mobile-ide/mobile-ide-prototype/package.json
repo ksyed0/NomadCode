@@ -35,7 +35,7 @@
     "expo-status-bar": "~55.0.5",
     "expo-web-browser": "~55.0.14",
     "isomorphic-git": "^1.37.4",
-    "marked": "^17.0.6",
+    "marked": "^18.0.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
