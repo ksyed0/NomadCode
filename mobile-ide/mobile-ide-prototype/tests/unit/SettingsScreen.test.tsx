@@ -15,12 +15,15 @@ const mockAddExtension = jest.fn();
 const mockRemoveExtension = jest.fn();
 const mockSetWorkspaceRoot = jest.fn();
 const mockSetFormatOnSave = jest.fn();
+const mockAddSnippet = jest.fn();
+const mockRemoveSnippet = jest.fn();
 let mockTheme = 'nomad-dark';
 let mockFontSize = 14;
 let mockWorkspaceUri = '';
 let mockWorkspaceDisplayName = '';
 let mockInstalledExtensions: Array<{ id: string; name: string; version: string; source: string }> = [];
 let mockFormatOnSave = false;
+let mockSnippets: Array<{ prefix: string; body: string; description: string; language: string }> = [];
 
 jest.mock('../../src/stores/useSettingsStore', () => ({
   __esModule: true,
@@ -32,12 +35,15 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
       workspaceDisplayName: mockWorkspaceDisplayName,
       installedExtensions: mockInstalledExtensions,
       formatOnSave: mockFormatOnSave,
+      snippets: mockSnippets,
       setTheme: mockSetTheme,
       setFontSize: mockSetFontSize,
       setWorkspaceRoot: mockSetWorkspaceRoot,
       addExtension: mockAddExtension,
       removeExtension: mockRemoveExtension,
       setFormatOnSave: mockSetFormatOnSave,
+      addSnippet: mockAddSnippet,
+      removeSnippet: mockRemoveSnippet,
     })
   ),
 }));
@@ -116,6 +122,7 @@ beforeEach(() => {
   mockWorkspaceDisplayName = '';
   mockInstalledExtensions = [];
   mockFormatOnSave = false;
+  mockSnippets = [];
   mockAuthToken = null;
   mockAuthUsername = null;
   mockAuthError = null;
@@ -446,5 +453,24 @@ describe('SettingsScreen — format on save', () => {
     render(<SettingsScreen visible={true} onClose={jest.fn()} />);
     const toggle = screen.getByTestId('format-on-save-toggle');
     expect(toggle.props.value).toBe(true);
+  });
+});
+
+describe('SettingsScreen — snippets section', () => {
+  it('renders Snippets section heading', () => {
+    render(<SettingsScreen visible onClose={jest.fn()} />);
+    expect(screen.getByText('Snippets')).toBeTruthy();
+  });
+
+  it('shows Add Snippet button', () => {
+    render(<SettingsScreen visible onClose={jest.fn()} />);
+    expect(screen.getByText('Add Snippet')).toBeTruthy();
+  });
+
+  it('Add Snippet opens modal with form fields', () => {
+    render(<SettingsScreen visible onClose={jest.fn()} />);
+    fireEvent.press(screen.getByText('Add Snippet'));
+    expect(screen.getByPlaceholderText('Prefix (trigger)')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Expansion body')).toBeTruthy();
   });
 });

@@ -240,6 +240,39 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
     var formatOnSave = false;
     var prettierConfig = {};
 
+    // ── Snippet completion provider ────────────────────────────────────────────
+    var snippetDisposables = {};
+    function registerSnippets(snippets, currentLanguage) {
+      Object.values(snippetDisposables).forEach(function(d) { if (d && d.dispose) d.dispose(); });
+      snippetDisposables = {};
+      if (!snippets || !snippets.length) return;
+      var byLang = {};
+      snippets.forEach(function(s) {
+        var langs = s.language === 'all' ? [currentLanguage] : [s.language];
+        langs.forEach(function(lang) {
+          if (!byLang[lang]) byLang[lang] = [];
+          byLang[lang].push(s);
+        });
+      });
+      Object.keys(byLang).forEach(function(lang) {
+        snippetDisposables[lang] = monaco.languages.registerCompletionItemProvider(lang, {
+          provideCompletionItems: function() {
+            return {
+              suggestions: byLang[lang].map(function(s) {
+                return {
+                  label: s.prefix,
+                  kind: monaco.languages.CompletionItemKind.Snippet,
+                  documentation: s.description,
+                  insertText: s.body,
+                  insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                };
+              }),
+            };
+          },
+        });
+      });
+    }
+
     // ── Prettier format helper ─────────────────────────────────────────────
     async function runPrettier() {
       if (typeof prettier === 'undefined' || !prettier || !editor) return false;
@@ -581,6 +614,7 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
           }
           case 'SET_OPTIONS': {
             if (typeof msg.formatOnSave === 'boolean') { formatOnSave = msg.formatOnSave; }
+            if (msg.snippets) { registerSnippets(msg.snippets, msg.language || 'plaintext'); }
             break;
           }
           case 'FORMAT': {

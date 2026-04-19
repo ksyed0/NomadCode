@@ -38,6 +38,7 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
       fontSize: mockFontSize,
       theme: 'nomad-dark',
       setFontSize: mockSetFontSize,
+      snippets: [],
     })
   ),
 }));

@@ -32,6 +32,7 @@ import {
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { marked } from 'marked';
 import { buildMonacoHtml, MonacoAssetManager } from '../utils/MonacoAssetManager';
+import { BUILTIN_SNIPPETS } from '../utils/builtinSnippets';
 import { Breadcrumb } from './Breadcrumb';
 import { getLanguageRules } from '../utils/languageRules';
 import { useTheme, getMonacoTheme, THEMES } from '../theme/tokens';
@@ -328,6 +329,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   const fontSize    = useSettingsStore((s) => s.fontSize);
   const setFontSize = useSettingsStore((s) => s.setFontSize);
   const themeId     = useSettingsStore((s) => s.theme);
+  const snippets    = useSettingsStore((s) => s.snippets);
   const monacoTheme = getMonacoTheme(themeId);
 
   const [editorReady, setEditorReady] = useState(false);
@@ -425,11 +427,16 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
     );
   }, [editorReady, monacoTheme]);
 
-  // ── Send SET_OPTIONS when formatOnSave prop changes ───────────────────────
+  // ── Send SET_OPTIONS when formatOnSave or snippets change ────────────────
   useEffect(() => {
-    if (!editorReady) return;
-    sendToEditor('SET_OPTIONS', { formatOnSave: formatOnSave ?? false });
-  }, [editorReady, formatOnSave, sendToEditor]);
+    if (!editorReady || !activeTab) return;
+    const allSnippets = [...BUILTIN_SNIPPETS, ...snippets];
+    sendToEditor('SET_OPTIONS', {
+      formatOnSave: formatOnSave ?? false,
+      snippets: allSnippets,
+      language: activeTab.language,
+    });
+  }, [editorReady, formatOnSave, snippets, activeTab?.language, sendToEditor]);
 
   // ── Messages from Monaco ─────────────────────────────────────────────────
   const handleMessage = useCallback(
