@@ -4,6 +4,16 @@ Timestamped log of every user prompt across all sessions.
 
 ---
 
+## Session 17 — 2026-04-18/19
+
+| # | Prompt |
+|---|---|
+| 1 | [context continuation — implementing EPIC-0021 via subagent-driven development] |
+| 2 | why is the plan not showing on the right [Plan panel shows "No plan yet."] |
+| 3 | CRITICAL: Respond with TEXT ONLY [session summary request at context limit] |
+| 4 | 2 [choose Push + PR for finishing-a-development-branch] |
+| 5 | update all session documents and prepare to close the session. commit any updated docs to the same PR. monitor the CI for the PR and fix any issues, the merge when all are green and delete the branch. Clean up any unused branches after checking if they are needed or not. |
+
 ## Session 16 — 2026-04-18
 
 | # | Prompt |

@@ -4,6 +4,74 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 17 — 2026-04-18/19 (EPIC-0021 Advanced Editor Features)
+
+### What Was Done
+
+**Context:** Full EPIC-0021 implementation across two context windows using subagent-driven development (30 commits, 17 tasks, 1006 tests). Session 17 spanned two conversations due to context limit; this entry covers the complete picture.
+
+#### EPIC-0021 Deliverables
+
+Six user stories fully implemented:
+
+**US-0073 — Global Search & Replace** (`GlobalSearch.tsx`, `replaceEngine.ts`, `useReplace.ts`)
+- Replace tab with live preview, per-match exclusion checkboxes, Replace All with Alert confirmation
+- Results refresh via `submit()` after Replace All (post-review fix)
+- `disabled` + `accessibilityState` on Replace All button when no query/matches
+
+**US-0074 — Hardware Keyboard Shortcuts** (`useKeyboardShortcuts.ts`, `KeyboardShortcuts.swift`, `KeyboardShortcutsModule.kt`, `KeyboardShortcutsSheet.tsx`)
+- iOS: RCTEventEmitter + UIKeyCommand, matches on both input string AND modifierFlags
+- Android: ReactContextBaseJavaModule + dispatchKeyEvent
+- RN hook: latest-ref pattern for stale-closure safety; empty dep array subscribes once
+- Sheet modal: ⌘K to open, tablet-centered (480px) vs bottom-sheet on phone
+
+**US-0075 — Code Folding + View State** (`MonacoAssetManager.ts`, `Editor.tsx`, `App.tsx`)
+- Monaco `folding: true, showFoldingControls: 'always'`
+- Fold All / Unfold All commands via `EditorHandle` imperative ref
+- View state (fold regions + scroll) serialized to `EditorTab.viewState`, restored on tab switch
+
+**US-0076 — Prettier Format on Save** (`MonacoAssetManager.ts`, `SettingsScreen.tsx`, `App.tsx`)
+- Prettier 3 cached offline in `documentDirectory/prettier/3.5.3/` (7 files)
+- Format on Save toggle in Settings; Format Document command (⌘⇧F)
+- Prettier errors surfaced via Alert via `FORMAT_COMPLETE` message handler (post-review fix)
+- Graceful degradation when offline (silent skip)
+
+**US-0077 — Breadcrumb Navigation** (`symbolExtractor.ts`, `Breadcrumb.tsx`, `Editor.tsx`)
+- Tappable path segments + live symbol name (debounced 150ms on cursor move)
+- Max-offset algorithm: symbol with greatest character offset wins cross-pattern collisions
+- SYNC-NOTE comment links `getSymbolForBreadcrumb` in MonacoAssetManager to `symbolExtractor.ts`
+
+**US-0078 — Snippets** (`builtinSnippets.ts`, `MonacoAssetManager.ts`, `SettingsScreen.tsx`)
+- 12 built-in snippets: clg/uef/ust (all), afn (js), rfc (typescriptreact), def/cls/ifmain (python), fn/impl (rust), pr/func (go)
+- Monaco `registerCompletionItemProvider` merges built-in + user snippets
+- User snippets: add/remove via Settings modal; prefix/body/description/language fields
+
+#### Testing
+- **1006 tests, all passing** (41 suites)
+- **88.5% statement / 76.4% branch** coverage (above 75% threshold)
+
+#### PR & CI
+- PR [#96](https://github.com/ksyed0/NomadCode/pull/96) — `feature/epic-0021-advanced-editor-features` → `develop`
+- CI lint failures fixed (28 errors in Editor.tsx, MonacoAssetManager.ts, useKeyboardShortcuts.test.ts, useReplace.test.ts)
+- Merged and branch deleted post-CI green
+
+### Errors & Fixes This Session
+
+| Issue | Fix |
+|---|---|
+| Lint: unused `index`/`parentPath` in Editor.tsx:595 | Prefixed with `_` |
+| Lint: `\s`/`\w`/`\(` useless escape in MonacoAssetManager template literal | Changed to `\\s`/`\\w`/`\\(` (ESLint fix; output identical) |
+| Lint: `Function` type in test | Replaced with explicit `(event: { key: string; modifiers: string[] }) => void` |
+| Lint: `@ts-ignore` in test | Changed to `@ts-expect-error` |
+| Lint: `currentQuery` unused in useReplace.test.ts | Removed dead variable |
+
+### Branch Cleanup
+- `feature/ui-improvements-phase1` — MERGED (PR #95), deleted local + remote
+- `chore/version-bump-0.1.2` — MERGED (PR #94), deleted remote
+- `claude/*` worktree branches — cleaned up
+
+---
+
 ## Session 16 — 2026-04-18 (Feature Gap Analysis + UI Polish Phase 1)
 
 ### What Was Done
