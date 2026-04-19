@@ -1,14 +1,12 @@
 module.exports = {
-  presets: ['babel-preset-expo'],
-  overrides: [
-    {
-      // react-native@0.81+ uses TypeScript type annotations in .js jest setup files.
-      // @react-native/babel-preset only enables TypeScript transform for .ts/.tsx by
-      // extension check — apply it explicitly for the RN jest directory.
-      include: [/node_modules\/react-native\/jest\//],
-      presets: [
-        ['@babel/preset-typescript', { allExtensions: true, isTSX: true }],
-      ],
-    },
+  presets: [
+    'babel-preset-expo',
+    // react-native@0.81+ ships jest/setup.js with TypeScript-annotated method
+    // signatures in a .js file. @react-native/babel-preset only enables the TS
+    // transform for .ts/.tsx via an extension check, so babel chokes on the syntax
+    // when processing that file. Applying @babel/preset-typescript globally with
+    // allExtensions:true ensures type annotations are stripped from any .js file
+    // that happens to contain them. For plain JS files it is a no-op.
+    ['@babel/preset-typescript', { allExtensions: true, isTSX: true }],
   ],
 };

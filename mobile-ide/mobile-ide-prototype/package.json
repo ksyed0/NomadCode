@@ -71,7 +71,9 @@
   "jest": {
     "preset": "jest-expo",
     "rootDir": "..",
-    "roots": ["<rootDir>/mobile-ide-prototype"],
+    "roots": [
+      "<rootDir>/mobile-ide-prototype"
+    ],
     "coverageDirectory": "../docs/coverage",
     "collectCoverageFrom": [
       "mobile-ide-prototype/src/**/*.{ts,tsx}",
