@@ -16,7 +16,7 @@ Read these files at the start of every session, before writing any code:
 3. **`MEMORY.md`** — Persistent knowledge base
 4. **`progress.md`** — Where the last session left off
 5. **`PROMPT_LOG.md`** — Session prompt history
-6. **`Docs/ID_REGISTRY.md`** — Next available artefact IDs (check before creating anything)
+6. **`docs/ID_REGISTRY.md`** — Next available artefact IDs (check before creating anything)
 
 **Critical rules (enforced at all times):**
 - No code written without unit tests in the same session.
@@ -214,6 +214,7 @@ interface ExtensionManifest {
 |---|---|---|
 | 2026-03-09 | Initial Project Constitution created from existing docs | Claude Code |
 | 2026-03-10 | Added Session Startup section, Quick Reference, and platform symlink note; CLAUDE.md and Gemini.md are now symlinks to this file | Claude Code |
+| 2026-03-10 | Recreated on develop branch; CLAUDE.md symlink restored | Claude Code |
 
 ---
 
@@ -222,7 +223,7 @@ interface ExtensionManifest {
 | Item | Path / Command |
 |---|---|
 | Prototype | `mobile-ide/mobile-ide-prototype/` |
-| Docs | `Docs/` |
+| Docs | `docs/` |
 | Run mobile tests | `cd mobile-ide/mobile-ide-prototype && npm test` |
 | Mobile coverage | `cd mobile-ide/mobile-ide-prototype && npm run test:coverage` |
 | Plan Visualizer tests | `npm test` (from repo root) |

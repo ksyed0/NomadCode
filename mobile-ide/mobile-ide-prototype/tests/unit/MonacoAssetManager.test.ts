@@ -21,7 +21,7 @@ const mockMakeDirectoryAsync = jest.fn();
 const mockDownloadAsync = jest.fn();
 const mockDeleteAsync = jest.fn();
 
-jest.mock('expo-file-system', () => ({
+jest.mock('expo-file-system/legacy', () => ({
   getInfoAsync: (...args: unknown[]) => mockGetInfoAsync(...args),
   makeDirectoryAsync: (...args: unknown[]) => mockMakeDirectoryAsync(...args),
   downloadAsync: (...args: unknown[]) => mockDownloadAsync(...args),
@@ -219,5 +219,64 @@ describe('buildMonacoHtml()', () => {
   it('handles CDN fallback loader error', () => {
     const html = buildMonacoHtml(CDN);
     expect(html).toContain('onLoaderError');
+  });
+
+  it('includes applyLanguageRules case in the message handler', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('applyLanguageRules');
+  });
+
+  it('applyLanguageRules handler calls model.updateOptions and editor.updateOptions', () => {
+    const html = buildMonacoHtml(CDN);
+    // Both update paths must exist within the handler
+    expect(html).toContain('model3.updateOptions');
+    expect(html).toContain('autoClosingBrackets');
+    expect(html).toContain('autoClosingQuotes');
+  });
+
+  it('includes default: break fallback in the message switch', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('default:');
+  });
+
+  it('includes scrollToLine case in the message handler', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('scrollToLine');
+  });
+
+  it('scrollToLine handler calls revealLineInCenter', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('revealLineInCenter');
+  });
+
+  it('scrollToLine handler calls deltaDecorations', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('deltaDecorations');
+  });
+
+  it('scrollToLine handler sets a cleanup timeout', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('setTimeout');
+  });
+
+  it('injects search-match-highlight CSS class', () => {
+    const html = buildMonacoHtml(CDN);
+    expect(html).toContain('search-match-highlight');
+  });
+
+  it('setContent message with scrollTo calls revealLineInCenter', () => {
+    const html = buildMonacoHtml(CDN);
+    // The setContent handler should reference scrollTo
+    expect(html).toContain('msg.scrollTo');
+  });
+
+  it('TC-0370: setContent message calls editor.focus() after setting content', () => {
+    const html = buildMonacoHtml(CDN);
+    // The setContent case must call editor.focus() so the Android soft keyboard
+    // receives key events immediately after content is loaded.
+    const setContentIdx = html.indexOf("case 'setContent':");
+    const nextCaseIdx = html.indexOf("case 'format':", setContentIdx);
+    const setContentBlock = html.slice(setContentIdx, nextCaseIdx);
+    expect(setContentBlock).toContain('editor.focus()');
   });
 });

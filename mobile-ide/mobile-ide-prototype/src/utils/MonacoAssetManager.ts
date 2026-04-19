@@ -21,7 +21,7 @@
  *   await MonacoAssetManager.downloadForOffline((pct) => setProgress(pct));
  */
 
-import * as ExpoFS from 'expo-file-system';
+import * as ExpoFS from 'expo-file-system/legacy';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -40,6 +40,20 @@ const CORE_FILES = [
   'editor/editor.main.js',
   'editor/editor.main.nls.js',
   'base/worker/workerMain.js',
+];
+
+const PRETTIER_VERSION = '3.5.3';
+const PRETTIER_CDN_BASE = `https://cdn.jsdelivr.net/npm/prettier@${PRETTIER_VERSION}`;
+const PRETTIER_CACHE_DIR = () => `${ExpoFS.documentDirectory ?? '/'}prettier/${PRETTIER_VERSION}/`;
+
+const PRETTIER_FILES = [
+  { remote: `${PRETTIER_CDN_BASE}/standalone.js`,         local: 'standalone.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/babel.js`,      local: 'plugins/babel.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/typescript.js`, local: 'plugins/typescript.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/postcss.js`,    local: 'plugins/postcss.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/html.js`,       local: 'plugins/html.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/markdown.js`,   local: 'plugins/markdown.js' },
+  { remote: `${PRETTIER_CDN_BASE}/plugins/estree.js`,     local: 'plugins/estree.js' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -119,6 +133,36 @@ export const MonacoAssetManager = {
   get cacheDir(): string {
     return localDir();
   },
+
+  /**
+   * Load Prettier standalone + plugins as a single concatenated JS string.
+   * Uses a local cache in documentDirectory/prettier/{version}/; downloads
+   * from the CDN on first use and serves from cache thereafter.
+   * Returns null on any error (Prettier will simply not be available).
+   */
+  async loadPrettierSource(): Promise<string | null> {
+    try {
+      const dir = PRETTIER_CACHE_DIR();
+      await ExpoFS.makeDirectoryAsync(dir + 'plugins/', { intermediates: true }).catch(() => {});
+
+      const parts: string[] = [];
+      for (const f of PRETTIER_FILES) {
+        const localPath = dir + f.local;
+        let content: string;
+        const info = await ExpoFS.getInfoAsync(localPath);
+        if (info.exists) {
+          content = await ExpoFS.readAsStringAsync(localPath);
+        } else {
+          const resp = await ExpoFS.downloadAsync(f.remote, localPath);
+          content = await ExpoFS.readAsStringAsync(resp.uri);
+        }
+        parts.push(content);
+      }
+      return parts.join('\n;\n');
+    } catch {
+      return null;
+    }
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -132,27 +176,35 @@ export const MonacoAssetManager = {
  *                   - CDN:    "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs"
  *                   - Local:  "file:///path/to/documentDirectory/monaco/0.45.0/vs"
  */
-export function buildMonacoHtml(vsBaseUrl: string): string {
+export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark' = 'vs-dark', prettierSource?: string): string {
   // Safely embed the URL in JS (no injection vector since it's our own constant)
   const safeBase = JSON.stringify(vsBaseUrl);
+  const safeTheme = JSON.stringify(initialTheme);
+  // Match the chrome (loading screen + body bg) to the editor theme so users
+  // don't see a flash of the wrong colour while Monaco bootstraps.
+  const chromeBg = initialTheme === 'vs' ? '#ffffff' : '#1e1e1e';
+  const chromeText = initialTheme === 'vs' ? '#374151' : '#6b7280';
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body  { height: 100%; background: #1e1e1e; overflow: hidden; }
-    #container  { position: absolute; inset: 0; }
+    html, body  { height: 100%; background: ${chromeBg}; overflow: hidden; }
+    #container  { position: absolute; inset: 0; -webkit-user-select: text; user-select: text; }
     #loading    {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 12px;
-      color: #6b7280; font: 13px/1 -apple-system, sans-serif; background: #1e1e1e;
+      color: ${chromeText}; font: 13px/1 -apple-system, sans-serif; background: ${chromeBg};
     }
     #loading-bar-wrap { width: 160px; height: 3px; background: #1f2937; border-radius: 2px; }
     #loading-bar      { height: 100%; width: 0%; background: #2563eb; border-radius: 2px;
                         transition: width 0.2s ease; }
+
+    /* ── Search match highlight ────────────────────────────────────────── */
+    .search-match-highlight { background: rgba(37,99,235,0.4); border-radius: 2px; }
 
     /* ── Multi-cursor overlay ──────────────────────────────────────────── */
     #mc-overlay {
@@ -160,6 +212,12 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
       cursor: crosshair; background: transparent;
     }
     #mc-overlay.active { display: block; }
+
+    /* ── Git gutter decorations ───────────────────────────────────────── */
+    .gutter-added { border-left: 3px solid #22c55e !important; }
+    .gutter-modified { border-left: 3px solid #d97706 !important; }
+    .gutter-deleted::after { content: '▾'; color: #ef4444; font-size: 10px; }
+    .blame-gutter { display: inline-block; width: 150px; padding-right: 8px; color: #64748b; font-size: 10px; overflow: hidden; white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -170,6 +228,7 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
   <div id="container"></div>
   <div id="mc-overlay" title="Tap to place additional cursor — press ✕ to exit"></div>
 
+  ${prettierSource ? `<script>${prettierSource}</script>` : '<!-- prettier not loaded -->'}
   <script src="${vsBaseUrl}/loader.js" onerror="onLoaderError()"></script>
   <script>
   (function () {
@@ -180,6 +239,95 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
     var currentFontSize = 14;
     var addCursorMode   = false;
     var mcOverlay       = document.getElementById('mc-overlay');
+    var PARSER_MAP = {
+      typescript: 'typescript', javascript: 'babel',
+      css: 'css', scss: 'css', html: 'html', markdown: 'markdown', json: 'json'
+    };
+    var formatOnSave = false;
+    var prettierConfig = {};
+
+    // ── Snippet completion provider ────────────────────────────────────────────
+    var snippetDisposables = {};
+    function registerSnippets(snippets, currentLanguage) {
+      Object.values(snippetDisposables).forEach(function(d) { if (d && d.dispose) d.dispose(); });
+      snippetDisposables = {};
+      if (!snippets || !snippets.length) return;
+      var byLang = {};
+      snippets.forEach(function(s) {
+        var langs = s.language === 'all' ? [currentLanguage] : [s.language];
+        langs.forEach(function(lang) {
+          if (!byLang[lang]) byLang[lang] = [];
+          byLang[lang].push(s);
+        });
+      });
+      Object.keys(byLang).forEach(function(lang) {
+        snippetDisposables[lang] = monaco.languages.registerCompletionItemProvider(lang, {
+          provideCompletionItems: function() {
+            return {
+              suggestions: byLang[lang].map(function(s) {
+                return {
+                  label: s.prefix,
+                  kind: monaco.languages.CompletionItemKind.Snippet,
+                  documentation: s.description,
+                  insertText: s.body,
+                  insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                };
+              }),
+            };
+          },
+        });
+      });
+    }
+
+    // ── Prettier format helper ─────────────────────────────────────────────
+    async function runPrettier() {
+      if (typeof prettier === 'undefined' || !prettier || !editor) return false;
+      var model = editor.getModel();
+      if (!model) return false;
+      var langId = model.getLanguageId();
+      var parser = PARSER_MAP[langId];
+      if (!parser) return false;
+      try {
+        var content = editor.getValue();
+        var plugins = typeof prettierPlugins !== 'undefined' ? Object.values(prettierPlugins || {}) : [];
+        var formatted = await prettier.format(content, Object.assign({}, prettierConfig, { parser: parser, plugins: plugins }));
+        if (formatted === content) return true;
+        var fullRange = model.getFullModelRange();
+        editor.executeEdits('prettier', [{ range: fullRange, text: formatted }]);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // ── Breadcrumb: symbol on cursor move (debounced 150ms) ───────────────────
+    var breadcrumbTimer = null;
+    // SYNC-NOTE: SYMBOL_PATTERNS_BC mirrors symbolExtractor.ts — update both when adding language patterns.
+    var SYMBOL_PATTERNS_BC = [
+      /^(?:export\\s+)?(?:default\\s+)?(?:async\\s+)?function\\s+(\\w+)/m,
+      /^(?:export\\s+)?(?:abstract\\s+)?class\\s+(\\w+)/m,
+      /^(?:export\\s+)?const\\s+(\\w+)\\s*=\\s*(?:async\\s+)?\\(/m,
+      /^def\\s+(\\w+)/m,
+      /^fn\\s+(\\w+)/m,
+      /^func\\s+(\\w+)/m,
+    ];
+    function getSymbolForBreadcrumb(content, cursorLine) {
+      var lines = content.split('\n').slice(0, cursorLine);
+      var sliced = lines.join('\n');
+      var lastMatch = null;
+      var lastOffset = -1;
+      for (var i = 0; i < SYMBOL_PATTERNS_BC.length; i++) {
+        var gp = new RegExp(SYMBOL_PATTERNS_BC[i].source, 'gm');
+        var m;
+        while ((m = gp.exec(sliced)) !== null) {
+          if (m.index > lastOffset) {
+            lastOffset = m.index;
+            lastMatch = m[1];
+          }
+        }
+      }
+      return lastMatch;
+    }
 
     // ── Loader error fallback (offline → CDN) ─────────────────────────────
     function onLoaderError() {
@@ -207,7 +355,7 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
         editor = monaco.editor.create(document.getElementById('container'), {
           value: '',
           language: 'plaintext',
-          theme: 'vs-dark',
+          theme: ${safeTheme},
           fontSize: currentFontSize,
           fontFamily: "'JetBrains Mono', 'Fira Code', Menlo, Monaco, monospace",
           lineNumbers: 'on',
@@ -222,6 +370,9 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
           bracketPairColorization: { enabled: true },
           scrollbar: { verticalScrollbarSize: 4, horizontalScrollbarSize: 4 },
           overviewRulerLanes: 0,
+          // Code folding — gutter chevrons always visible
+          folding: true,
+          showFoldingControls: 'always',
           // Alt+click adds cursor on external keyboards
           multiCursorModifier: 'alt',
           // Needed for pointer-event pinch detection
@@ -233,9 +384,26 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
           post({ type: 'contentChanged', content: editor.getValue() });
         });
 
-        // ── Cmd/Ctrl+S → save ────────────────────────────────────────────
+        // ── Breadcrumb: post symbol on cursor position change ────────────
+        editor.onDidChangeCursorPosition(function(e) {
+          if (breadcrumbTimer) clearTimeout(breadcrumbTimer);
+          breadcrumbTimer = setTimeout(function() {
+            var content = editor.getValue();
+            var line = e.position.lineNumber;
+            var symbol = getSymbolForBreadcrumb(content, line);
+            post({ type: 'BREADCRUMB_UPDATE', symbol: symbol });
+          }, 150);
+        });
+
+        // ── Cmd/Ctrl+S → save (with optional format-on-save) ─────────────
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
-          post({ type: 'save', content: editor.getValue() });
+          if (formatOnSave) {
+            runPrettier().then(function() {
+              post({ type: 'save', content: editor.getValue() });
+            });
+          } else {
+            post({ type: 'save', content: editor.getValue() });
+          }
         });
 
         // ── Multi-cursor: click adds cursor when overlay is active ────────
@@ -251,6 +419,16 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
           editor.focus();
           post({ type: 'cursorAdded', count: existing.length });
         });
+
+        // Android: Monaco's internal click handler doesn't reliably trigger
+        // focus through React Native's WebView touch system. An explicit
+        // pointerdown on the container ensures the soft keyboard appears.
+        // window.focus() additionally requests Android View-level focus so that
+        // hardware keyboard KeyEvents are routed to this WebView (not just IME).
+        document.getElementById('container').addEventListener('pointerdown', function () {
+          window.focus();
+          editor.focus();
+        }, { passive: true });
 
         post({ type: 'ready', offline: ${safeBase}.startsWith('file') });
         setLoadPct(100);
@@ -321,10 +499,42 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
               editor.revealLine(1);
               editor.setPosition({ lineNumber: 1, column: 1 });
             }
+            // Apply per-language rules when supplied inline (primary path)
+            if (msg.rules) {
+              var m2 = editor.getModel();
+              if (m2 && msg.rules.indent) {
+                m2.updateOptions({
+                  tabSize:           msg.rules.indent.tabSize,
+                  insertSpaces:      msg.rules.indent.insertSpaces,
+                  detectIndentation: false,
+                });
+              }
+              if (msg.rules.autoClose) {
+                editor.updateOptions({
+                  autoClosingBrackets: msg.rules.autoClose.autoClosingBrackets,
+                  autoClosingQuotes:   msg.rules.autoClose.autoClosingQuotes,
+                });
+              }
+            }
+            if (msg.scrollTo) {
+              editor.revealLineInCenter(msg.scrollTo.line);
+              var sdec = editor.deltaDecorations([], [{
+                range: new monaco.Range(msg.scrollTo.line, msg.scrollTo.matchStart, msg.scrollTo.line, msg.scrollTo.matchEnd),
+                options: { inlineClassName: 'search-match-highlight' }
+              }]);
+              setTimeout(function() { editor.deltaDecorations(sdec, []); }, 4000);
+            }
+            // window.focus() claims Android View-level focus so hardware keyboard
+            // KeyEvents reach the WebView immediately after content is loaded.
+            window.focus();
+            editor.focus();
             break;
           }
           case 'format':
-            editor.getAction('editor.action.formatDocument').run(); break;
+            runPrettier().then(function(ok) {
+              post({ type: 'FORMAT_COMPLETE', success: ok });
+            });
+            break;
           case 'findReplace':
             editor.getAction('editor.action.startFindReplaceAction').run(); break;
           case 'goToLine':
@@ -360,6 +570,99 @@ export function buildMonacoHtml(vsBaseUrl: string): string {
             if (p) editor.setSelections([
               new monaco.Selection(p.lineNumber, p.column, p.lineNumber, p.column)
             ]);
+            break;
+          case 'applyLanguageRules': {
+            if (!msg.rules) break;
+            var model3 = editor.getModel();
+            if (model3 && msg.rules.indent) {
+              model3.updateOptions({
+                tabSize:           msg.rules.indent.tabSize,
+                insertSpaces:      msg.rules.indent.insertSpaces,
+                detectIndentation: false,
+              });
+            }
+            if (msg.rules.autoClose) {
+              editor.updateOptions({
+                autoClosingBrackets: msg.rules.autoClose.autoClosingBrackets,
+                autoClosingQuotes:   msg.rules.autoClose.autoClosingQuotes,
+              });
+            }
+            break;
+          }
+          case 'FOLD_ALL':
+            if (editor) editor.getAction('editor.foldAll').run();
+            break;
+          case 'UNFOLD_ALL':
+            if (editor) editor.getAction('editor.unfoldAll').run();
+            break;
+          case 'REQUEST_VIEW_STATE': {
+            var vs = editor ? editor.saveViewState() : null;
+            post({ type: 'SAVE_VIEW_STATE', path: msg.path, viewState: vs ? JSON.stringify(vs) : null });
+            break;
+          }
+          case 'RESTORE_VIEW_STATE': {
+            if (editor && msg.viewState) {
+              try {
+                editor.restoreViewState(JSON.parse(msg.viewState));
+              } catch (e) { /* ignore invalid state */ }
+            }
+            break;
+          }
+          case 'scrollToLine': {
+            if (!editor || !msg.line) break;
+            editor.revealLineInCenter(msg.line);
+            var dec2 = editor.deltaDecorations([], [{
+              range: new monaco.Range(msg.line, msg.matchStart || 1, msg.line, msg.matchEnd || 1),
+              options: { inlineClassName: 'search-match-highlight' }
+            }]);
+            setTimeout(function() { editor.deltaDecorations(dec2, []); }, 4000);
+            break;
+          }
+          case 'SET_OPTIONS': {
+            if (typeof msg.formatOnSave === 'boolean') { formatOnSave = msg.formatOnSave; }
+            if (msg.snippets) { registerSnippets(msg.snippets, msg.language || 'plaintext'); }
+            break;
+          }
+          case 'FORMAT': {
+            runPrettier().then(function(ok) {
+              post({ type: 'FORMAT_COMPLETE', success: ok });
+            });
+            break;
+          }
+          case 'PRETTIER_CONFIG': {
+            prettierConfig = msg.config || {};
+            break;
+          }
+          case 'GIT_GUTTER': {
+            var diff = msg.diff;
+            var decorations = [];
+            (diff.added || []).forEach(function(line) {
+              decorations.push({ range: new monaco.Range(line, 1, line, 1), options: { isWholeLine: true, linesDecorationsClassName: 'gutter-added' } });
+            });
+            (diff.modified || []).forEach(function(line) {
+              decorations.push({ range: new monaco.Range(line, 1, line, 1), options: { isWholeLine: true, linesDecorationsClassName: 'gutter-modified' } });
+            });
+            (diff.deleted || []).forEach(function(line) {
+              decorations.push({ range: new monaco.Range(line, 1, line, 1), options: { isWholeLine: true, linesDecorationsClassName: 'gutter-deleted' } });
+            });
+            window._gutterDecorationIds = editor.deltaDecorations(window._gutterDecorationIds || [], decorations);
+            break;
+          }
+          case 'GIT_BLAME': {
+            var blameLines = msg.lines;
+            var blameDecorations = (blameLines || []).map(function(bl) {
+              return {
+                range: new monaco.Range(bl.lineNumber, 1, bl.lineNumber, 1),
+                options: {
+                  isWholeLine: false,
+                  before: { content: ' ' + bl.commitHash + ' ' + bl.author + ' ', inlineClassName: 'blame-gutter' }
+                }
+              };
+            });
+            window._blameDecorationIds = editor.deltaDecorations(window._blameDecorationIds || [], blameDecorations);
+            break;
+          }
+          default:
             break;
         }
       } catch (err) { /* ignore parse errors */ }

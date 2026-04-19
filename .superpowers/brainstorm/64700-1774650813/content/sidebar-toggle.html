@@ -1,0 +1,107 @@
+<h2>How do you switch between Files and Search?</h2>
+<p class="subtitle">The left sidebar shows either the file tree or the search panel. How should the user toggle between them?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0F172A;padding:10px;font-family:monospace;font-size:10px;color:#94a3b8;min-height:160px;">
+      <div style="display:flex;height:160px;">
+        <div style="width:200px;background:#1e293b;border-right:1px solid #334155;display:flex;flex-direction:column;">
+          <!-- Tab bar -->
+          <div style="display:flex;border-bottom:1px solid #334155;">
+            <div style="flex:1;padding:6px 0;text-align:center;color:#e2e8f0;border-bottom:2px solid #2563EB;font-size:9px;">📁 Files</div>
+            <div style="flex:1;padding:6px 0;text-align:center;color:#64748b;font-size:9px;">🔍 Search</div>
+          </div>
+          <!-- File tree content -->
+          <div style="padding:8px;font-size:9px;">
+            <div style="color:#0D9488;">📁 src/</div>
+            <div style="padding-left:12px;color:#e2e8f0;">📄 App.tsx</div>
+            <div style="padding-left:12px;color:#0D9488;">📁 components/</div>
+            <div style="padding-left:24px;color:#e2e8f0;">📄 Editor.tsx</div>
+          </div>
+        </div>
+        <div style="flex:1;background:#0F172A;padding:8px;font-size:9px;color:#e2e8f0;">
+          <div style="color:#94a3b8;margin-bottom:4px;">Editor.tsx</div>
+          <div>import React from 'react';</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Tab Bar at top of sidebar</h3>
+      <p>Two persistent tabs — "Files" and "Search" — always visible at the top of the left pane. One tap to switch. Active tab underlined in Nomad Blue.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Always discoverable</li><li>Clear active state</li><li>VS Code Activity Bar feel</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Takes ~28px from the sidebar</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0F172A;padding:10px;font-family:monospace;font-size:10px;color:#94a3b8;min-height:160px;">
+      <div style="display:flex;height:160px;">
+        <div style="width:200px;background:#1e293b;border-right:1px solid #334155;display:flex;flex-direction:column;">
+          <!-- Header with icon -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid #334155;">
+            <span style="color:#e2e8f0;font-size:9px;font-weight:bold;">FILES</span>
+            <span style="color:#64748b;font-size:12px;cursor:pointer;">🔍</span>
+          </div>
+          <!-- File tree -->
+          <div style="padding:8px;font-size:9px;">
+            <div style="color:#0D9488;">📁 src/</div>
+            <div style="padding-left:12px;color:#e2e8f0;">📄 App.tsx</div>
+            <div style="padding-left:12px;color:#0D9488;">📁 components/</div>
+          </div>
+        </div>
+        <div style="flex:1;background:#0F172A;padding:8px;font-size:9px;color:#e2e8f0;">
+          <div style="color:#94a3b8;margin-bottom:4px;">Editor.tsx</div>
+          <div>import React from 'react';</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Search icon in sidebar header</h3>
+      <p>A 🔍 icon sits in the file explorer header row. Tapping it swaps the panel to search mode; a ✕ or "back" icon returns to the file tree.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>No extra chrome — sidebar header stays compact</li><li>Clean, minimal UI</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Less obvious than a tab bar</li><li>Requires back-navigation to return to files</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0F172A;padding:10px;font-family:monospace;font-size:10px;color:#94a3b8;min-height:160px;">
+      <div style="display:flex;height:160px;">
+        <div style="width:200px;background:#1e293b;border-right:1px solid #334155;display:flex;flex-direction:column;">
+          <!-- Normal file explorer header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid #334155;">
+            <span style="color:#e2e8f0;font-size:9px;font-weight:bold;">FILES</span>
+            <span style="color:#64748b;font-size:9px;">+ ⋮</span>
+          </div>
+          <div style="padding:8px;font-size:9px;">
+            <div style="color:#0D9488;">📁 src/</div>
+            <div style="padding-left:12px;color:#e2e8f0;">📄 App.tsx</div>
+          </div>
+        </div>
+        <div style="flex:1;background:#0F172A;padding:8px;font-size:9px;color:#e2e8f0;">
+          <div style="color:#94a3b8;margin-bottom:4px;">Editor.tsx</div>
+          <div>import React from 'react';</div>
+        </div>
+      </div>
+      <!-- FAB area -->
+      <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px;">
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:4px 10px;font-size:9px;color:#e2e8f0;">⌘</div>
+        <div style="background:#2563EB;border-radius:20px;padding:4px 10px;font-size:9px;color:white;font-weight:bold;">🔍</div>
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:4px 10px;font-size:9px;color:#e2e8f0;">&gt;_</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Dedicated FAB (floating button)</h3>
+      <p>A 🔍 FAB joins the existing ⌘ and &gt;_ buttons. Tapping it opens search in the left sidebar. Same pattern as the terminal toggle.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Consistent with existing FAB pattern</li><li>Always reachable, no sidebar needed</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Three FABs starts feeling crowded</li><li>Less obvious that it lives in the sidebar</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>

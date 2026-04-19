@@ -7,6 +7,8 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+# Exception: terminal WebView bundle must be committed (app depends on it at runtime)
+!mobile-ide-prototype/src/terminal/bundle/dist/
 
 # Environment variables
 .env

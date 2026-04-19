@@ -7,9 +7,26 @@
 
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Text } from 'react-native';
-import TabletResponsive, { useIsTablet } from '../../src/layout/TabletResponsive';
+import { PanResponder, Text } from 'react-native';
+import TabletResponsive, { clampTerminalHeight, isDownwardSwipe, useIsTablet } from '../../src/layout/TabletResponsive';
 import { renderHook } from '@testing-library/react-native';
+
+// Mock useTheme so TabletResponsive can render without a real Zustand store
+jest.mock('../../src/theme/tokens', () => ({
+  useTheme: () => ({
+    bg: '#0F172A',
+    bgElevated: '#1E293B',
+    bgHighlight: '#1D3461',
+    text: '#E2E8F0',
+    textMuted: '#64748B',
+    border: '#334155',
+    accent: '#2563EB',
+    keyword: '#7C3AED',
+    string: '#0D9488',
+    error: '#EF4444',
+    success: '#22C55E',
+  }),
+}));
 
 // ---------------------------------------------------------------------------
 // Mock useWindowDimensions
@@ -45,10 +62,10 @@ describe('useIsTablet', () => {
     expect(result.current).toBe(true);
   });
 
-  it('returns false when width === 768', () => {
+  it('returns true when width === 768 (AC-0182 boundary)', () => {
     setWidth(768);
     const { result } = renderHook(() => useIsTablet());
-    expect(result.current).toBe(false);
+    expect(result.current).toBe(true);
   });
 
   it('returns false when width < 768', () => {
@@ -61,6 +78,12 @@ describe('useIsTablet', () => {
     setWidth(769);
     const { result } = renderHook(() => useIsTablet());
     expect(result.current).toBe(true);
+  });
+
+  it('AC-0190: returns false at width 767 (just below split-pane threshold)', () => {
+    setWidth(767);
+    const { result } = renderHook(() => useIsTablet());
+    expect(result.current).toBe(false);
   });
 });
 
@@ -159,8 +182,7 @@ describe('TabletResponsive — phone layout', () => {
     );
     fireEvent.press(screen.getByText('☰'));
     expect(screen.getByTestId('sidebar')).toBeTruthy();
-    // The scrim is a TouchableOpacity sitting behind the drawer
-    fireEvent.press(screen.getByText('✕')); // close via toggle (scrim not easily queryable)
+    fireEvent.press(screen.getByTestId('sidebar-scrim'));
     expect(screen.queryByTestId('sidebar')).toBeNull();
   });
 
@@ -210,5 +232,361 @@ describe('TabletResponsive — custom dimensions', () => {
         />,
       ),
     ).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Resize handle
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — terminal resize handle', () => {
+  beforeEach(() => setWidth(1024));
+
+  it('renders terminal-resize-handle when terminal is provided', () => {
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        terminalHeight={220}
+        onTerminalHeightChange={jest.fn()}
+      />
+    );
+    expect(screen.getByTestId('terminal-resize-handle')).toBeTruthy();
+  });
+
+  it('does not render resize handle when terminal is null', () => {
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={null}
+      />
+    );
+    expect(screen.queryByTestId('terminal-resize-handle')).toBeNull();
+  });
+
+  it('calls onTerminalHeightChange when PanResponder move fires', () => {
+    // Capture the PanResponder callbacks so we can invoke them directly in tests
+    // (raw responder event firing crashes due to internal touchHistory math)
+    // NOTE: TabletResponsive creates two PanResponders — terminal resize (index 0)
+    //       and swipe zone (index 1). We capture only the first (index 0) here.
+    let capturedCallbacks: Record<string, (...args: unknown[]) => unknown> = {};
+    let callIdx = 0;
+    const spy = jest
+      .spyOn(PanResponder, 'create')
+      .mockImplementation((cbs) => {
+        if (callIdx++ === 0) {
+          capturedCallbacks = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+        }
+        return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
+      });
+
+    const onHeightChange = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        terminalHeight={220}
+        onTerminalHeightChange={onHeightChange}
+      />
+    );
+
+    // Cover onStartShouldSetPanResponder
+    expect(capturedCallbacks.onStartShouldSetPanResponder()).toBe(true);
+    // Cover onPanResponderMove — dragging down 30px → 220-30=190
+    capturedCallbacks.onPanResponderMove({}, { dy: 30 });
+    expect(onHeightChange).toHaveBeenCalledWith(190);
+
+    spy.mockRestore();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// clampTerminalHeight utility
+// ---------------------------------------------------------------------------
+
+describe('clampTerminalHeight', () => {
+  it('reduces height when dragging down (positive dy)', () => {
+    expect(clampTerminalHeight(220, 50)).toBe(170);
+  });
+
+  it('increases height when dragging up (negative dy)', () => {
+    expect(clampTerminalHeight(220, -50)).toBe(270);
+  });
+
+  it('clamps to MIN_TERMINAL_HEIGHT (120) when dragging too far down', () => {
+    expect(clampTerminalHeight(220, 200)).toBe(120);
+  });
+
+  it('clamps to MAX_TERMINAL_HEIGHT (400) when dragging too far up', () => {
+    expect(clampTerminalHeight(220, -300)).toBe(400);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isDownwardSwipe utility
+// ---------------------------------------------------------------------------
+
+describe('isDownwardSwipe', () => {
+  it('returns true when dy > 40 and vy > 0.3', () => {
+    expect(isDownwardSwipe(50, 0.4)).toBe(true);
+  });
+
+  it('returns false when dy is exactly 40 (not strictly greater)', () => {
+    expect(isDownwardSwipe(40, 0.4)).toBe(false);
+  });
+
+  it('returns false when vy is exactly 0.3 (not strictly greater)', () => {
+    expect(isDownwardSwipe(50, 0.3)).toBe(false);
+  });
+
+  it('returns false when dy is below threshold', () => {
+    expect(isDownwardSwipe(30, 0.4)).toBe(false);
+  });
+
+  it('returns false when vy is below threshold', () => {
+    expect(isDownwardSwipe(50, 0.2)).toBe(false);
+  });
+
+  it('returns true at minimum passing values (dy=41, vy=0.31)', () => {
+    expect(isDownwardSwipe(41, 0.31)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Swipe gesture zone
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — swipe gesture zone', () => {
+  beforeEach(() => setWidth(1024));
+
+  // Shared spy state for PanResponder tests
+  let capturedSwipeCbs: Record<string, (...args: unknown[]) => unknown> = {};
+  let swipeSpy: jest.SpyInstance | null = null;
+
+  function installSwipeSpy() {
+    capturedSwipeCbs = {};
+    let callIdx = 0;
+    swipeSpy = jest.spyOn(PanResponder, 'create').mockImplementation((cbs) => {
+      // First call = terminal resize PanResponder; second call = swipe zone
+      if (callIdx++ === 1) {
+        capturedSwipeCbs = cbs as unknown as Record<string, (...args: unknown[]) => unknown>;
+      }
+      return { panHandlers: {} } as ReturnType<typeof PanResponder.create>;
+    });
+  }
+
+  afterEach(() => {
+    swipeSpy?.mockRestore();
+    swipeSpy = null;
+  });
+
+  it('renders swipe-zone testID in main area (tablet)', () => {
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(screen.getByTestId('swipe-zone')).toBeTruthy();
+  });
+
+  it('renders swipe-zone on phone layout too', () => {
+    setWidth(375);
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(screen.getByTestId('swipe-zone')).toBeTruthy();
+  });
+
+  it('calls onOpenPalette when swipe-down gesture is released', () => {
+    installSwipeSpy();
+    const onOpenPalette = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        onOpenPalette={onOpenPalette}
+      />,
+    );
+
+    expect(capturedSwipeCbs.onStartShouldSetPanResponder?.()).toBe(true);
+    capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.4 });
+    expect(onOpenPalette).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onOpenPalette for swipes below threshold', () => {
+    installSwipeSpy();
+    const onOpenPalette = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+        onOpenPalette={onOpenPalette}
+      />,
+    );
+
+    capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 30, vy: 0.4 }); // dy too small
+    capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.2 }); // vy too small
+    expect(onOpenPalette).toHaveBeenCalledTimes(0);
+  });
+
+  it('does not crash when onOpenPalette is not provided', () => {
+    installSwipeSpy();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={<Terminal />}
+      />,
+    );
+    expect(() =>
+      capturedSwipeCbs.onPanResponderRelease?.({}, { dy: 50, vy: 0.4 }),
+    ).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Settings gear icon
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — settings gear icon', () => {
+  beforeEach(() => setWidth(1024));
+
+  it('renders the gear icon', () => {
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(screen.getByTestId('settings-gear')).toBeTruthy();
+  });
+
+  it('pressing gear icon calls onOpenSettings', () => {
+    const onOpenSettings = jest.fn();
+    render(
+      <TabletResponsive
+        sidebar={<Sidebar />}
+        main={<Main />}
+        terminal={null}
+        onOpenSettings={onOpenSettings}
+      />,
+    );
+    fireEvent.press(screen.getByTestId('settings-gear'));
+    expect(onOpenSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not crash when onOpenSettings is not provided', () => {
+    render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={null} />,
+    );
+    expect(() => fireEvent.press(screen.getByTestId('settings-gear'))).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC-0185: Terminal component identity preserved across fold/unfold (US-0064)
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — AC-0185 terminal preserved across fold/unfold', () => {
+  it('does not remount terminal when transitioning phone → tablet width', () => {
+    let mountCount = 0;
+    const CountingTerminal = () => {
+      React.useEffect(() => { mountCount += 1; }, []);
+      return <Text testID="terminal">Terminal</Text>;
+    };
+
+    setWidth(375);
+    const { rerender } = render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1);
+
+    setWidth(1024); // unfold
+    rerender(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1); // must NOT remount
+  });
+
+  it('does not remount terminal when transitioning tablet → phone width', () => {
+    let mountCount = 0;
+    const CountingTerminal = () => {
+      React.useEffect(() => { mountCount += 1; }, []);
+      return <Text testID="terminal">Terminal</Text>;
+    };
+
+    setWidth(1024);
+    const { rerender } = render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1);
+
+    setWidth(375); // fold
+    rerender(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1); // must NOT remount
+  });
+
+  it('AC-0190: terminal stays mounted through mid-transition resize 767→768→412', () => {
+    let mountCount = 0;
+    const CountingTerminal = () => {
+      React.useEffect(() => { mountCount += 1; }, []);
+      return <Text testID="terminal">Terminal</Text>;
+    };
+
+    setWidth(767);
+    const { rerender } = render(
+      <TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />,
+    );
+    expect(mountCount).toBe(1);
+
+    setWidth(768); // crosses breakpoint up
+    rerender(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />);
+    expect(mountCount).toBe(1);
+
+    setWidth(412); // crosses breakpoint back down
+    rerender(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<CountingTerminal />} />);
+    expect(mountCount).toBe(1); // exactly 1 mount throughout
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC-0187/0188/0189: Device form-factor tests (US-0065)
+// ---------------------------------------------------------------------------
+
+describe('TabletResponsive — foldable device form factors', () => {
+  afterEach(() => setWidth(1024)); // reset to tablet default after each test
+
+  // AC-0187: Samsung Galaxy Z Fold 6 inner display — unfolded landscape, ~882dp wide
+  it('AC-0187: renders split-pane on Z Fold 6 inner display (width=882)', () => {
+    setWidth(882);
+    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<Terminal />} />);
+    expect(screen.getByTestId('sidebar')).toBeTruthy();
+    expect(screen.queryByText('☰')).toBeNull();
+  });
+
+  // AC-0188: Google Pixel Fold inner display — unfolded, ~1840dp wide
+  it('AC-0188: renders split-pane on Pixel Fold inner display (width=1840)', () => {
+    setWidth(1840);
+    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<Terminal />} />);
+    expect(screen.getByTestId('sidebar')).toBeTruthy();
+    expect(screen.queryByText('☰')).toBeNull();
+  });
+
+  // AC-0189: Samsung Galaxy Z Flip 6 cover display — portrait, ~260dp wide
+  it('AC-0189: renders single-pane on Z Flip 6 cover display (width=260)', () => {
+    setWidth(260);
+    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<Terminal />} />);
+    expect(screen.queryByTestId('sidebar')).toBeNull();
+    expect(screen.getByText('☰')).toBeTruthy();
+  });
+
+  // AC-0189: Samsung Galaxy Z Flip 6 main display — portrait, ~412dp wide
+  it('AC-0189: renders single-pane on Z Flip 6 main portrait display (width=412)', () => {
+    setWidth(412);
+    render(<TabletResponsive sidebar={<Sidebar />} main={<Main />} terminal={<Terminal />} />);
+    expect(screen.queryByTestId('sidebar')).toBeNull();
+    expect(screen.getByText('☰')).toBeTruthy();
   });
 });

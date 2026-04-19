@@ -17,6 +17,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 defaults:
   run:
     working-directory: mobile-ide/mobile-ide-prototype
@@ -32,9 +35,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -55,9 +58,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -81,9 +84,9 @@ jobs:
       pull-requests: write  # allow coverage comment on PR
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -99,15 +102,15 @@ jobs:
           CI: true
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: coverage-report
-          path: Docs/coverage/
+          path: docs/coverage/
           retention-days: 14
 
       - name: Upload JUnit results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: test-results
@@ -121,8 +124,8 @@ jobs:
         uses: davelosert/vitest-coverage-report-action@v2
         continue-on-error: true
         with:
-          json-summary-path: Docs/coverage/coverage-summary.json
-          json-final-path: Docs/coverage/coverage-final.json
+          json-summary-path: docs/coverage/coverage-summary.json
+          json-final-path: docs/coverage/coverage-final.json
 
   # ── 4. Bundle Size Gate ───────────────────────────────────────────────────
   bundle-size:
@@ -133,9 +136,9 @@ jobs:
     needs: [build]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -169,9 +172,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -198,7 +201,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run Semgrep
         uses: semgrep/semgrep-action@v1
@@ -227,13 +230,14 @@ jobs:
         language: [javascript-typescript]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
+          config-file: .github/codeql/codeql-config.yml
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4
@@ -249,7 +253,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -261,16 +265,16 @@ jobs:
   # ── 9. E2E Tests — iOS iPad Simulator ────────────────────────────────────
   e2e-ios:
     name: E2E Tests (iOS iPad Simulator)
-    runs-on: macos-14
+    runs-on: macos-15
     # Only run on PRs targeting main — E2E is slow and expensive
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
     needs: [lint-and-typecheck, test]
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -286,7 +290,7 @@ jobs:
 
       # Cache the Pods directory keyed on npm deps (expo/RN version drives pod versions)
       - name: Cache CocoaPods
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: mobile-ide/mobile-ide-prototype/ios/Pods
           key: pods-${{ hashFiles('mobile-ide/mobile-ide-prototype/package-lock.json') }}
@@ -323,7 +327,7 @@ jobs:
           CI: true
 
       - name: Upload E2E artifacts on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         if: failure()
         with:
           name: detox-artifacts-ios
@@ -338,22 +342,35 @@ jobs:
     needs: [lint-and-typecheck, test]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
           cache-dependency-path: mobile-ide/mobile-ide-prototype/package-lock.json
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Install dependencies
         run: npm ci
+        working-directory: mobile-ide
+
+      # react-native-document-picker@9.3.1 references GuardedResultAsyncTask which
+      # was removed in RN 0.76. Patch the hoisted copy before the Gradle build.
+      - name: Patch react-native-document-picker (GuardedResultAsyncTask removed in RN 0.76+)
+        run: |
+          FILE="node_modules/react-native-document-picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.java"
+          sed -i 's|import com.facebook.react.bridge.GuardedResultAsyncTask;|import android.os.AsyncTask;|' "$FILE"
+          sed -i 's|extends GuardedResultAsyncTask<ReadableArray>|extends AsyncTask<Void, Void, ReadableArray>|' "$FILE"
+          sed -i '/super(reactContext\.getExceptionHandler());/d' "$FILE"
+          sed -i 's|protected ReadableArray doInBackgroundGuarded()|protected ReadableArray doInBackground(Void... voids)|' "$FILE"
+          sed -i 's|protected void onPostExecuteGuarded(ReadableArray readableArray)|protected void onPostExecute(ReadableArray readableArray)|' "$FILE"
+        working-directory: mobile-ide
 
       - name: Install Detox CLI
         run: npm install -g detox-cli
@@ -366,7 +383,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: AVD cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: avd-cache
         with:
           path: |
@@ -415,7 +432,7 @@ jobs:
           script: cd mobile-ide/mobile-ide-prototype && npm run test:e2e:android
 
       - name: Upload E2E artifacts on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         if: failure()
         with:
           name: detox-artifacts-android
@@ -431,9 +448,9 @@ jobs:
         working-directory: .
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: npm
@@ -466,7 +483,7 @@ jobs:
       - gitleaks
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Extract version from branch name
         id: version
@@ -477,7 +494,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create draft release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}

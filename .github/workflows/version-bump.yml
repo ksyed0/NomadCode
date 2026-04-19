@@ -1,0 +1,66 @@
+name: Version Bump
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [develop]
+
+jobs:
+  bump:
+    # Skip if the PR wasn't merged, or if it was itself a version-bump PR (prevents infinite loop)
+    if: >
+      github.event.pull_request.merged == true &&
+      !startsWith(github.event.pull_request.head.ref, 'chore/version-bump')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump patch version
+        id: bump
+        working-directory: mobile-ide/mobile-ide-prototype
+        run: |
+          npm version patch --no-git-tag-version
+          NEW_VERSION=$(jq -r '.version' package.json)
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create branch and commit
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          BUMP_BRANCH="chore/version-bump-${NEW_VERSION}"
+          git checkout -b "$BUMP_BRANCH"
+          git add mobile-ide/mobile-ide-prototype/package.json
+          # Stage lock file if present (npm version touches it)
+          git add mobile-ide/mobile-ide-prototype/package-lock.json 2>/dev/null || true
+          # No [skip ci] — omitting it is intentional. [skip ci] would prevent required checks
+          # from running, which causes --auto to stall indefinitely. --admin is used instead.
+          git commit -m "chore: bump version to ${NEW_VERSION}"
+          git push origin "$BUMP_BRANCH"
+          echo "BUMP_BRANCH=$BUMP_BRANCH" >> "$GITHUB_ENV"
+
+      - name: Open and merge PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          gh pr create \
+            --base develop \
+            --head "$BUMP_BRANCH" \
+            --title "chore: bump version to ${NEW_VERSION}" \
+            --body "Automated patch version bump after PR merge to \`develop\`."
+
+          # --admin bypasses branch protection immediately (enforce_admins: false on develop).
+          # Do NOT use --auto: it waits for required CI checks which will never pass if [skip ci]
+          # is in the commit message — causing the workflow to stall indefinitely.
+          gh pr merge "$BUMP_BRANCH" --squash --admin

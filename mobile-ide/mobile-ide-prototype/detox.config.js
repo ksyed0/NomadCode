@@ -54,7 +54,7 @@ module.exports = {
     'ipad.sim': {
       type: 'ios.simulator',
       device: {
-        type: 'iPad Pro (12.9-inch) (6th generation)',
+        type: 'iPad Pro 13-inch (M4)',
       },
     },
     'iphone.sim': {

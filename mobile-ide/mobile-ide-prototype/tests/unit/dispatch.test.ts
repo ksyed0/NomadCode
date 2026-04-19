@@ -1,0 +1,803 @@
+/**
+ * @jest-environment jsdom
+ */
+
+/**
+ * Unit tests — dispatch() shell dispatcher
+ *
+ * EPIC-0003 / src/terminal/bundle/index.ts
+ *
+ * TC-0325: touch /tmp/a.txt — vfsWrite called with '', exitCode 0
+ * TC-0326: touch existing file — vfsWrite NOT called, exitCode 0
+ * TC-0327: cp src dest — vfsCopy called, exitCode 0
+ * TC-0328: cp no args — exitCode 1, output contains 'usage'
+ * TC-0329: mv old new — vfsMove called, exitCode 0
+ * TC-0330: mv no args — exitCode 1
+ * TC-0333: clear — exitCode 0, clearScreen: true
+ * TC-0334: node file.js with console.log — output 'hi', exitCode 0
+ * TC-0335: node file.js with require() — output contains 'require() is not available', exitCode 1
+ * TC-0336: npm run build (echo ok) — output 'ok', exitCode 0
+ * TC-0337: npm run missing — output 'not found in package.json', exitCode 1
+ * TC-0338: npm install — exact error string, exitCode 1
+ * TC-0339: npm i — same error, exitCode 1
+ * TC-0340: npx prettier index.js — vfsWrite called with formatted result, exitCode 0
+ * TC-0341: npx unknown-tool — contains 'not available', 'Bundled tools: prettier', exitCode 1
+ * TC-0342: npm run with script chain > 5 levels deep — exitCode 1, 'maximum script recursion depth'
+ * TC-0343: npm run with script chain exactly 4 levels deep — exitCode 0, output 'ok'
+ * TC-0344: unknown command — 'command not found', exitCode 127
+ */
+
+/* -------------------------------------------------------------------------- */
+/*  Environment bootstrap — must run before any import of index.ts             */
+/* -------------------------------------------------------------------------- */
+
+// jest-expo uses jsdom, so `window` exists. We only need to attach
+// ReactNativeWebView.postMessage and receiveFromRN shims.
+
+/**
+ * Builds a mock `window.ReactNativeWebView.postMessage` that automatically
+ * satisfies pending VFS promises by calling `window.receiveFromRN` with the
+ * supplied `resultFactory`.
+ *
+ * `resultFactory(msg)` receives the parsed outbound message and returns the
+ * value that should be placed in the FILE_RESULT `result` field (or an
+ * Error to simulate a VFS error).
+ */
+function makeBridge(
+  resultFactory: (msg: Record<string, unknown>) => unknown,
+): jest.Mock {
+  return jest.fn((data: string) => {
+    const msg = JSON.parse(data) as Record<string, unknown>;
+    const requestId = msg.requestId as string;
+
+    let result: string | null = null;
+    let error: string | undefined;
+
+    const outcome = resultFactory(msg);
+    if (outcome instanceof Error) {
+      error = outcome.message;
+    } else if (outcome !== undefined && outcome !== null) {
+      result = typeof outcome === 'string' ? outcome : JSON.stringify(outcome);
+    }
+
+    // Resolve the pending promise by calling receiveFromRN synchronously.
+    // index.ts registers window.receiveFromRN at module load time.
+    (window as unknown as Record<string, (s: string) => void>).receiveFromRN(
+      JSON.stringify({ type: 'FILE_RESULT', requestId, result, error }),
+    );
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Mock isomorphic-git (not under test, and causes ESM issues in Jest)        */
+/* -------------------------------------------------------------------------- */
+
+jest.mock('isomorphic-git', () => ({
+  __esModule: true,
+  default: {
+    init: jest.fn().mockResolvedValue(undefined),
+    statusMatrix: jest.fn(),
+  },
+}));
+jest.mock('isomorphic-git/http/web', () => ({ __esModule: true, default: {} }));
+
+/* -------------------------------------------------------------------------- */
+/*  Mock prettier — replace with deterministic synchronous formatter           */
+/* -------------------------------------------------------------------------- */
+
+jest.mock('prettier/standalone', () => ({
+  format: jest.fn(async (code: string) => `formatted:${code}`),
+}));
+jest.mock('prettier/plugins/babel', () => ({}));
+jest.mock('prettier/plugins/estree', () => ({}));
+
+/* -------------------------------------------------------------------------- */
+/*  Import dispatch AFTER mocks are in place                                   */
+/* -------------------------------------------------------------------------- */
+
+import { dispatch } from '../../src/terminal/bundle/index';
+
+/* -------------------------------------------------------------------------- */
+/*  Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/** Set up a fresh bridge before each test and tear it down after. */
+function setupBridge(
+  factory: (msg: Record<string, unknown>) => unknown,
+): jest.Mock {
+  const mock = makeBridge(factory);
+  (window as unknown as Record<string, unknown>).ReactNativeWebView = {
+    postMessage: mock,
+  };
+  return mock;
+}
+
+function teardownBridge(): void {
+  delete (window as unknown as Record<string, unknown>).ReactNativeWebView;
+}
+
+afterEach(() => {
+  teardownBridge();
+  jest.restoreAllMocks();
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0325 — touch new file                                                   */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0325: touch /tmp/a.txt (new file)', () => {
+  it('calls vfsWrite with empty string and returns exitCode 0', async () => {
+    // FILE_READ rejects (file does not exist), FILE_WRITE succeeds.
+    const mock = setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') return new Error('No such file');
+      if (msg.type === 'FILE_WRITE') return 'ok';
+      return null;
+    });
+
+    const result = await dispatch('touch /tmp/a.txt');
+
+    expect(result.exitCode).toBe(0);
+    // Verify vfsWrite was called with the correct path and empty content.
+    const writeCall = (mock.mock.calls as string[][]).find((args) => {
+      const m = JSON.parse(args[0]) as Record<string, unknown>;
+      return m.type === 'FILE_WRITE';
+    });
+    expect(writeCall).toBeDefined();
+    const writtenMsg = JSON.parse((writeCall as string[])[0]) as Record<string, unknown>;
+    expect(writtenMsg.path).toBe('/tmp/a.txt');
+    expect(writtenMsg.content).toBe('');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0326 — touch existing file                                              */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0326: touch /tmp/existing.txt (file exists)', () => {
+  it('does NOT call vfsWrite and returns exitCode 0', async () => {
+    // FILE_READ succeeds (file already exists).
+    const mock = setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') return 'existing content';
+      return null;
+    });
+
+    const result = await dispatch('touch /tmp/existing.txt');
+
+    expect(result.exitCode).toBe(0);
+    const writeCall = (mock.mock.calls as string[][]).find((args) => {
+      const m = JSON.parse(args[0]) as Record<string, unknown>;
+      return m.type === 'FILE_WRITE';
+    });
+    expect(writeCall).toBeUndefined();
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0327 — cp src dest                                                      */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0327: cp src.txt dest.txt', () => {
+  it('calls vfsCopy and returns exitCode 0', async () => {
+    const mock = setupBridge((msg) => {
+      if (msg.type === 'FILE_COPY') return 'ok';
+      return null;
+    });
+
+    const result = await dispatch('cp /src.txt /dest.txt');
+
+    expect(result.exitCode).toBe(0);
+    const copyCall = (mock.mock.calls as string[][]).find((args) => {
+      const m = JSON.parse(args[0]) as Record<string, unknown>;
+      return m.type === 'FILE_COPY';
+    });
+    expect(copyCall).toBeDefined();
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0328 — cp with no args                                                  */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0328: cp (no args)', () => {
+  it('returns exitCode 1 and output contains "usage"', async () => {
+    const result = await dispatch('cp');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output.toLowerCase()).toContain('usage');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0329 — mv old new                                                       */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0329: mv old.txt new.txt', () => {
+  it('calls vfsMove and returns exitCode 0', async () => {
+    const mock = setupBridge((msg) => {
+      if (msg.type === 'FILE_MOVE') return 'ok';
+      return null;
+    });
+
+    const result = await dispatch('mv /old.txt /new.txt');
+
+    expect(result.exitCode).toBe(0);
+    const moveCall = (mock.mock.calls as string[][]).find((args) => {
+      const m = JSON.parse(args[0]) as Record<string, unknown>;
+      return m.type === 'FILE_MOVE';
+    });
+    expect(moveCall).toBeDefined();
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0330 — mv with no args                                                  */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0330: mv (no args)', () => {
+  it('returns exitCode 1', async () => {
+    const result = await dispatch('mv');
+
+    expect(result.exitCode).toBe(1);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0333 — clear                                                            */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0333: clear', () => {
+  it('returns exitCode 0 and clearScreen: true', async () => {
+    const result = await dispatch('clear');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.clearScreen).toBe(true);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0334 — node file.js with console.log                                   */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0334: node file.js with console.log("hi")', () => {
+  it('returns output "hi" and exitCode 0', async () => {
+    setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') return 'console.log("hi");';
+      return null;
+    });
+
+    const result = await dispatch('node /file.js');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toBe('hi');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0335 — node file.js with require()                                      */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0335: node file.js with require("fs")', () => {
+  it('returns output containing "require() is not available" and exitCode 1', async () => {
+    setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') return "require('fs');";
+      return null;
+    });
+
+    const result = await dispatch('node /file.js');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('require() is not available');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0336 — npm run build                                                    */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0336: npm run build (package.json has "build": "echo ok")', () => {
+  it('returns output "ok" and exitCode 0', async () => {
+    setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') {
+        // package.json read
+        return JSON.stringify({ scripts: { build: 'echo ok' } });
+      }
+      return null;
+    });
+
+    const result = await dispatch('npm run build');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toBe('ok');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0337 — npm run missing                                                  */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0337: npm run missing', () => {
+  it('returns output containing "not found in package.json" and exitCode 1', async () => {
+    setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') {
+        return JSON.stringify({ scripts: { build: 'echo ok' } });
+      }
+      return null;
+    });
+
+    const result = await dispatch('npm run missing');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('not found in package.json');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0338 — npm install                                                      */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0338: npm install', () => {
+  it('returns exact error string "npm install is not supported" and exitCode 1', async () => {
+    const result = await dispatch('npm install');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('npm install is not supported');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0339 — npm i                                                            */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0339: npm i', () => {
+  it('returns the same install-blocked error and exitCode 1', async () => {
+    const result = await dispatch('npm i');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('npm install is not supported');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0340 — npx prettier index.js                                            */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0340: npx prettier index.js', () => {
+  it('calls vfsWrite with formatted result and returns exitCode 0', async () => {
+    const originalCode = 'const x=1';
+    const mock = setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') return originalCode;
+      if (msg.type === 'FILE_WRITE') return 'ok';
+      return null;
+    });
+
+    const result = await dispatch('npx prettier /index.js');
+
+    expect(result.exitCode).toBe(0);
+    // Verify vfsWrite was called with the prettier-formatted content.
+    const writeCall = (mock.mock.calls as string[][]).find((args) => {
+      const m = JSON.parse(args[0]) as Record<string, unknown>;
+      return m.type === 'FILE_WRITE';
+    });
+    expect(writeCall).toBeDefined();
+    const writtenMsg = JSON.parse((writeCall as string[])[0]) as Record<string, unknown>;
+    expect(writtenMsg.content).toBe(`formatted:${originalCode}`);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0341 — npx unknown-tool                                                 */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0341: npx unknown-tool', () => {
+  it('returns exitCode 1, contains "not available", lists "prettier" but not "eslint" or "tsc"', async () => {
+    const result = await dispatch('npx unknown-tool');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('not available');
+    expect(result.output).toContain('Bundled tools: prettier');
+    expect(result.output).not.toContain('eslint');
+    expect(result.output).not.toContain('tsc');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0342 — npm run depth guard fires at > 5 levels                         */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0342: npm run with script that recurses > 5 levels', () => {
+  it('returns exitCode 1 and output contains "maximum script recursion depth"', async () => {
+    // Chain a→b→c→d→e→f→f: depth 0→1→2→3→4→5 — guard fires at depth >= 5.
+    setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') {
+        return JSON.stringify({
+          scripts: {
+            a: 'npm run b',
+            b: 'npm run c',
+            c: 'npm run d',
+            d: 'npm run e',
+            e: 'npm run f',
+            f: 'npm run f',
+          },
+        });
+      }
+      return null;
+    });
+
+    const result = await dispatch('npm run a');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('maximum script recursion depth');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0343 — npm run chain that terminates at exactly depth 4 succeeds       */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0343: npm run chain that terminates at depth 4 (a→b→c→d→echo ok)', () => {
+  it('returns exitCode 0 and output "ok"', async () => {
+    // Chain a→b→c→d→echo ok: depth 0→1→2→3→4, echo executes at depth 4, guard not triggered.
+    setupBridge((msg) => {
+      if (msg.type === 'FILE_READ') {
+        return JSON.stringify({
+          scripts: {
+            a: 'npm run b',
+            b: 'npm run c',
+            c: 'npm run d',
+            d: 'echo ok',
+          },
+        });
+      }
+      return null;
+    });
+
+    const result = await dispatch('npm run a');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toBe('ok');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0344 — unknown command                                                  */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0344: somethingweird (unknown command)', () => {
+  it('returns output containing "command not found" and exitCode 127', async () => {
+    const result = await dispatch('somethingweird');
+
+    expect(result.exitCode).toBe(127);
+    expect(result.output).toContain('command not found');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0347 — ls -l (flag must not be treated as a path)                      */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0347: ls -l (long format)', () => {
+  it('calls vfsList with cwd (not "-l") and returns long-format lines', async () => {
+    const mock = setupBridge((msg) => {
+      if (msg.type === 'FILE_LIST') return JSON.stringify(['file.txt', 'dir/']);
+      return null;
+    });
+
+    const result = await dispatch('ls -l');
+
+    expect(result.exitCode).toBe(0);
+    // The FILE_LIST path must be the cwd ("/"), NOT "/-l"
+    const listCall = (mock.mock.calls as string[][]).find((args) => {
+      const m = JSON.parse(args[0]) as Record<string, unknown>;
+      return m.type === 'FILE_LIST';
+    });
+    expect(listCall).toBeDefined();
+    const listMsg = JSON.parse((listCall as string[])[0]) as Record<string, unknown>;
+    expect(listMsg.path).not.toBe('-l');
+    expect(listMsg.path).not.toBe('/-l');
+    // Long format output must include permission string
+    expect(result.output).toContain('file.txt');
+    expect(result.output).toMatch(/^[-d]rw-/m);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0348 — ls with explicit path arg                                        */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0348: ls /src (explicit path)', () => {
+  it('calls vfsList with /src and returns entries', async () => {
+    const mock = setupBridge((msg) => {
+      if (msg.type === 'FILE_LIST') return JSON.stringify(['index.ts']);
+      return null;
+    });
+
+    const result = await dispatch('ls /src');
+
+    expect(result.exitCode).toBe(0);
+    const listCall = (mock.mock.calls as string[][]).find((args) => {
+      const m = JSON.parse(args[0]) as Record<string, unknown>;
+      return m.type === 'FILE_LIST';
+    });
+    const listMsg = JSON.parse((listCall as string[])[0]) as Record<string, unknown>;
+    expect(listMsg.path).toBe('/src');
+    expect(result.output).toContain('index.ts');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0349 — git status iOS "is not readable" → friendly error               */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0349: git status — iOS Expo "is not readable" error → friendly message', () => {
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockStatusMatrix = (jest.requireMock('isomorphic-git') as { default: { statusMatrix: jest.Mock } }).default.statusMatrix;
+    mockStatusMatrix.mockClear();
+  });
+
+  it('maps iOS Expo readAsStringAsync rejection to friendly "not a git repository" message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error(
+        "Calling the 'readAsStringAsync' function has been rejected - Caused by: File '/.git/HEAD' is not readable",
+      ),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain('fatal: not a git repository');
+    expect(result.output).toContain("Run 'git init'");
+  });
+
+  it('maps iOS Expo "is not readable" to friendly message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error("File '/.git' is not readable"),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain('fatal: not a git repository');
+  });
+});
+
+describe('dispatch — git init (AC-0130)', () => {
+  let mockInit: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockInit = (jest.requireMock('isomorphic-git') as { default: { init: jest.Mock } }).default.init;
+    mockInit.mockClear();
+    mockInit.mockResolvedValue(undefined);
+  });
+
+  // TC-0345
+  it('git init calls git.init and returns initialized message', async () => {
+    const result = await dispatch('git init');
+
+    expect(mockInit).toHaveBeenCalledTimes(1);
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('Initialized empty Git repository');
+  });
+});
+
+describe('dispatch — git friendly errors (AC-0135)', () => {
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockStatusMatrix = (jest.requireMock('isomorphic-git') as { default: { statusMatrix: jest.Mock } }).default.statusMatrix;
+    mockStatusMatrix.mockClear();
+  });
+
+  // TC-0346
+  it('git status ENOENT returns friendly "not a git repository" message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error(
+        "Call to function 'ExponentFileSystem.readFileAsync' has been rejected - Caused by: java.io.FileNotFoundException: /data/user/0/com.example/.git ENOENT",
+      ),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain(
+      'fatal: not a git repository (or any of the parent directories): .git',
+    );
+    expect(result.output).toContain("Run 'git init' to create one.");
+  });
+
+  // TC-0346
+  it('git status "Could not find git repo" returns friendly message', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error('Could not find git repo at path /'),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(128);
+    expect(result.output).toContain(
+      'fatal: not a git repository (or any of the parent directories): .git',
+    );
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0367 — getToken() timeout (BUG-0025)                                   */
+/* -------------------------------------------------------------------------- */
+
+describe('TC-0367: git push when TOKEN_RESULT is never sent → timeout error (BUG-0025)', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('resolves with exitCode 1 and output matching /timed out/i after 30 s', async () => {
+    // Bridge responds normally to all VFS messages but never sends TOKEN_RESULT.
+    // We achieve this by using a custom postMessage mock that responds to FILE_* messages
+    // but ignores GET_TOKEN entirely.
+    (window as unknown as Record<string, unknown>).ReactNativeWebView = {
+      postMessage: jest.fn((data: string) => {
+        const msg = JSON.parse(data) as Record<string, unknown>;
+        if (msg.type === 'GET_TOKEN') {
+          // Deliberately never respond — simulates network failure / app backgrounded.
+          return;
+        }
+        // Respond to all other messages normally (FILE_READ, FILE_WRITE, etc.)
+        const requestId = msg.requestId as string;
+        (window as unknown as Record<string, (s: string) => void>).receiveFromRN(
+          JSON.stringify({ type: 'FILE_RESULT', requestId, result: null, error: undefined }),
+        );
+      }),
+    };
+
+    // Start the git push — it will call getToken() which will hang until timeout.
+    const resultPromise = dispatch('git push origin main');
+
+    // Advance fake timers past the 30 s threshold to trigger the timeout.
+    jest.advanceTimersByTime(31_000);
+
+    const result = await resultPromise;
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toMatch(/timed out/i);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0361 / TC-0362 — git status statusMatrix condition ordering (BUG-0026) */
+/* -------------------------------------------------------------------------- */
+
+describe('dispatch — git status statusMatrix condition ordering (BUG-0026)', () => {
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockStatusMatrix = (jest.requireMock('isomorphic-git') as { default: { statusMatrix: jest.Mock } }).default.statusMatrix;
+    mockStatusMatrix.mockClear();
+  });
+
+  // TC-0361: staged new file [0,2,2] shows A  not ??
+  it('TC-0361: staged new file [head=0,workdir=2,stage=2] shows "A " not "??"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['newfile.ts', 0, 2, 2],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('A  newfile.ts');
+    expect(result.output).not.toContain('?? newfile.ts');
+  });
+
+  // TC-0362: untracked file [0,2,0] shows ??
+  it('TC-0362: untracked file [head=0,workdir=2,stage=0] shows "??"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['untracked.ts', 0, 2, 0],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('?? untracked.ts');
+    expect(result.output).not.toContain('A  untracked.ts');
+  });
+
+  // TC-0363: modified + staged [1,2,2] shows M
+  it('TC-0363: modified+staged file [head=1,workdir=2,stage=2] shows "M "', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['modified.ts', 1, 2, 2],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('M  modified.ts');
+    expect(result.output).not.toContain('?? modified.ts');
+  });
+
+  // TC-0364: modified unstaged [1,2,1] shows _M (space M)
+  it('TC-0364: modified unstaged file [head=1,workdir=2,stage=1] shows " M"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['unstaged.ts', 1, 2, 1],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain(' M unstaged.ts');
+    expect(result.output).not.toContain('M  unstaged.ts');
+  });
+
+  // TC-0365: deleted unstaged [1,0,0] shows _D
+  it('TC-0365: deleted unstaged file [head=1,workdir=0,stage=0] shows " D"', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['deleted.ts', 1, 0, 0],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain(' D deleted.ts');
+    expect(result.output).not.toContain('D  deleted.ts');
+  });
+
+  // TC-0366: deleted + staged [1,0,1] shows D
+  it('TC-0366: deleted+staged file [head=1,workdir=0,stage=1] shows "D "', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['staged-delete.ts', 1, 0, 1],
+    ]);
+
+    const result = await dispatch('git status');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('D  staged-delete.ts');
+    expect(result.output).not.toContain(' D staged-delete.ts');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/*  TC-0368 / TC-0369 — git error scope (BUG-0027, BUG-0028)                 */
+/* -------------------------------------------------------------------------- */
+
+describe('dispatch — git error handling scope (BUG-0027, BUG-0028)', () => {
+  let mockInit: jest.Mock;
+  let mockStatusMatrix: jest.Mock;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const gitMock = (jest.requireMock('isomorphic-git') as { default: { init: jest.Mock; statusMatrix: jest.Mock } }).default;
+    mockInit = gitMock.init;
+    mockStatusMatrix = gitMock.statusMatrix;
+    mockInit.mockClear();
+    mockStatusMatrix.mockClear();
+  });
+
+  // TC-0368: git init failure shows init-specific error, not "not a git repository"
+  it('TC-0368: git init ENOENT failure shows raw error, not paradoxical "not a git repository"', async () => {
+    mockInit.mockRejectedValue(
+      new Error("ENOENT: no such file or directory, '.git/objects'"),
+    );
+
+    const result = await dispatch('git init');
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).not.toContain('not a git repository');
+  });
+
+  // TC-0369: ENOENT in non-.git path does not show "not a git repository"
+  it('TC-0369: ENOENT in non-.git path (src/foo.ts) does not trigger "not a git repository"', async () => {
+    mockStatusMatrix.mockRejectedValue(
+      new Error("readAsStringAsync failed for 'src/foo.ts'"),
+    );
+
+    const result = await dispatch('git status');
+
+    expect(result.output).not.toContain('not a git repository');
+  });
+});

@@ -1,21 +1,24 @@
 /**
  * TabletResponsive — adaptive three-pane IDE layout.
  *
- * Tablet  (width > 768):  [Sidebar | Editor ] + [Terminal bottom strip]
- * Phone   (width ≤ 768):  [Editor] with collapsible sidebar drawer + bottom terminal
+ * Tablet  (width ≥ 768):  [Sidebar | Editor ] + [Terminal bottom strip]
+ * Phone   (width < 768):  [Editor] with collapsible sidebar drawer + bottom terminal
  *
  * The sidebar width and terminal height are configurable via props.
  */
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Animated,
+  PanResponder,
   StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
+
+import { useTheme } from '../theme/tokens';
 
 // ---------------------------------------------------------------------------
 // Breakpoints and defaults
@@ -31,7 +34,7 @@ const TERMINAL_HEIGHT = 220;
 
 export function useIsTablet(): boolean {
   const { width } = useWindowDimensions();
-  return width > TABLET_BREAKPOINT;
+  return width >= TABLET_BREAKPOINT;
 }
 
 // ---------------------------------------------------------------------------
@@ -49,11 +52,30 @@ interface TabletResponsiveProps {
   sidebarWidth?: number;
   /** Override terminal height (default 220) */
   terminalHeight?: number;
+  /** Called when user drags the resize handle */
+  onTerminalHeightChange?: (height: number) => void;
+  /** Called when user swipes down on the main editor area to open command palette */
+  onOpenPalette?: () => void;
+  /** Called when user presses the gear icon to open settings */
+  onOpenSettings?: () => void;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
+
+const MIN_TERMINAL_HEIGHT = 120;
+const MAX_TERMINAL_HEIGHT = 400;
+
+/** Exported for unit-testing the resize-drag arithmetic. */
+export function clampTerminalHeight(current: number, dy: number): number {
+  return Math.max(MIN_TERMINAL_HEIGHT, Math.min(MAX_TERMINAL_HEIGHT, current - dy));
+}
+
+/** Exported for unit-testing the swipe-to-open predicate. */
+export function isDownwardSwipe(dy: number, vy: number): boolean {
+  return dy > 40 && vy > 0.3;
+}
 
 export default function TabletResponsive({
   sidebar,
@@ -61,67 +83,142 @@ export default function TabletResponsive({
   terminal,
   sidebarWidth = SIDEBAR_WIDTH,
   terminalHeight = TERMINAL_HEIGHT,
+  onTerminalHeightChange,
+  onOpenPalette,
+  onOpenSettings,
 }: TabletResponsiveProps) {
+  const t = useTheme();
   const isTablet = useIsTablet();
   const [phoneSidebarOpen, setPhoneSidebarOpen] = useState(false);
 
   const showTerminal = terminal !== null;
 
-  // ── Tablet layout ──────────────────────────────────────────────────────────
-  if (isTablet) {
-    return (
-      <View style={styles.root}>
-        {/* Main row: sidebar + editor */}
-        <View style={styles.row}>
-          <View style={[styles.sidebar, { width: sidebarWidth }]}>{sidebar}</View>
-          <View style={styles.mainArea}>{main}</View>
-        </View>
+  // NOTE: PanResponder callbacks close over props at mount time.
+  // Callers must pass stable callback references (e.g. via useCallback)
+  // to avoid stale-closure issues on re-render.
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, gs) => {
+        onTerminalHeightChange?.(clampTerminalHeight(terminalHeight, gs.dy));
+      },
+    }),
+  );
 
-        {/* Terminal strip at bottom */}
-        {showTerminal && (
-          <View style={[styles.terminalStrip, { height: terminalHeight }]}>
-            {terminal}
+  // NOTE: Same stale-closure caveat as panResponder above.
+  const swipePanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderRelease: (_, gs) => {
+        if (isDownwardSwipe(gs.dy, gs.vy)) {
+          onOpenPalette?.();
+        }
+      },
+    }),
+  );
+
+  // Shared gesture zone — placed at the top of the main editor area in both layouts.
+  // Captures downward swipes to open the command palette.
+  const swipeZoneView = (
+    <View
+      testID="swipe-zone"
+      style={styles.swipeZone}
+      // eslint-disable-next-line react-hooks/refs
+      {...swipePanResponder.current.panHandlers}
+    />
+  );
+
+  // Gear icon button — opens settings (rendered in a footer strip at the bottom of the sidebar)
+  const gearButton = (
+    <TouchableOpacity
+      testID="settings-gear"
+      onPress={() => onOpenSettings?.()}
+      style={[styles.gearBtn, { borderTopColor: t.border }]}
+      accessibilityLabel="Open settings"
+      accessibilityRole="button"
+    >
+      <Text style={[styles.gearIcon, { color: t.textMuted }]}>⚙</Text>
+      <Text style={[styles.gearLabel, { color: t.textMuted }]}>Settings</Text>
+    </TouchableOpacity>
+  );
+
+  // ── SINGLE RETURN — terminal always at root→child[1]→child[1] ──────────────
+  // Both tablet and phone modes render the same tree shape. Only styles change
+  // on fold/unfold, so React reconciles (updates) rather than remounting the
+  // terminal WebView. This preserves the active WASM terminal session (AC-0185).
+  return (
+    <View style={[styles.root, { backgroundColor: t.bg }]}>
+      {/* child[0] — content area; type is always View, style changes only */}
+      <View style={isTablet ? styles.row : styles.phoneMainArea}>
+        {isTablet && (
+          <View style={[styles.sidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
+            <View style={styles.sidebarContent}>
+              {sidebar}
+            </View>
+            {gearButton}
           </View>
         )}
+        <View style={styles.mainArea}>
+          {swipeZoneView}
+          {main}
+        </View>
       </View>
-    );
-  }
 
-  // ── Phone layout ───────────────────────────────────────────────────────────
-  return (
-    <View style={styles.root}>
-      {/* Editor fills the top area */}
-      <View style={styles.phoneMainArea}>{main}</View>
-
-      {/* Terminal slides up from the bottom */}
+      {/* child[1] — terminal strip; always a View at the same tree position.
+          This guarantees React reconciles on layout switch instead of remounting. */}
       {showTerminal && (
-        <View style={[styles.phoneTerminal, { height: terminalHeight }]}>
+        <View
+          style={[
+            isTablet ? styles.terminalStrip : styles.phoneTerminal,
+            { height: terminalHeight, borderTopColor: t.border, backgroundColor: t.bg },
+          ]}
+        >
+          {/* Resize handle: present in tree on both modes so terminal stays at
+              child[1]. Hidden via display:none on phone — no visual impact. */}
+          <View
+            testID="terminal-resize-handle"
+            style={[
+              styles.resizeHandle,
+              { backgroundColor: t.bgElevated, borderTopColor: t.border },
+              !isTablet && styles.hidden,
+            ]}
+            // eslint-disable-next-line react-hooks/refs
+            {...panResponder.current.panHandlers}
+          />
+          {/* terminal is always child[1] here — stable position → no remount */}
           {terminal}
         </View>
       )}
 
-      {/* Floating sidebar toggle button (bottom-left) */}
-      <TouchableOpacity
-        style={styles.phoneSidebarToggle}
-        onPress={() => setPhoneSidebarOpen((v) => !v)}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.phoneSidebarToggleIcon}>{phoneSidebarOpen ? '✕' : '☰'}</Text>
-      </TouchableOpacity>
-
-      {/* Sidebar drawer overlay */}
-      {phoneSidebarOpen && (
+      {/* children[2+] — phone-only sidebar toggle + drawer overlay */}
+      {!isTablet && (
         <>
-          {/* Scrim — tap to close */}
           <TouchableOpacity
-            style={styles.scrim}
-            activeOpacity={1}
-            onPress={() => setPhoneSidebarOpen(false)}
-          />
-          {/* Drawer panel */}
-          <Animated.View style={[styles.phoneSidebar, { width: sidebarWidth }]}>
-            {sidebar}
-          </Animated.View>
+            style={[styles.phoneSidebarToggle, { backgroundColor: t.accent }]}
+            onPress={() => setPhoneSidebarOpen((v) => !v)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.phoneSidebarToggleIcon}>{phoneSidebarOpen ? '✕' : '☰'}</Text>
+          </TouchableOpacity>
+
+          {phoneSidebarOpen && (
+            <>
+              {/* Scrim — tap to close */}
+              <TouchableOpacity
+                testID="sidebar-scrim"
+                style={styles.scrim}
+                activeOpacity={1}
+                onPress={() => setPhoneSidebarOpen(false)}
+              />
+              {/* Drawer panel */}
+              <Animated.View style={[styles.phoneSidebar, { width: sidebarWidth, backgroundColor: t.bgElevated, borderRightColor: t.border }]}>
+                <View style={styles.sidebarContent}>
+                  {sidebar}
+                </View>
+                {gearButton}
+              </Animated.View>
+            </>
+          )}
         </>
       )}
     </View>
@@ -129,13 +226,12 @@ export default function TabletResponsive({
 }
 
 // ---------------------------------------------------------------------------
-// Styles
+// Styles (non-color values only — colors come from theme tokens via inline styles)
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   // Tablet
   row: {
@@ -143,17 +239,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   sidebar: {
-    backgroundColor: '#1E293B',
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#334155',
+    flexDirection: 'column',
+  },
+  sidebarContent: {
+    flex: 1,
   },
   mainArea: {
     flex: 1,
   },
+  swipeZone: {
+    height: 8,
+    width: '100%',
+    backgroundColor: 'transparent',
+  },
+  resizeHandle: {
+    height: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   terminalStrip: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#334155',
-    backgroundColor: '#0D1117',
   },
   // Phone
   phoneMainArea: {
@@ -161,8 +268,6 @@ const styles = StyleSheet.create({
   },
   phoneTerminal: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#334155',
-    backgroundColor: '#0D1117',
   },
   phoneSidebarToggle: {
     position: 'absolute',
@@ -171,7 +276,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
@@ -194,9 +298,20 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     bottom: 0,
-    backgroundColor: '#1E293B',
     zIndex: 11,
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: '#334155',
   },
+  gearBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 8,
+  },
+  gearIcon: { fontSize: 15 },
+  gearLabel: { fontSize: 12, fontWeight: '500' },
+  // Hides the resize handle in phone mode while keeping it in the React tree,
+  // so terminal stays at a stable child index regardless of layout mode.
+  hidden: { display: 'none' },
 });
