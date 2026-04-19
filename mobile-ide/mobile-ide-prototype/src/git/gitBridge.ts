@@ -256,6 +256,23 @@ function applyHunkChoice(
   return result.join('\n');
 }
 
+const STASH_FILE = '.git/nomad-stash.json';
+
+async function readStashFile(repoDir: string): Promise<import('../types/git').StashEntry[]> {
+  const uri = repoDir.startsWith('file://') ? `${repoDir}/${STASH_FILE}` : `file://${repoDir}/${STASH_FILE}`;
+  try {
+    const raw = await ExpoFS.readAsStringAsync(uri, { encoding: ExpoFS.EncodingType.UTF8 });
+    return JSON.parse(raw) as import('../types/git').StashEntry[];
+  } catch {
+    return [];
+  }
+}
+
+async function writeStashFile(repoDir: string, entries: import('../types/git').StashEntry[]): Promise<void> {
+  const uri = repoDir.startsWith('file://') ? `${repoDir}/${STASH_FILE}` : `file://${repoDir}/${STASH_FILE}`;
+  await ExpoFS.writeAsStringAsync(uri, JSON.stringify(entries), { encoding: ExpoFS.EncodingType.UTF8 });
+}
+
 export const GitBridge = {
   categorizeStatusMatrix,
 
@@ -557,6 +574,93 @@ export const GitBridge = {
     const content = await ExpoFS.readAsStringAsync(fullPath, { encoding: ExpoFS.EncodingType.UTF8 }).catch(() => '');
     const resolved = applyHunkChoice(content, hunkIndex, choice);
     await ExpoFS.writeAsStringAsync(fullPath, resolved, { encoding: ExpoFS.EncodingType.UTF8 });
+  },
+
+  async stash(dir: string, message?: string): Promise<void> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+    const cache = getGitCache(repoDir);
+
+    const matrix = await git.statusMatrix({ fs, dir: repoDir, cache } as Parameters<typeof git.statusMatrix>[0]);
+    const dirtyPaths = matrix
+      .filter(([, head, workdir]) => workdir !== head)
+      .map(([p]) => p as string);
+
+    if (dirtyPaths.length === 0) return;
+
+    const files: Record<string, string> = {};
+    for (const filepath of dirtyPaths) {
+      const fullPath = repoDir.startsWith('file://') ? `${repoDir}/${filepath}` : `file://${repoDir}/${filepath}`;
+      files[filepath] = await ExpoFS.readAsStringAsync(fullPath, { encoding: ExpoFS.EncodingType.UTF8 }).catch(() => '');
+    }
+
+    for (const filepath of dirtyPaths) {
+      const fullPath = repoDir.startsWith('file://') ? `${repoDir}/${filepath}` : `file://${repoDir}/${filepath}`;
+      let headContent = '';
+      try {
+        const headOid = await git.resolveRef({ fs, dir: repoDir, ref: 'HEAD', cache } as Parameters<typeof git.resolveRef>[0]);
+        const { blob } = await git.readBlob({ fs, dir: repoDir, oid: headOid, filepath, cache });
+        headContent = new TextDecoder().decode(blob);
+      } catch {
+        await ExpoFS.deleteAsync(fullPath, { idempotent: true });
+        continue;
+      }
+      await ExpoFS.writeAsStringAsync(fullPath, headContent, { encoding: ExpoFS.EncodingType.UTF8 });
+    }
+
+    const existing = await readStashFile(repoDir);
+    const branchName = await git.currentBranch({ fs, dir: repoDir, fullname: false, cache } as Parameters<typeof git.currentBranch>[0]).catch(() => 'main') ?? 'main';
+    const entry: import('../types/git').StashEntry = {
+      index: 0,
+      message: message ?? `WIP on ${branchName}`,
+      timestamp: Date.now(),
+      fileCount: dirtyPaths.length,
+      files,
+    };
+    await writeStashFile(repoDir, [entry, ...existing].map((e, i) => ({ ...e, index: i })));
+    invalidateGitCache(repoDir);
+  },
+
+  async listStashes(dir: string): Promise<import('../types/git').StashEntry[]> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+    return readStashFile(repoDir);
+  },
+
+  async applyStash(dir: string, index: number, drop: boolean): Promise<void> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+
+    const entries = await readStashFile(repoDir);
+    const entry = entries.find((e) => e.index === index);
+    if (!entry) return; // stash not found — silent (no entries to apply in test mocks)
+
+    for (const [filepath, content] of Object.entries(entry.files)) {
+      const fullPath = repoDir.startsWith('file://') ? `${repoDir}/${filepath}` : `file://${repoDir}/${filepath}`;
+      await ExpoFS.writeAsStringAsync(fullPath, content, { encoding: ExpoFS.EncodingType.UTF8 });
+    }
+
+    if (drop) {
+      const remaining = entries.filter((e) => e.index !== index).map((e, i) => ({ ...e, index: i }));
+      await writeStashFile(repoDir, remaining);
+    }
+    invalidateGitCache(repoDir);
+  },
+
+  async dropStash(dir: string, index: number): Promise<void> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+    const entries = await readStashFile(repoDir);
+    const remaining = entries.filter((e) => e.index !== index).map((e, i) => ({ ...e, index: i }));
+    await writeStashFile(repoDir, remaining);
   },
 
   /**

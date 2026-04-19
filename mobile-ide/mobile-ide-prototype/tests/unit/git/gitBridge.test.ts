@@ -48,11 +48,13 @@ jest.mock('isomorphic-git/http/web', () => ({}));
 const mockMakeDirectoryAsync = jest.fn();
 const mockReadAsStringAsync = jest.fn();
 const mockWriteAsStringAsync = jest.fn();
+const mockDeleteAsync = jest.fn();
 
 jest.mock('expo-file-system/legacy', () => ({
   makeDirectoryAsync: (...a: unknown[]) => mockMakeDirectoryAsync(...a),
   readAsStringAsync: (...a: unknown[]) => mockReadAsStringAsync(...a),
   writeAsStringAsync: (...a: unknown[]) => mockWriteAsStringAsync(...a),
+  deleteAsync: (...a: unknown[]) => mockDeleteAsync(...a),
   EncodingType: { UTF8: 'utf8', Base64: 'base64' },
 }));
 
@@ -92,6 +94,7 @@ beforeEach(() => {
   mockWriteAsStringAsync.mockResolvedValue(undefined);
   mockCheckout.mockResolvedValue(undefined);
   mockBranch.mockResolvedValue(undefined);
+  mockDeleteAsync.mockResolvedValue(undefined);
 });
 
 describe('categorizeStatusMatrix', () => {
@@ -271,6 +274,42 @@ describe('GitBridge.resolveHunk', () => {
   it('resolves a hunk with "both" choice without throwing', async () => {
     await expect(
       GitBridge.resolveHunk('file:///workspace', 'src/App.tsx', 0, 'both'),
+    ).resolves.not.toThrow();
+  });
+});
+
+describe('GitBridge stash operations', () => {
+  beforeEach(() => {
+    mockStatusMatrix.mockResolvedValue([['src/App.tsx', 0, 2, 0]]);
+    mockResolveRef.mockResolvedValue('abc123oid');
+    mockReadBlob.mockResolvedValue({ blob: new TextEncoder().encode('head content') });
+    mockCurrentBranch.mockResolvedValue('main');
+  });
+
+  it('stash() resolves without error', async () => {
+    await expect(GitBridge.stash('file:///workspace', 'WIP')).resolves.not.toThrow();
+  });
+
+  it('listStashes() returns an array', async () => {
+    const result = await GitBridge.listStashes('file:///workspace');
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it('applyStash() with drop=true resolves without error', async () => {
+    await expect(
+      GitBridge.applyStash('file:///workspace', 0, true),
+    ).resolves.not.toThrow();
+  });
+
+  it('applyStash() with drop=false resolves without error', async () => {
+    await expect(
+      GitBridge.applyStash('file:///workspace', 0, false),
+    ).resolves.not.toThrow();
+  });
+
+  it('dropStash() resolves without error', async () => {
+    await expect(
+      GitBridge.dropStash('file:///workspace', 0),
     ).resolves.not.toThrow();
   });
 });
