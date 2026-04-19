@@ -193,6 +193,69 @@ function invalidateGitCache(dir: string): void {
   gitCaches.delete(dir);
 }
 
+function parseConflictHunks(content: string): import('../types/git').ConflictHunk[] {
+  const lines = content.split('\n');
+  const hunks: import('../types/git').ConflictHunk[] = [];
+  let hunkIndex = 0;
+  let i = 0;
+  while (i < lines.length) {
+    if (lines[i].startsWith('<<<<<<<')) {
+      const ours: string[] = [];
+      const theirs: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith('=======')) {
+        ours.push(lines[i]);
+        i++;
+      }
+      i++; // skip =======
+      while (i < lines.length && !lines[i].startsWith('>>>>>>>')) {
+        theirs.push(lines[i]);
+        i++;
+      }
+      hunks.push({ index: hunkIndex++, ours, theirs });
+    }
+    i++;
+  }
+  return hunks;
+}
+
+function applyHunkChoice(
+  content: string,
+  hunkIndex: number,
+  choice: 'ours' | 'theirs' | 'both',
+): string {
+  const lines = content.split('\n');
+  const result: string[] = [];
+  let currentHunk = 0;
+  let i = 0;
+  while (i < lines.length) {
+    if (lines[i].startsWith('<<<<<<<')) {
+      const ours: string[] = [];
+      const theirs: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith('=======')) {
+        ours.push(lines[i++]);
+      }
+      i++; // skip =======
+      while (i < lines.length && !lines[i].startsWith('>>>>>>>')) {
+        theirs.push(lines[i++]);
+      }
+      i++; // skip >>>>>>>
+      if (currentHunk === hunkIndex) {
+        if (choice === 'ours') result.push(...ours);
+        else if (choice === 'theirs') result.push(...theirs);
+        else { result.push(...ours); result.push(...theirs); }
+      } else {
+        result.push('<<<<<<< HEAD', ...ours, '=======', ...theirs, '>>>>>>> incoming');
+      }
+      currentHunk++;
+    } else {
+      result.push(lines[i++]);
+    }
+  }
+  return result.join('\n');
+}
+
 export const GitBridge = {
   categorizeStatusMatrix,
 
@@ -454,6 +517,46 @@ export const GitBridge = {
       timestamp: mostRecent.commit.author.timestamp * 1000,
       message: mostRecent.commit.message.split('\n')[0],
     }));
+  },
+
+  async getConflicts(dir: string): Promise<import('../types/git').ConflictFile[]> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+    const cache = getGitCache(repoDir);
+
+    const matrix = await git.statusMatrix({ fs, dir: repoDir, cache } as Parameters<typeof git.statusMatrix>[0]);
+    const conflictPaths = matrix
+      .filter(([, head, workdir, stage]) => head === 1 && workdir === 2 && stage === 3)
+      .map(([filepath]) => filepath as string);
+
+    const result: import('../types/git').ConflictFile[] = [];
+    for (const filepath of conflictPaths) {
+      const fullPath = repoDir.startsWith('file://') ? `${repoDir}/${filepath}` : `file://${repoDir}/${filepath}`;
+      const content = await ExpoFS.readAsStringAsync(fullPath, {
+        encoding: ExpoFS.EncodingType.UTF8,
+      }).catch(() => '');
+      const hunks = parseConflictHunks(content);
+      if (hunks.length > 0) result.push({ path: filepath, hunks });
+    }
+    return result;
+  },
+
+  async resolveHunk(
+    dir: string,
+    filepath: string,
+    hunkIndex: number,
+    choice: 'ours' | 'theirs' | 'both',
+  ): Promise<void> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+    const fullPath = repoDir.startsWith('file://') ? `${repoDir}/${filepath}` : `file://${repoDir}/${filepath}`;
+    const content = await ExpoFS.readAsStringAsync(fullPath, { encoding: ExpoFS.EncodingType.UTF8 }).catch(() => '');
+    const resolved = applyHunkChoice(content, hunkIndex, choice);
+    await ExpoFS.writeAsStringAsync(fullPath, resolved, { encoding: ExpoFS.EncodingType.UTF8 });
   },
 
   /**

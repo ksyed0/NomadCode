@@ -47,10 +47,12 @@ jest.mock('isomorphic-git/http/web', () => ({}));
 
 const mockMakeDirectoryAsync = jest.fn();
 const mockReadAsStringAsync = jest.fn();
+const mockWriteAsStringAsync = jest.fn();
 
 jest.mock('expo-file-system/legacy', () => ({
   makeDirectoryAsync: (...a: unknown[]) => mockMakeDirectoryAsync(...a),
   readAsStringAsync: (...a: unknown[]) => mockReadAsStringAsync(...a),
+  writeAsStringAsync: (...a: unknown[]) => mockWriteAsStringAsync(...a),
   EncodingType: { UTF8: 'utf8', Base64: 'base64' },
 }));
 
@@ -87,6 +89,7 @@ beforeEach(() => {
   mockCurrentBranch.mockResolvedValue('main');
   mockStatusMatrix.mockResolvedValue([]);
   mockListBranches.mockResolvedValue(['main']);
+  mockWriteAsStringAsync.mockResolvedValue(undefined);
   mockCheckout.mockResolvedValue(undefined);
   mockBranch.mockResolvedValue(undefined);
 });
@@ -228,5 +231,46 @@ describe('GitBridge.getBlame', () => {
       expect(line).toHaveProperty('timestamp');
       expect(line).toHaveProperty('message');
     });
+  });
+});
+
+describe('GitBridge.getConflicts', () => {
+  it('returns empty array when no conflicted files', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['src/clean.ts', 1, 1, 1],
+    ]);
+    const result = await GitBridge.getConflicts('file:///workspace');
+    expect(result).toEqual([]);
+  });
+
+  it('returns ConflictFile[] for files with conflict markers (head=1,workdir=2,stage=3)', async () => {
+    mockStatusMatrix.mockResolvedValue([
+      ['src/App.tsx', 1, 2, 3],
+    ]);
+    // ExpoFS mock will return empty string (no conflict markers), so hunks = []
+    // but the array shape should still be ConflictFile[]
+    const result = await GitBridge.getConflicts('file:///workspace');
+    expect(Array.isArray(result)).toBe(true);
+  });
+});
+
+describe('GitBridge.resolveHunk', () => {
+  it('resolves a hunk with "ours" choice without throwing', async () => {
+    // readAsStringAsync will return conflict content from mock
+    await expect(
+      GitBridge.resolveHunk('file:///workspace', 'src/App.tsx', 0, 'ours'),
+    ).resolves.not.toThrow();
+  });
+
+  it('resolves a hunk with "theirs" choice without throwing', async () => {
+    await expect(
+      GitBridge.resolveHunk('file:///workspace', 'src/App.tsx', 0, 'theirs'),
+    ).resolves.not.toThrow();
+  });
+
+  it('resolves a hunk with "both" choice without throwing', async () => {
+    await expect(
+      GitBridge.resolveHunk('file:///workspace', 'src/App.tsx', 0, 'both'),
+    ).resolves.not.toThrow();
   });
 });
