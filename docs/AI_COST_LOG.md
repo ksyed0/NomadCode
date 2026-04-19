@@ -363,3 +363,6 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-04-19 | 3f093ef9-5243-46c4-bffd-10366433d247 | claude/infallible-volhard-724973 | 0 | 0 | 0 | 0.0000 |
 | 2026-04-19 | 3f093ef9-5243-46c4-bffd-10366433d247 | claude/infallible-volhard-724973 | 0 | 0 | 0 | 0.0000 |
 | 2026-04-19 | 3f093ef9-5243-46c4-bffd-10366433d247 | claude/infallible-volhard-724973 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-19 | 3f093ef9-5243-46c4-bffd-10366433d247 [NO_DATA] | claude/infallible-volhard-724973 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-19 | 3f093ef9-5243-46c4-bffd-10366433d247 [NO_DATA] | claude/infallible-volhard-724973 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-19 | 3f093ef9-5243-46c4-bffd-10366433d247 [NO_DATA] | claude/infallible-volhard-724973 | 0 | 0 | 0 | 0.0000 |
