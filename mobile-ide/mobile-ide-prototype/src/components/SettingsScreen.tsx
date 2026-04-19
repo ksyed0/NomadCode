@@ -17,6 +17,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Switch,
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
@@ -52,6 +53,8 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const installedExtensions = useSettingsStore((s) => s.installedExtensions);
   const addExtension = useSettingsStore((s) => s.addExtension);
   const removeExtension = useSettingsStore((s) => s.removeExtension);
+  const formatOnSave = useSettingsStore((s) => s.formatOnSave);
+  const setFormatOnSave = useSettingsStore((s) => s.setFormatOnSave);
 
   // Auth store selectors
   const authToken = useAuthStore((s) => s.token);
@@ -453,6 +456,16 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
                 <Text style={[styles.fontBtnText, dynamicFontBtn]}>A+</Text>
               </TouchableOpacity>
             </View>
+          </View>
+
+          <View style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}>
+            <Text style={[styles.editorRowLabel, { color: tokens.text }]}>Format on Save</Text>
+            <Switch
+              testID="format-on-save-toggle"
+              value={formatOnSave}
+              onValueChange={setFormatOnSave}
+              trackColor={{ true: tokens.accent }}
+            />
           </View>
 
           {/* ── Section: Extensions ─────────────────────────────────────── */}

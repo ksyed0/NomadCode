@@ -14,11 +14,13 @@ const mockSetFontSize = jest.fn();
 const mockAddExtension = jest.fn();
 const mockRemoveExtension = jest.fn();
 const mockSetWorkspaceRoot = jest.fn();
+const mockSetFormatOnSave = jest.fn();
 let mockTheme = 'nomad-dark';
 let mockFontSize = 14;
 let mockWorkspaceUri = '';
 let mockWorkspaceDisplayName = '';
 let mockInstalledExtensions: Array<{ id: string; name: string; version: string; source: string }> = [];
+let mockFormatOnSave = false;
 
 jest.mock('../../src/stores/useSettingsStore', () => ({
   __esModule: true,
@@ -29,11 +31,13 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
       workspaceUri: mockWorkspaceUri,
       workspaceDisplayName: mockWorkspaceDisplayName,
       installedExtensions: mockInstalledExtensions,
+      formatOnSave: mockFormatOnSave,
       setTheme: mockSetTheme,
       setFontSize: mockSetFontSize,
       setWorkspaceRoot: mockSetWorkspaceRoot,
       addExtension: mockAddExtension,
       removeExtension: mockRemoveExtension,
+      setFormatOnSave: mockSetFormatOnSave,
     })
   ),
 }));
@@ -111,6 +115,7 @@ beforeEach(() => {
   mockWorkspaceUri = '';
   mockWorkspaceDisplayName = '';
   mockInstalledExtensions = [];
+  mockFormatOnSave = false;
   mockAuthToken = null;
   mockAuthUsername = null;
   mockAuthError = null;
@@ -120,6 +125,7 @@ beforeEach(() => {
   mockSetError.mockReset();
   mockRequestWorkspacePermission.mockReset();
   mockSetWorkspaceRoot.mockReset();
+  mockSetFormatOnSave.mockReset();
 });
 
 describe('SettingsScreen', () => {
@@ -413,5 +419,32 @@ describe('SettingsScreen — Workspace section', () => {
       expect(mockRequestWorkspacePermission).toHaveBeenCalled();
     });
     expect(mockSetWorkspaceRoot).not.toHaveBeenCalled();
+  });
+});
+
+describe('SettingsScreen — format on save', () => {
+  it('renders Format on Save toggle', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    expect(screen.getByText('Format on Save')).toBeTruthy();
+  });
+
+  it('toggle calls setFormatOnSave with true when toggled on', () => {
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent(screen.getByTestId('format-on-save-toggle'), 'valueChange', true);
+    expect(mockSetFormatOnSave).toHaveBeenCalledWith(true);
+  });
+
+  it('toggle calls setFormatOnSave with false when toggled off', () => {
+    mockFormatOnSave = true;
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    fireEvent(screen.getByTestId('format-on-save-toggle'), 'valueChange', false);
+    expect(mockSetFormatOnSave).toHaveBeenCalledWith(false);
+  });
+
+  it('toggle value reflects formatOnSave from the store', () => {
+    mockFormatOnSave = true;
+    render(<SettingsScreen visible={true} onClose={jest.fn()} />);
+    const toggle = screen.getByTestId('format-on-save-toggle');
+    expect(toggle.props.value).toBe(true);
   });
 });

@@ -59,6 +59,8 @@ export interface EditorHandle {
   sendFoldAll: () => void;
   sendUnfoldAll: () => void;
   requestViewStateSave: (path: string) => void;
+  sendPrettierConfig: (config: Record<string, unknown>) => void;
+  sendFormat: () => void;
 }
 
 interface EditorProps {
@@ -70,6 +72,7 @@ interface EditorProps {
   onSave: (path: string, content: string) => void;
   onTabScrollConsumed?: (path: string) => void;
   onTabViewStateChange?: (path: string, viewState: string) => void;
+  formatOnSave?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -315,6 +318,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   onSave,
   onTabScrollConsumed,
   onTabViewStateChange,
+  formatOnSave,
 }, ref) {
   const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
@@ -419,6 +423,12 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
     );
   }, [editorReady, monacoTheme]);
 
+  // ── Send SET_OPTIONS when formatOnSave prop changes ───────────────────────
+  useEffect(() => {
+    if (!editorReady) return;
+    sendToEditor('SET_OPTIONS', { formatOnSave: formatOnSave ?? false });
+  }, [editorReady, formatOnSave, sendToEditor]);
+
   // ── Messages from Monaco ─────────────────────────────────────────────────
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
@@ -448,11 +458,13 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
     [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange],
   );
 
-  // ── Expose imperative handle (fold commands, view state) ─────────────────
+  // ── Expose imperative handle (fold commands, view state, prettier) ───────
   useImperativeHandle(ref, () => ({
     sendFoldAll: () => sendToEditor('FOLD_ALL'),
     sendUnfoldAll: () => sendToEditor('UNFOLD_ALL'),
     requestViewStateSave: (path: string) => sendToEditor('REQUEST_VIEW_STATE', { path }),
+    sendPrettierConfig: (config: Record<string, unknown>) => sendToEditor('PRETTIER_CONFIG', { config }),
+    sendFormat: () => sendToEditor('FORMAT'),
   }), [sendToEditor]);
 
   // ── Toolbar action dispatcher ────────────────────────────────────────────

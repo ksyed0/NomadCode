@@ -67,6 +67,7 @@ export default function App() {
   const workspaceUri = useSettingsStore((s) => s.workspaceUri);
   const setWorkspaceRoot = useSettingsStore((s) => s.setWorkspaceRoot);
   const editorFontSize = useSettingsStore((s) => s.fontSize);
+  const formatOnSave = useSettingsStore((s) => s.formatOnSave);
 
   // Scale chrome text (status bar, etc.) proportionally to the user's
   // editor font size. Default editor size is 14 → scale factor 1.0.
@@ -141,6 +142,23 @@ export default function App() {
 
   // ── Editor ref (imperative handle for fold/view-state) ───────────────────
   const editorRef = useRef<EditorHandle | null>(null);
+
+  // ── Prettier config resolution — reads .prettierrc* from root ─────────────
+  useEffect(() => {
+    if (!rootPath) return;
+    const CONFIG_FILES = ['.prettierrc', '.prettierrc.json', 'prettier.config.json'];
+    (async () => {
+      for (const name of CONFIG_FILES) {
+        try {
+          const content = await FileSystemBridge.readFile(`${rootPath}/${name}`);
+          const config = JSON.parse(content);
+          editorRef.current?.sendPrettierConfig(config);
+          return;
+        } catch { /* not found or invalid JSON */ }
+      }
+      editorRef.current?.sendPrettierConfig({});
+    })();
+  }, [rootPath]);
 
   // ── Editor state ──────────────────────────────────────────────────────────
   const [tabs, setTabs] = useState<EditorTab[]>([]);
@@ -498,6 +516,12 @@ export default function App() {
       action: () => { editorRef.current?.sendUnfoldAll(); },
     },
     {
+      id: 'format-document',
+      label: 'Format Document',
+      description: 'Run Prettier on current file',
+      action: () => { editorRef.current?.sendFormat(); },
+    },
+    {
       id: 'search-global',
       label: 'Search: Find in Files',
       description: 'Open global search panel',
@@ -604,6 +628,7 @@ export default function App() {
             onSave={saveFile}
             onTabScrollConsumed={handleTabScrollConsumed}
             onTabViewStateChange={handleTabViewStateChange}
+            formatOnSave={formatOnSave}
           />
         }
         terminal={<TerminalWebView workingDirectory={rootPath} onCommand={handleCommandComplete} visible={showTerminal} />}
