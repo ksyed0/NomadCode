@@ -11,11 +11,15 @@ export function getCurrentSymbol(content: string, cursorLine: number): string | 
   const lines = content.split('\n').slice(0, cursorLine);
   const sliced = lines.join('\n');
   let lastMatch: string | null = null;
+  let lastOffset = -1;
   for (const pattern of SYMBOL_PATTERNS) {
     const globalPat = new RegExp(pattern.source, 'gm');
     let m: RegExpExecArray | null;
     while ((m = globalPat.exec(sliced)) !== null) {
-      lastMatch = m[1];
+      if (m.index > lastOffset) {
+        lastOffset = m.index;
+        lastMatch = m[1];
+      }
     }
   }
   return lastMatch;

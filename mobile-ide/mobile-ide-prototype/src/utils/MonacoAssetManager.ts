@@ -263,6 +263,7 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
 
     // ── Breadcrumb: symbol on cursor move (debounced 150ms) ───────────────────
     var breadcrumbTimer = null;
+    // SYNC-NOTE: SYMBOL_PATTERNS_BC mirrors symbolExtractor.ts — update both when adding language patterns.
     var SYMBOL_PATTERNS_BC = [
       /^(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s+(\w+)/m,
       /^(?:export\s+)?(?:abstract\s+)?class\s+(\w+)/m,
@@ -275,10 +276,16 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
       var lines = content.split('\n').slice(0, cursorLine);
       var sliced = lines.join('\n');
       var lastMatch = null;
+      var lastOffset = -1;
       for (var i = 0; i < SYMBOL_PATTERNS_BC.length; i++) {
         var gp = new RegExp(SYMBOL_PATTERNS_BC[i].source, 'gm');
         var m;
-        while ((m = gp.exec(sliced)) !== null) { lastMatch = m[1]; }
+        while ((m = gp.exec(sliced)) !== null) {
+          if (m.index > lastOffset) {
+            lastOffset = m.index;
+            lastMatch = m[1];
+          }
+        }
       }
       return lastMatch;
     }

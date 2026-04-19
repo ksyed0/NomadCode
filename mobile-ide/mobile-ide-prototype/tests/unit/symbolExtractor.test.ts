@@ -45,4 +45,11 @@ describe('getCurrentSymbol', () => {
     const content = 'function first() {}\n\nconst second = () => {}';
     expect(getCurrentSymbol(content, 3)).toBe('second');
   });
+
+  it('returns the symbol closest to cursor when patterns interleave', () => {
+    // fn (Rust) on line 1, func (Go) on line 2 — cursor on line 3
+    // Should return 'Handle' (Go func, line 2) not 'compute' (Rust fn, line 1)
+    const content = 'fn compute(x: i32) -> i32 {\n}\nfunc Handle() {}';
+    expect(getCurrentSymbol(content, 3)).toBe('Handle');
+  });
 });
