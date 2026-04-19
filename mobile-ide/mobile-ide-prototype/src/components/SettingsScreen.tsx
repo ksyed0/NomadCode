@@ -538,14 +538,18 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
           </TouchableOpacity>
 
           {/* ── Section: Snippets ───────────────────────────────────────── */}
-          <Text style={[styles.sectionHeader, { color: tokens.textMuted }]}>Snippets</Text>
+          <Text style={[styles.sectionLabel, { color: tokens.textMuted }]}>SNIPPETS</Text>
           {snippets.map((s) => (
             <View key={`${s.prefix}:${s.language}`} style={[styles.row, { justifyContent: 'space-between' }]}>
               <View>
                 <Text style={[styles.label, { color: tokens.text }]}>{s.prefix}</Text>
                 <Text style={{ color: tokens.textMuted, fontSize: 11 }}>{s.description} · {s.language}</Text>
               </View>
-              <TouchableOpacity onPress={() => removeSnippet(s.prefix, s.language)}>
+              <TouchableOpacity
+                testID={`remove-snippet-${s.prefix}`}
+                accessibilityLabel={`Remove snippet ${s.prefix}`}
+                onPress={() => removeSnippet(s.prefix, s.language)}
+              >
                 <Text style={{ color: '#EF4444', fontSize: 13 }}>Remove</Text>
               </TouchableOpacity>
             </View>
@@ -603,8 +607,10 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
                   <TouchableOpacity
                     style={[styles.addBtn, { flex: 1, borderColor: tokens.accent, backgroundColor: tokens.accent }]}
                     onPress={() => {
-                      if (newPrefix && newBody) {
-                        addSnippet({ prefix: newPrefix, body: newBody, description: newDescription || newPrefix, language: newLanguage || 'all' });
+                      const trimmedPrefix = newPrefix.trim();
+                      const trimmedBody = newBody.trim();
+                      if (trimmedPrefix && trimmedBody) {
+                        addSnippet({ prefix: trimmedPrefix, body: trimmedBody, description: newDescription.trim() || trimmedPrefix, language: newLanguage.trim() || 'all' });
                         setNewPrefix(''); setNewBody(''); setNewDescription(''); setNewLanguage('all');
                         setShowAddSnippet(false);
                       }

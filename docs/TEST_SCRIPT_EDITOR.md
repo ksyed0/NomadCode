@@ -48,7 +48,7 @@ Requires an iPad with a physical keyboard connected.
 ## 6. Snippets (US-0078)
 1. Open a JavaScript file, type `clg` and press Tab.
 2. Verify `console.log()` expands with cursor inside parens.
-3. Open a TypeScript React file, type `rfc` and press Tab — verify component scaffold.
+3. Open a `.tsx` file (TypeScript React), type `rfc` and press Tab — verify component scaffold.
 4. Open Settings → Snippets section — verify built-in snippets listed read-only.
 5. Tap "Add Snippet" — fill in prefix `mySnip`, body `const $1 = $2;`, language `typescript`.
 6. Open a `.ts` file, type `mySnip` Tab — verify expansion with tab stop navigation.

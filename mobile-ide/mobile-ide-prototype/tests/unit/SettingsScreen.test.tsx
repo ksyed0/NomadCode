@@ -459,7 +459,7 @@ describe('SettingsScreen — format on save', () => {
 describe('SettingsScreen — snippets section', () => {
   it('renders Snippets section heading', () => {
     render(<SettingsScreen visible onClose={jest.fn()} />);
-    expect(screen.getByText('Snippets')).toBeTruthy();
+    expect(screen.getByText('SNIPPETS')).toBeTruthy();
   });
 
   it('shows Add Snippet button', () => {
