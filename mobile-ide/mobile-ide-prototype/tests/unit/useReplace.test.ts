@@ -79,10 +79,7 @@ describe('useReplace', () => {
   });
 
   it('replacePreview shows "query → replacement" when both set', () => {
-    let currentQuery = '';
-    const setQueryMock = jest.fn((q: string) => {
-      currentQuery = q;
-    });
+    const setQueryMock = jest.fn();
     mockedUseSearch.mockReturnValue({
       query: 'oldName',
       setQuery: setQueryMock,

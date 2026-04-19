@@ -592,7 +592,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
             .filter(Boolean)
             .slice(-4)}
           symbol={symbol}
-          onSegmentPress={(index, parentPath) => {
+          onSegmentPress={(_index, _parentPath) => {
             // Future: navigate to parent in FileExplorer
           }}
         />

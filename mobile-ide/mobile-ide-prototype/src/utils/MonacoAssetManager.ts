@@ -298,12 +298,12 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
     var breadcrumbTimer = null;
     // SYNC-NOTE: SYMBOL_PATTERNS_BC mirrors symbolExtractor.ts — update both when adding language patterns.
     var SYMBOL_PATTERNS_BC = [
-      /^(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s+(\w+)/m,
-      /^(?:export\s+)?(?:abstract\s+)?class\s+(\w+)/m,
-      /^(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s+)?\(/m,
-      /^def\s+(\w+)/m,
-      /^fn\s+(\w+)/m,
-      /^func\s+(\w+)/m,
+      /^(?:export\\s+)?(?:default\\s+)?(?:async\\s+)?function\\s+(\\w+)/m,
+      /^(?:export\\s+)?(?:abstract\\s+)?class\\s+(\\w+)/m,
+      /^(?:export\\s+)?const\\s+(\\w+)\\s*=\\s*(?:async\\s+)?\\(/m,
+      /^def\\s+(\\w+)/m,
+      /^fn\\s+(\\w+)/m,
+      /^func\\s+(\\w+)/m,
     ];
     function getSymbolForBreadcrumb(content, cursorLine) {
       var lines = content.split('\n').slice(0, cursorLine);

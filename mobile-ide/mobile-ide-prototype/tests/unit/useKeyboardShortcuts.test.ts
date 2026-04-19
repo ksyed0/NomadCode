@@ -33,7 +33,7 @@ describe('useKeyboardShortcuts', () => {
     ];
     renderHook(() => useKeyboardShortcuts(shortcuts));
     // Get the registered handler
-    const handler = mockAddListener.mock.calls[0][1] as Function;
+    const handler = mockAddListener.mock.calls[0][1] as (event: { key: string; modifiers: string[] }) => void;
     handler({ key: 's', modifiers: ['cmd'] });
     expect(saveAction).toHaveBeenCalledTimes(1);
   });
@@ -44,7 +44,7 @@ describe('useKeyboardShortcuts', () => {
       { key: 's', modifiers: ['cmd'], label: 'Save File', action: saveAction },
     ];
     renderHook(() => useKeyboardShortcuts(shortcuts));
-    const handler = mockAddListener.mock.calls[0][1] as Function;
+    const handler = mockAddListener.mock.calls[0][1] as (event: { key: string; modifiers: string[] }) => void;
     handler({ key: 'z', modifiers: ['cmd'] });
     expect(saveAction).not.toHaveBeenCalled();
   });
@@ -62,7 +62,7 @@ describe('useKeyboardShortcuts', () => {
 
   it('does not subscribe when native module is absent', () => {
     const savedModule = NativeModules.KeyboardShortcuts;
-    // @ts-ignore
+    // @ts-expect-error — deleting to simulate absent native module
     delete NativeModules.KeyboardShortcuts;
     const MockNativeEventEmitter = NativeEventEmitter as jest.Mock;
     MockNativeEventEmitter.mockClear();
