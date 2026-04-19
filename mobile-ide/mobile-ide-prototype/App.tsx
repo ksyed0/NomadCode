@@ -27,6 +27,8 @@ import {
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Editor, { EditorHandle, EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
+import { parseDiffToGutter } from './src/utils/gitGutter';
+import type { GutterDiff } from './src/types/git';
 import FileExplorer from './src/components/FileExplorer';
 import { TerminalWebView } from './src/components/TerminalWebView';
 import { Command, CommandPalette } from './src/components/CommandPalette';
@@ -119,6 +121,7 @@ export default function App() {
   const setBranchInfo = useGitStore((s) => s.setBranchInfo);
   const setIsGitScreenOpen = useGitStore((s) => s.setIsGitScreenOpen);
   const setActiveGitTab = useGitStore((s) => s.setActiveGitTab);
+  const setGutterDecorations = useGitStore((s) => s.setGutterDecorations);
 
   // Restore auth session from keychain on mount
   useEffect(() => {
@@ -282,10 +285,20 @@ export default function App() {
       );
       // Refresh meta so the next foreground check won't flag this save as a conflict
       tabMetaRef.current.set(path, { path, loadedAt: Date.now(), contentHash: simpleHash(content) });
+      // Fire-and-forget: update git gutter decorations after save
+      void (async () => {
+        try {
+          const relativePath = path.replace(rootPath + '/', '').replace(rootPath.replace('file://', '') + '/', '');
+          const { headText, workText } = await GitBridge.getWorkingDiff(rootPath, relativePath);
+          const diff: GutterDiff = parseDiffToGutter(headText, workText);
+          setGutterDecorations(diff);
+          editorRef.current?.sendGutterDecorations(diff);
+        } catch { /* no repo open or not a git file */ }
+      })();
     } catch (err) {
       Alert.alert('Save failed', String(err));
     }
-  }, []);
+  }, [rootPath, setGutterDecorations]);
 
   const saveActiveFile = useCallback(() => {
     const tab = tabs.find((t) => t.path === activeTabPath);

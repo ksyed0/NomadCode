@@ -941,3 +941,41 @@ describe('scrollTo in setContent', () => {
     expect(payload?.scrollTo).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Git gutter decorations
+// ---------------------------------------------------------------------------
+
+describe('git gutter decorations', () => {
+  it('exposes sendGutterDecorations via ref', async () => {
+    const ref = React.createRef<{ sendGutterDecorations: (diff: import('../../src/types/git').GutterDiff) => void }>();
+    render(
+      <Editor
+        ref={ref as React.Ref<import('../../src/components/Editor').EditorHandle>}
+        tabs={[TAB_A]}
+        activeTabPath={TAB_A.path}
+        onTabChange={jest.fn()}
+        onTabClose={jest.fn()}
+        onContentChange={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+    await waitFor(() => expect(typeof ref.current?.sendGutterDecorations).toBe('function'));
+  });
+
+  it('exposes sendBlameData via ref', async () => {
+    const ref = React.createRef<{ sendBlameData: (lines: import('../../src/types/git').BlameLine[]) => void }>();
+    render(
+      <Editor
+        ref={ref as React.Ref<import('../../src/components/Editor').EditorHandle>}
+        tabs={[TAB_A]}
+        activeTabPath={TAB_A.path}
+        onTabChange={jest.fn()}
+        onTabClose={jest.fn()}
+        onContentChange={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+    await waitFor(() => expect(typeof ref.current?.sendBlameData).toBe('function'));
+  });
+});

@@ -212,6 +212,12 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
       cursor: crosshair; background: transparent;
     }
     #mc-overlay.active { display: block; }
+
+    /* ── Git gutter decorations ───────────────────────────────────────── */
+    .gutter-added { border-left: 3px solid #22c55e !important; }
+    .gutter-modified { border-left: 3px solid #d97706 !important; }
+    .gutter-deleted::after { content: '▾'; color: #ef4444; font-size: 10px; }
+    .blame-gutter { display: inline-block; width: 150px; padding-right: 8px; color: #64748b; font-size: 10px; overflow: hidden; white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -625,6 +631,35 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
           }
           case 'PRETTIER_CONFIG': {
             prettierConfig = msg.config || {};
+            break;
+          }
+          case 'GIT_GUTTER': {
+            var diff = msg.diff;
+            var decorations = [];
+            (diff.added || []).forEach(function(line) {
+              decorations.push({ range: new monaco.Range(line, 1, line, 1), options: { isWholeLine: true, linesDecorationsClassName: 'gutter-added' } });
+            });
+            (diff.modified || []).forEach(function(line) {
+              decorations.push({ range: new monaco.Range(line, 1, line, 1), options: { isWholeLine: true, linesDecorationsClassName: 'gutter-modified' } });
+            });
+            (diff.deleted || []).forEach(function(line) {
+              decorations.push({ range: new monaco.Range(line, 1, line, 1), options: { isWholeLine: true, linesDecorationsClassName: 'gutter-deleted' } });
+            });
+            window._gutterDecorationIds = editor.deltaDecorations(window._gutterDecorationIds || [], decorations);
+            break;
+          }
+          case 'GIT_BLAME': {
+            var blameLines = msg.lines;
+            var blameDecorations = (blameLines || []).map(function(bl) {
+              return {
+                range: new monaco.Range(bl.lineNumber, 1, bl.lineNumber, 1),
+                options: {
+                  isWholeLine: false,
+                  before: { content: ' ' + bl.commitHash + ' ' + bl.author + ' ', inlineClassName: 'blame-gutter' }
+                }
+              };
+            });
+            window._blameDecorationIds = editor.deltaDecorations(window._blameDecorationIds || [], blameDecorations);
             break;
           }
           default:

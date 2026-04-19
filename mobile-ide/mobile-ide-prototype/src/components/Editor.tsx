@@ -39,6 +39,7 @@ import { getLanguageRules } from '../utils/languageRules';
 import { useTheme, getMonacoTheme, THEMES } from '../theme/tokens';
 import type { ThemeTokens } from '../theme/tokens';
 import useSettingsStore from '../stores/useSettingsStore';
+import type { GutterDiff, BlameLine } from '../types/git';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -64,6 +65,8 @@ export interface EditorHandle {
   requestViewStateSave: (path: string) => void;
   sendPrettierConfig: (config: Record<string, unknown>) => void;
   sendFormat: () => void;
+  sendGutterDecorations: (diff: GutterDiff) => void;
+  sendBlameData: (lines: BlameLine[]) => void;
 }
 
 interface EditorProps {
@@ -76,6 +79,8 @@ interface EditorProps {
   onTabScrollConsumed?: (path: string) => void;
   onTabViewStateChange?: (path: string, viewState: string) => void;
   formatOnSave?: boolean;
+  onGutterTap?: (line: number) => void;
+  onBlameTap?: (commitHash: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -322,6 +327,8 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   onTabScrollConsumed,
   onTabViewStateChange,
   formatOnSave,
+  onGutterTap,
+  onBlameTap,
 }, ref) {
   const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
@@ -470,19 +477,27 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
               Alert.alert('Format Failed', msg.error);
             }
             break;
+          case 'GUTTER_TAP':
+            onGutterTap?.(msg.line as number);
+            break;
+          case 'BLAME_TAP':
+            onBlameTap?.(msg.commitHash as string);
+            break;
         }
       } catch { /* ignore */ }
     },
-    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange],
+    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange, onGutterTap, onBlameTap],
   );
 
-  // ── Expose imperative handle (fold commands, view state, prettier) ───────
+  // ── Expose imperative handle (fold commands, view state, prettier, git gutter) ───────
   useImperativeHandle(ref, () => ({
     sendFoldAll: () => sendToEditor('FOLD_ALL'),
     sendUnfoldAll: () => sendToEditor('UNFOLD_ALL'),
     requestViewStateSave: (path: string) => sendToEditor('REQUEST_VIEW_STATE', { path }),
     sendPrettierConfig: (config: Record<string, unknown>) => sendToEditor('PRETTIER_CONFIG', { config }),
     sendFormat: () => sendToEditor('FORMAT'),
+    sendGutterDecorations: (diff: GutterDiff) => sendToEditor('GIT_GUTTER', { diff }),
+    sendBlameData: (lines: BlameLine[]) => sendToEditor('GIT_BLAME', { lines }),
   }), [sendToEditor]);
 
   // ── Toolbar action dispatcher ────────────────────────────────────────────
