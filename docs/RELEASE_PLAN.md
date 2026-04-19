@@ -117,7 +117,8 @@ Dependencies: EPIC-0008
 EPIC-0021: Advanced Editor Features
 Description: Search & replace across files, hardware keyboard shortcuts (⌘S / ⌘` / ⌘N / ⌘P), code folding, Prettier auto-format, breadcrumbs navigation, and snippet expansion.
 Release Target: Release 1.1 (Post-Launch)
-Status: Planned
+Status: Done
+PR: #96 (merged)
 Dependencies: EPIC-0001, EPIC-0014
 
 EPIC-0022: Code Navigation
