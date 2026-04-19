@@ -111,7 +111,8 @@ Dependencies: EPIC-0002
 EPIC-0020: Advanced Git Workflows
 Description: Branch create/switch UI, merge conflict resolution editor, git gutter indicators, stash management, and git blame — completing a professional git workflow on mobile.
 Release Target: Release 1.0 (GA)
-Status: Planned
+Status: Done
+Notes: Stash implementation uses a JSON sidecar file (.git/nomad-stash.json) rather than native git stash CLI — not interoperable with standard git stash commands. All 5 user stories complete (US-0068–US-0072). 1071 tests passing.
 Dependencies: EPIC-0008
 
 EPIC-0021: Advanced Editor Features
@@ -979,51 +980,51 @@ Dependencies: EPIC-0002
 US-0068 (EPIC-0020): As a developer, I want to create and switch branches from the mobile UI, so that I can manage feature work without needing a desktop.
 Priority: High (P0)
 Estimate: M
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0207: The Git panel exposes a "New Branch" action that accepts a name and creates the branch locally via isomorphic-git
-  - [ ] AC-0208: A branch picker (bottom sheet on phone, sidebar section on tablet) lists local and remote branches and switches HEAD on tap
-  - [ ] AC-0209: The active branch name is shown in the status bar and updates immediately after a switch without requiring an app restart
+  - [x] AC-0207: The Git panel exposes a "New Branch" action that accepts a name and creates the branch locally via isomorphic-git
+  - [x] AC-0208: A branch picker (bottom sheet on phone, sidebar section on tablet) lists local and remote branches and switches HEAD on tap
+  - [x] AC-0209: The active branch name is shown in the status bar and updates immediately after a switch without requiring an app restart
 Dependencies: EPIC-0008
 
 US-0069 (EPIC-0020): As a developer, I want a merge conflict resolution UI, so that I can resolve conflicts without leaving the app.
 Priority: High (P0)
 Estimate: L
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0210: Files with merge conflicts are marked with a conflict badge in the File Explorer; tapping opens a 3-panel diff view (ours / base / theirs)
-  - [ ] AC-0211: Each conflicted hunk has Accept Ours, Accept Theirs, and Accept Both buttons; accepting a choice writes the resolved content to the file
-  - [ ] AC-0212: Once all conflicts are resolved, a "Mark Resolved & Stage" action is available; the conflict badge clears and the file is staged automatically
+  - [x] AC-0210: Files with merge conflicts are marked with a conflict badge in the File Explorer; tapping opens a 3-panel diff view (ours / base / theirs)
+  - [x] AC-0211: Each conflicted hunk has Accept Ours, Accept Theirs, and Accept Both buttons; accepting a choice writes the resolved content to the file
+  - [x] AC-0212: Once all conflicts are resolved, a "Mark Resolved & Stage" action is available; the conflict badge clears and the file is staged automatically
 Dependencies: US-0068
 
 US-0070 (EPIC-0020): As a developer, I want git gutter indicators in the editor, so that I can see which lines have been added, modified, or deleted since the last commit.
 Priority: Medium (P1)
 Estimate: S
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0213: Lines added since HEAD are marked with a green bar in the Monaco gutter; modified lines show amber; deleted positions show a red triangle
-  - [ ] AC-0214: Gutter indicators update within 500 ms of saving the file (diff is computed against the HEAD version in isomorphic-git's object store)
-  - [ ] AC-0215: Tapping a gutter indicator opens a compact inline diff popup showing the original line(s) with a Revert Hunk action
+  - [x] AC-0213: Lines added since HEAD are marked with a green bar in the Monaco gutter; modified lines show amber; deleted positions show a red triangle
+  - [x] AC-0214: Gutter indicators update within 500 ms of saving the file (diff is computed against the HEAD version in isomorphic-git's object store)
+  - [x] AC-0215: Tapping a gutter indicator opens a compact inline diff popup showing the original line(s) with a Revert Hunk action
 Dependencies: EPIC-0008
 
 US-0071 (EPIC-0020): As a developer, I want to stash and pop changes, so that I can context-switch without losing work in progress.
 Priority: Medium (P1)
 Estimate: S
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0216: The Git panel has a "Stash Changes" action that stashes all unstaged modifications with an optional message
-  - [ ] AC-0217: A stash list shows all named stashes; tapping a stash offers Pop (apply + drop) and Apply (apply, keep stash) actions
-  - [ ] AC-0218: Popping or applying a stash updates the working tree and refreshes gutter indicators without requiring a manual refresh
+  - [x] AC-0216: The Git panel has a "Stash Changes" action that stashes all unstaged modifications with an optional message
+  - [x] AC-0217: A stash list shows all named stashes; tapping a stash offers Pop (apply + drop) and Apply (apply, keep stash) actions
+  - [x] AC-0218: Popping or applying a stash updates the working tree and refreshes gutter indicators without requiring a manual refresh
 Dependencies: EPIC-0008
 
 US-0072 (EPIC-0020): As a developer, I want to see git blame annotations, so that I can understand the history of each line of code.
 Priority: Low (P2)
 Estimate: M
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0219: A "Toggle Blame" action in the editor toolbar overlays each line with the commit hash, author, and relative timestamp
-  - [ ] AC-0220: Tapping a blame annotation opens a detail sheet with the full commit message, author, date, and a "View Diff" link that opens the commit diff
-  - [ ] AC-0221: Blame data is loaded asynchronously; a loading skeleton is shown while git log is computed so the editor remains responsive
+  - [x] AC-0219: A "Toggle Blame" action in the editor toolbar overlays each line with the commit hash, author, and relative timestamp
+  - [x] AC-0220: Tapping a blame annotation opens a detail sheet with the full commit message, author, date, and a "View Diff" link that opens the commit diff
+  - [x] AC-0221: Blame data is loaded asynchronously; a loading skeleton is shown while git log is computed so the editor remains responsive
 Dependencies: EPIC-0008
 ```
 
