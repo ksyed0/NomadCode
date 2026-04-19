@@ -67,7 +67,7 @@ Five user stories implemented:
 
 - Stash format is NomadCode-internal (`.git/nomad-stash.json`) — not `git stash` CLI compatible
 - `getBlame` maps all lines to most-recent commit (isomorphic-git limitation)
-- `BlameDetailSheet` "View Diff" logs to console — `GitDiffModal` doesn't accept `commitHash` yet
+- `onGutterTap` in App.tsx (AC-0215 inline diff popup) is a stub — follow-up task (moved to next session)
 - `onGutterTap` in App.tsx (AC-0215 inline diff popup) is a stub — follow-up task
 
 ### Key Files Modified/Created
@@ -85,8 +85,49 @@ Five user stories implemented:
 ### Next Session Pick-up
 1. Merge PR #98 → `main`; pull main locally
 2. EPIC-0022 (Code Navigation) or EPIC-0023 (AI Code Intelligence) — next on GA path
-3. Follow-up tasks (can be background or half-session):
-   - `GitDiffModal` accept `commitHash` prop (BlameDetailSheet "View Diff" currently console.log)
+
+---
+
+## Session 19 — 2026-04-19 (Follow-up: GitDiffModal commitHash)
+
+### What Was Done
+
+Implemented follow-up task from Session 18: BlameDetailSheet "View Diff" now opens GitDiffModal for the blamed commit.
+
+#### Changes
+
+**`src/git/gitBridge.ts`** — Added `getCommitDiff(dir, commitHash, filepath)`:
+- Resolves short/full hash via `git.resolveRef`
+- Reads file blob at that commit and its first parent (`readCommit` → `readBlob`)
+- Returns `{ beforeText, afterText }` — empty string for net-new or deleted files
+
+**`src/components/GitDiffModal.tsx`** — Added `commitHash?: string | null` prop:
+- When present, calls `getCommitDiff` instead of `getWorkingDiff`
+- Title changes to `Commit <hash>: <file>` instead of `Diff: <file>`
+- `useEffect` deps include `commitHash` so re-loads when hash changes
+
+**`App.tsx`** — Wired `onViewDiff` in BlameDetailSheet:
+- Added `diffCommitHash: string | null` state
+- `onViewDiff(hash)` sets `diffFilepath` (relative path from `activeTabPath`) + `diffCommitHash`
+- `onClose` clears both; removed TODO comment and `console.log`
+
+#### Testing
+- **1074 tests, all passing** (47 suites) — up from 1071
+- 3 new `GitDiffModal` test cases: commit diff loading, error handling, mutual exclusion with `getWorkingDiff`
+
+#### PR
+- See PR #98 (same branch as Session 18)
+
+### Key Files Modified
+- `src/git/gitBridge.ts` — `getCommitDiff` method
+- `src/components/GitDiffModal.tsx` — `commitHash` prop
+- `App.tsx` — `diffCommitHash` state + `onViewDiff` wiring
+- `tests/unit/GitDiffModal.test.tsx` — 3 new tests
+
+### Next Session Pick-up
+1. Merge PR #98 → `main`; pull `main` locally
+2. EPIC-0022 (Code Navigation) or EPIC-0023 (AI Code Intelligence) — next on GA path
+3. Implement `onGutterTap` AC-0215 inline diff popup (stub in App.tsx)
    - File Explorer `isConflicted` prop (conflict badge on conflicted files in the tree)
    - `onGutterTap` in App.tsx — inline diff popup + Revert Hunk (AC-0215)
 
