@@ -32,6 +32,7 @@ import {
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { marked } from 'marked';
 import { buildMonacoHtml, MonacoAssetManager } from '../utils/MonacoAssetManager';
+import { Breadcrumb } from './Breadcrumb';
 import { getLanguageRules } from '../utils/languageRules';
 import { useTheme, getMonacoTheme, THEMES } from '../theme/tokens';
 import type { ThemeTokens } from '../theme/tokens';
@@ -335,6 +336,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   const [multiCursor, setMultiCursor] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [tooltipId,   setTooltipId]   = useState<string | null>(null);
+  const [symbol,      setSymbol]      = useState<string | null>(null);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeTab      = tabs.find((tab) => tab.path === activeTabPath) ?? null;
@@ -452,6 +454,9 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
               onTabViewStateChange?.(msg.path, msg.viewState);
             }
             break;
+          case 'BREADCRUMB_UPDATE':
+            setSymbol(msg.symbol ?? null);
+            break;
         }
       } catch { /* ignore */ }
     },
@@ -565,18 +570,19 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
         })}
       </ScrollView>
 
-      {/* ── Path breadcrumb — shows the last 3 meaningful path segments ── */}
+      {/* ── Path breadcrumb — tappable segments + current symbol ── */}
       {activeTab && (
-        <View testID="editor-path-breadcrumb" style={styles.pathBar}>
-          <Text style={styles.pathText} numberOfLines={1}>
-            {activeTab.path
-              .replace(/^file:\/\//, '')       // strip file:// scheme
-              .split('/')
-              .filter(Boolean)
-              .slice(-3)                        // grandparent › parent › file
-              .join(' › ')}
-          </Text>
-        </View>
+        <Breadcrumb
+          segments={activeTab.path
+            .replace(/^file:\/\//, '')
+            .split('/')
+            .filter(Boolean)
+            .slice(-4)}
+          symbol={symbol}
+          onSegmentPress={(index, parentPath) => {
+            // Future: navigate to parent in FileExplorer
+          }}
+        />
       )}
 
       {/* ── Editor + optional preview split ── */}

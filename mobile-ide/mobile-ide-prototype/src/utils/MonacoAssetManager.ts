@@ -261,6 +261,28 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
       }
     }
 
+    // ── Breadcrumb: symbol on cursor move (debounced 150ms) ───────────────────
+    var breadcrumbTimer = null;
+    var SYMBOL_PATTERNS_BC = [
+      /^(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s+(\w+)/m,
+      /^(?:export\s+)?(?:abstract\s+)?class\s+(\w+)/m,
+      /^(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s+)?\(/m,
+      /^def\s+(\w+)/m,
+      /^fn\s+(\w+)/m,
+      /^func\s+(\w+)/m,
+    ];
+    function getSymbolForBreadcrumb(content, cursorLine) {
+      var lines = content.split('\n').slice(0, cursorLine);
+      var sliced = lines.join('\n');
+      var lastMatch = null;
+      for (var i = 0; i < SYMBOL_PATTERNS_BC.length; i++) {
+        var gp = new RegExp(SYMBOL_PATTERNS_BC[i].source, 'gm');
+        var m;
+        while ((m = gp.exec(sliced)) !== null) { lastMatch = m[1]; }
+      }
+      return lastMatch;
+    }
+
     // ── Loader error fallback (offline → CDN) ─────────────────────────────
     function onLoaderError() {
       var s = document.createElement('script');
@@ -314,6 +336,17 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
         // ── Content changes → RN ─────────────────────────────────────────
         editor.onDidChangeModelContent(function () {
           post({ type: 'contentChanged', content: editor.getValue() });
+        });
+
+        // ── Breadcrumb: post symbol on cursor position change ────────────
+        editor.onDidChangeCursorPosition(function(e) {
+          if (breadcrumbTimer) clearTimeout(breadcrumbTimer);
+          breadcrumbTimer = setTimeout(function() {
+            var content = editor.getValue();
+            var line = e.position.lineNumber;
+            var symbol = getSymbolForBreadcrumb(content, line);
+            post({ type: 'BREADCRUMB_UPDATE', symbol: symbol });
+          }, 150);
         });
 
         // ── Cmd/Ctrl+S → save (with optional format-on-save) ─────────────
