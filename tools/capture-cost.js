@@ -19,6 +19,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const tmp = require('tmp');
 const { execSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
@@ -30,7 +31,13 @@ const ROOT = path.join(__dirname, '..');
 // hooks do not receive a session_id — only the Stop hook does via stdin.
 // The temp file is written on the first tool call and deleted by the Stop hook.
 // A stale file (>8 h old, from a crashed session) is treated as absent.
-const TEMP_BASELINE_PATH = path.join(os.tmpdir(), '.nomadcode-cost-baseline.json');
+const TEMP_BASELINE_PATH = tmp.fileSync({
+  prefix: 'nomadcode-cost-baseline-',
+  postfix: '.json',
+  keep: true,
+  discardDescriptor: true,
+  mode: 0o600,
+}).name;
 
 if (process.argv.includes('--capture-baseline')) {
   const statsPath = path.join(os.homedir(), '.claude', 'stats-cache.json');
