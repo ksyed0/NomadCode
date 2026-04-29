@@ -221,6 +221,14 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: ThemeId = 'noma
       cursor: crosshair; background: transparent;
     }
     #mc-overlay.active { display: block; }
+
+    /* ── Git gutter indicators ────────────────────────────────────────── */
+    .gutter-added    { background: #22C55E; width: 3px !important; margin-left: 3px; border-radius: 1px; }
+    .gutter-modified { background: #D97706; width: 3px !important; margin-left: 3px; border-radius: 1px; }
+    .gutter-deleted::after { content: '▾'; color: #EF4444; font-size: 10px; line-height: 1; }
+
+    /* ── Git blame annotations ───────────────────────────────────────── */
+    .blame-annotation { color: #64748B; font-size: 11px; font-style: italic; margin-left: 24px; }
   </style>
 </head>
 <body>
@@ -248,6 +256,16 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: ThemeId = 'noma
     };
     var formatOnSave = false;
     var prettierConfig = {};
+
+    function formatRelTime(ms) {
+      var diff = Date.now() - ms;
+      var m = Math.floor(diff / 60000);
+      if (m < 1) return 'just now';
+      if (m < 60) return m + 'm ago';
+      var h = Math.floor(m / 60);
+      if (h < 24) return h + 'h ago';
+      return Math.floor(h / 24) + 'd ago';
+    }
 
     // ── Snippet completion provider ────────────────────────────────────────────
     var snippetDisposables = {};
@@ -639,6 +657,56 @@ ${defineThemesScript}
             prettierConfig = msg.config || {};
             break;
           }
+
+          case 'SET_GUTTER_DECORATIONS': {
+            if (!editor) break;
+            var lines = msg.lines || [];
+            var decorations = lines.map(function(l) {
+              var cls = l.type === 'added' ? 'gutter-added'
+                      : l.type === 'modified' ? 'gutter-modified'
+                      : 'gutter-deleted';
+              return {
+                range: new monaco.Range(l.lineNumber, 1, l.lineNumber, 1),
+                options: { glyphMarginClassName: cls },
+              };
+            });
+            window._gutterDecorations = editor.deltaDecorations(
+              window._gutterDecorations || [], decorations);
+            break;
+          }
+
+          case 'CLEAR_GUTTER_DECORATIONS': {
+            if (!editor) break;
+            window._gutterDecorations = editor.deltaDecorations(
+              window._gutterDecorations || [], []);
+            break;
+          }
+
+          case 'SET_BLAME_DECORATIONS': {
+            if (!editor) break;
+            var blameLines = msg.lines || [];
+            var blameDecorations = blameLines.map(function(b) {
+              var label = '● ' + b.commitHash + ' · ' + b.author + ' · ' + formatRelTime(b.timestamp);
+              return {
+                range: new monaco.Range(b.lineNumber, 1, b.lineNumber, 1),
+                options: {
+                  after: { content: '  ' + label, inlineClassName: 'blame-annotation' },
+                  isWholeLine: false,
+                },
+              };
+            });
+            window._blameDecorations = editor.deltaDecorations(
+              window._blameDecorations || [], blameDecorations);
+            break;
+          }
+
+          case 'CLEAR_BLAME_DECORATIONS': {
+            if (!editor) break;
+            window._blameDecorations = editor.deltaDecorations(
+              window._blameDecorations || [], []);
+            break;
+          }
+
           default:
             break;
         }

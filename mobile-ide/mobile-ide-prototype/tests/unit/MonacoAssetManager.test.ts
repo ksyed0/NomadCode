@@ -313,4 +313,29 @@ describe('buildMonacoHtml()', () => {
     const html = buildMonacoHtml('file:///monaco/vs', 'nomad-dark');
     expect(html).toContain('#1e1e1e');
   });
+
+  it('HTML includes gutter-added CSS class', () => {
+    const html = buildMonacoHtml('file:///monaco/vs');
+    expect(html).toContain('gutter-added');
+  });
+
+  it('HTML includes SET_GUTTER_DECORATIONS handler', () => {
+    const html = buildMonacoHtml('file:///monaco/vs');
+    expect(html).toContain('SET_GUTTER_DECORATIONS');
+  });
+
+  it('HTML includes SET_BLAME_DECORATIONS handler', () => {
+    const html = buildMonacoHtml('file:///monaco/vs');
+    expect(html).toContain('SET_BLAME_DECORATIONS');
+  });
+
+  it('HTML includes CLEAR_GUTTER_DECORATIONS handler', () => {
+    const html = buildMonacoHtml('file:///monaco/vs');
+    expect(html).toContain('CLEAR_GUTTER_DECORATIONS');
+  });
+
+  it('HTML includes CLEAR_BLAME_DECORATIONS handler', () => {
+    const html = buildMonacoHtml('file:///monaco/vs');
+    expect(html).toContain('CLEAR_BLAME_DECORATIONS');
+  });
 });
