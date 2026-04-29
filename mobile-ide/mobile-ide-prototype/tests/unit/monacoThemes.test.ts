@@ -70,6 +70,15 @@ describe('buildMonacoThemeData', () => {
       if (rule.foreground) expect(rule.foreground).not.toMatch(/^#/);
     });
   });
+
+  it('strips # prefix from hex values in colors', () => {
+    const data = buildMonacoThemeData(THEMES['nomad-dark']);
+    Object.values(data.colors).forEach(value => {
+      // Strip any trailing alpha digits before checking
+      const base = value.replace(/[0-9a-fA-F]{2}$/, '');
+      expect(base).not.toMatch(/^#/);
+    });
+  });
 });
 
 describe('ALL_MONACO_THEMES', () => {

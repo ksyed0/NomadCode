@@ -35,11 +35,11 @@ export function buildMonacoThemeData(t: ThemeTokens): MonacoThemeData {
       { token: 'entity.name.function', foreground: stripHash(t.accent) },
     ],
     colors: {
-      'editor.background':               t.bg,
-      'editor.foreground':               t.text,
-      'editor.selectionBackground':      t.bgHighlight + '88',
-      'editor.lineHighlightBackground':  t.bgElevated + '66',
-      'editorCursor.foreground':         t.accent,
+      'editor.background':               stripHash(t.bg),
+      'editor.foreground':               stripHash(t.text),
+      'editor.selectionBackground':      stripHash(t.bgHighlight) + '88',
+      'editor.lineHighlightBackground':  stripHash(t.bgElevated) + '66',
+      'editorCursor.foreground':         stripHash(t.accent),
     },
   };
 }
