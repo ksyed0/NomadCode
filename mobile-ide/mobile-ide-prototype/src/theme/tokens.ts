@@ -129,15 +129,11 @@ export function useTheme(): ThemeTokens {
 }
 
 /**
- * Maps a NomadCode ThemeId to a Monaco built-in theme name.
- * Custom themes are not registered with monaco.editor.defineTheme yet, so
- * setTheme would silently fail on a custom name and Monaco would stay on
- * its default vs-dark. Mapping to vs / vs-dark keeps the editor in sync
- * with the user's light/dark preference at minimum.
- *
- * Future enhancement: register full per-theme colour palettes via
- * monaco.editor.defineTheme so editor syntax colours match the chosen theme.
+ * Returns the ThemeId for use as a Monaco custom theme name.
+ * All 11 themes are registered via monaco.editor.defineTheme in the Monaco
+ * HTML bundle (see MonacoAssetManager.ts / monacoThemes.ts), so passing the
+ * ThemeId directly to editor.setTheme() applies the full custom palette.
  */
-export function getMonacoTheme(id: ThemeId): 'vs' | 'vs-dark' {
-  return THEMES[id].mode === 'dark' ? 'vs-dark' : 'vs';
+export function getMonacoTheme(id: ThemeId): ThemeId {
+  return id;
 }
