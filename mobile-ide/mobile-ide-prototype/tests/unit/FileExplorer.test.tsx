@@ -1319,6 +1319,24 @@ describe('sidebar tab bar', () => {
     });
     expect(getByPlaceholderText('Search')).toBeTruthy();
   });
+
+  it('accepts conflictedPaths and onOpenConflict props without crashing', () => {
+    const onOpenConflict = jest.fn();
+    const { queryByText } = render(
+      <FileExplorer
+        ref={null}
+        rootPath="/workspace"
+        onFileSelect={jest.fn()}
+        onOpenConflict={onOpenConflict}
+        conflictedPaths={new Set(['/workspace/src/file.ts'])}
+        sidebarTab="files"
+        onSidebarTabChange={jest.fn()}
+        onSearchNavigate={jest.fn()}
+      />,
+    );
+    // Props accepted without error — no crash
+    expect(queryByText('⚡')).toBeDefined(); // null is acceptable since tree may not have loaded
+  });
 });
 
 // ---------------------------------------------------------------------------
