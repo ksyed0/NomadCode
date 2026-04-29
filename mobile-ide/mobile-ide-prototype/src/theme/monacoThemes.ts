@@ -1,4 +1,4 @@
-import { ThemeId, ThemeTokens, THEMES } from './tokens';
+import { ThemeId, ThemeTokens, THEMES } from './themeData';
 
 export interface MonacoThemeData {
   base: 'vs' | 'vs-dark';
