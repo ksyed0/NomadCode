@@ -117,7 +117,8 @@ Dependencies: EPIC-0008
 EPIC-0021: Advanced Editor Features
 Description: Search & replace across files, hardware keyboard shortcuts (⌘S / ⌘` / ⌘N / ⌘P), code folding, Prettier auto-format, breadcrumbs navigation, and snippet expansion.
 Release Target: Release 1.1 (Post-Launch)
-Status: Planned
+Status: Done
+PR: #96 (merged)
 Dependencies: EPIC-0001, EPIC-0014
 
 EPIC-0022: Code Navigation
@@ -1034,61 +1035,67 @@ Dependencies: EPIC-0008
 US-0073 (EPIC-0021): As a developer, I want to search and replace across all files in my project, so that I can do global refactors without a desktop IDE.
 Priority: High (P0)
 Estimate: M
-Status: Planned
+Status: Done
+Branch: feature/epic-0021-advanced-editor-features
 Acceptance Criteria:
-  - [ ] AC-0222: The Global Search panel (EPIC-0014) gains a Replace field; entering a replacement term and pressing Replace All writes changes to every matching file simultaneously
-  - [ ] AC-0223: A preview mode shows all replacements highlighted before confirmation; the developer can exclude individual matches with a checkbox
-  - [ ] AC-0224: Replace supports regex with capture groups (e.g. $1); the preview updates in real time as the pattern changes
+  - [x] AC-0222: The Global Search panel (EPIC-0014) gains a Replace field; entering a replacement term and pressing Replace All writes changes to every matching file simultaneously
+  - [x] AC-0223: A preview mode shows all replacements highlighted before confirmation; the developer can exclude individual matches with a checkbox
+  - [x] AC-0224: Replace supports regex with capture groups (e.g. $1); the preview updates in real time as the pattern changes
 Dependencies: EPIC-0014
 
 US-0074 (EPIC-0021): As a developer using a hardware keyboard, I want standard shortcuts like ⌘S, ⌘`, ⌘N, and ⌘P, so that I can edit at desktop speed on a tablet.
 Priority: High (P0)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/epic-0021-advanced-editor-features
 Acceptance Criteria:
-  - [ ] AC-0225: ⌘S saves the current file immediately; ⌘⇧S saves all open dirty files
-  - [ ] AC-0226: ⌘` opens/focuses the integrated terminal; pressing again cycles between terminal and editor
-  - [ ] AC-0227: ⌘N creates a new untitled file in the editor; ⌘P opens the Command Palette; all shortcuts are discoverable in a Keyboard Shortcuts help sheet
+  - [x] AC-0225: ⌘S saves the current file immediately; ⌘⇧S saves all open dirty files
+  - [x] AC-0226: ⌘` opens/focuses the integrated terminal; pressing again cycles between terminal and editor
+  - [x] AC-0227: ⌘N creates a new untitled file in the editor; ⌘P opens the Command Palette; all shortcuts are discoverable in a Keyboard Shortcuts help sheet
 Dependencies: EPIC-0004
 
 US-0075 (EPIC-0021): As a developer, I want to fold and unfold code blocks, so that I can reduce visual noise when navigating large files.
 Priority: Medium (P1)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/epic-0021-advanced-editor-features
 Acceptance Criteria:
-  - [ ] AC-0228: Monaco gutter displays fold/unfold chevrons for all foldable regions (functions, classes, blocks, comments)
-  - [ ] AC-0229: A "Fold All" and "Unfold All" action is available in the editor context menu and Command Palette
-  - [ ] AC-0230: Folded state persists per file within a session; reopening a tab restores the previous fold state
+  - [x] AC-0228: Monaco gutter displays fold/unfold chevrons for all foldable regions (functions, classes, blocks, comments)
+  - [x] AC-0229: A "Fold All" and "Unfold All" action is available in the editor context menu and Command Palette
+  - [x] AC-0230: Folded state persists per file within a session; reopening a tab restores the previous fold state
 Dependencies: EPIC-0001
 
 US-0076 (EPIC-0021): As a developer, I want my code auto-formatted on save, so that I don't have to think about style consistency.
 Priority: Medium (P1)
 Estimate: M
-Status: Planned
+Status: Done
+Branch: feature/epic-0021-advanced-editor-features
 Acceptance Criteria:
-  - [ ] AC-0231: Prettier (bundled as a WASM module) runs on file save for JS, TS, JSON, CSS, HTML, and Markdown files
-  - [ ] AC-0232: Format on save is toggleable in Settings; when disabled, a "Format Document" action is still available in the Command Palette
-  - [ ] AC-0233: Prettier config is read from the project root (.prettierrc, prettier.config.js) if present; defaults apply otherwise
+  - [x] AC-0231: Prettier (bundled as a WASM module) runs on file save for JS, TS, JSON, CSS, HTML, and Markdown files
+  - [x] AC-0232: Format on save is toggleable in Settings; when disabled, a "Format Document" action is still available in the Command Palette
+  - [x] AC-0233: Prettier config is read from the project root (.prettierrc, prettier.config.js) if present; defaults apply otherwise
 Dependencies: EPIC-0001
 
 US-0077 (EPIC-0021): As a developer, I want breadcrumb navigation at the top of the editor, so that I can quickly understand and jump to any scope in a large file.
 Priority: Low (P2)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/epic-0021-advanced-editor-features
 Acceptance Criteria:
-  - [ ] AC-0234: A breadcrumb bar above the editor shows the file path segments and the current symbol hierarchy (e.g. File › ClassName › methodName)
-  - [ ] AC-0235: Tapping any breadcrumb segment opens a picker listing sibling symbols at that depth; selecting one navigates the cursor to that symbol
-  - [ ] AC-0236: Breadcrumbs update within one animation frame of moving the cursor to a new symbol
+  - [x] AC-0234: A breadcrumb bar above the editor shows the file path segments and the current symbol hierarchy (e.g. File › ClassName › methodName)
+  - [x] AC-0235: Tapping any breadcrumb segment opens a picker listing sibling symbols at that depth; selecting one navigates the cursor to that symbol
+  - [x] AC-0236: Breadcrumbs update within one animation frame of moving the cursor to a new symbol
 Dependencies: EPIC-0001
 
 US-0078 (EPIC-0021): As a developer, I want snippet expansion, so that I can scaffold common patterns with a short prefix.
 Priority: Low (P2)
 Estimate: M
-Status: Planned
+Status: Done
+Branch: feature/epic-0021-advanced-editor-features
 Acceptance Criteria:
-  - [ ] AC-0237: Built-in snippets for JS/TS (e.g. `clg` → console.log, `afn` → arrow function), Python (`def`, `cls`), and React (`rfc`, `useEffect`) ship with the app
-  - [ ] AC-0238: Users can define custom snippets in Settings using a JSON schema; snippets support tab stops ($1, $2) and default values ($\{1:name\})
-  - [ ] AC-0239: Snippets appear in Monaco's autocomplete list with a snippet icon; Tab accepts the first suggestion matching the typed prefix
+  - [x] AC-0237: Built-in snippets for JS/TS (e.g. `clg` → console.log, `afn` → arrow function), Python (`def`, `cls`), and React (`rfc`, `useEffect`) ship with the app
+  - [x] AC-0238: Users can define custom snippets in Settings using a JSON schema; snippets support tab stops ($1, $2) and default values ($\{1:name\})
+  - [x] AC-0239: Snippets appear in Monaco's autocomplete list with a snippet icon; Tab accepts the first suggestion matching the typed prefix
 Dependencies: EPIC-0001
 ```
 
