@@ -20,8 +20,18 @@ jest.mock('../../src/utils/FileSystemBridge', () => ({
     pull: jest.fn(),
     checkout: jest.fn(),
     createBranch: jest.fn(),
+    hasConflicts: jest.fn().mockResolvedValue(false),
   },
   categorizeStatusMatrix: jest.fn(),
+}));
+
+jest.mock('../../src/components/BranchPickerSheet', () => 'BranchPickerSheet');
+jest.mock('../../src/components/ConflictEditor', () => 'ConflictEditor');
+jest.mock('../../src/git/stashStore', () => ({
+  stash: jest.fn().mockResolvedValue(undefined),
+  stashList: jest.fn().mockResolvedValue([]),
+  stashPop: jest.fn().mockResolvedValue(undefined),
+  stashApply: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../src/theme/tokens', () => ({
@@ -206,5 +216,33 @@ describe('GitPanel', () => {
     await waitFor(() => expect(screen.getByLabelText('Checkout branch main')).toBeTruthy());
     fireEvent.press(screen.getByLabelText('Checkout branch main'));
     await waitFor(() => expect(mockCheckout).toHaveBeenCalledWith('/repo', 'main'));
+  });
+
+  it('renders a "Switch Branch" button', async () => {
+    const { getByText } = render(
+      <GitPanel
+        visible
+        onClose={onClose}
+        rootPath="/repo"
+        authToken="t"
+        onOpenSettings={onOpenSettings}
+        onOpenDiff={onOpenDiff}
+      />,
+    );
+    await waitFor(() => expect(getByText('Switch Branch')).toBeTruthy());
+  });
+
+  it('renders a "Stash Changes" button', async () => {
+    const { getByText } = render(
+      <GitPanel
+        visible
+        onClose={onClose}
+        rootPath="/repo"
+        authToken="t"
+        onOpenSettings={onOpenSettings}
+        onOpenDiff={onOpenDiff}
+      />,
+    );
+    await waitFor(() => expect(getByText('Stash Changes')).toBeTruthy());
   });
 });
