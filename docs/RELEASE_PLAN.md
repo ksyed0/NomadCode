@@ -482,13 +482,14 @@ Dependencies: US-0018
 US-0067 (EPIC-0005): As a user, I want the Monaco editor's syntax colours to match my selected NomadCode theme, so that my chosen look (Dracula, Nord, Solarized Light, etc.) is reflected in code colours — not just the app chrome.
 Priority: Medium (P1)
 Estimate: M
-Status: Deferred
+Status: Done
+Branch: feature/us-0067-bug-0042
 Acceptance Criteria:
-  - [ ] AC-0202: Each NomadCode theme ID (nomad-dark, one-dark-pro, dracula, monokai, nord, tokyo-night, nomad-light, github-light, solarized-light, catppuccin-latte, night-owl-light) is registered with monaco.editor.defineTheme on editor boot with a full IStandaloneThemeData palette (colors + token rules)
-  - [ ] AC-0203: getMonacoTheme() returns the registered custom theme name (not vs / vs-dark) so custom colours are applied instead of the Monaco built-in fallback
-  - [ ] AC-0204: buildMonacoHtml() injects a defineTheme call for every registered theme before the initial setTheme, so the editor never shows a vs-dark flash on custom themes
-  - [ ] AC-0205: Switching themes in Settings or SetupWizard updates Monaco's active theme within one frame, with no unstyled interval
-  - [ ] AC-0206: Unit tests confirm each theme's defineTheme payload contains non-empty colors.background, colors.foreground, and at least one token rule for keywords, strings, and comments
+  - [x] AC-0202: Each NomadCode theme ID (nomad-dark, one-dark-pro, dracula, monokai, nord, tokyo-night, nomad-light, github-light, solarized-light, catppuccin-latte, night-owl-light) is registered with monaco.editor.defineTheme on editor boot with a full IStandaloneThemeData palette (colors + token rules)
+  - [x] AC-0203: getMonacoTheme() returns the registered custom theme name (not vs / vs-dark) so custom colours are applied instead of the Monaco built-in fallback
+  - [x] AC-0204: buildMonacoHtml() injects a defineTheme call for every registered theme before the initial setTheme, so the editor never shows a vs-dark flash on custom themes
+  - [x] AC-0205: Switching themes in Settings or SetupWizard updates Monaco's active theme within one frame, with no unstyled interval
+  - [x] AC-0206: Unit tests confirm each theme's defineTheme payload contains non-empty colors.background, colors.foreground, and at least one token rule for keywords, strings, and comments
 Dependencies: EPIC-0005 (existing), prior BUG-0044 (superseded)
 
 Notes:
