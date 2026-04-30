@@ -941,3 +941,83 @@ describe('scrollTo in setContent', () => {
     expect(payload?.scrollTo).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// EditorHandle — gutter decorations + blame
+// ---------------------------------------------------------------------------
+
+describe('EditorHandle gutter + blame', () => {
+  beforeEach(() => {
+    capturedInjectJS = undefined;
+  });
+
+  it('setGutterDecorations sends SET_GUTTER_DECORATIONS via injectJavaScript', async () => {
+    const ref = React.createRef<EditorHandle>();
+    render(
+      <Editor
+        ref={ref}
+        tabs={[TAB_A]}
+        activeTabPath={TAB_A.path}
+        onTabChange={jest.fn()}
+        onTabClose={jest.fn()}
+        onContentChange={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+    await waitFor(() => screen.getByTestId('webview'));
+    act(() => {
+      ref.current?.setGutterDecorations([{ lineNumber: 3, type: 'added' }]);
+    });
+    const calls = (capturedInjectJS as jest.Mock).mock.calls.flat().join(' ');
+    expect(calls).toContain('SET_GUTTER_DECORATIONS');
+    expect(calls).toContain('lineNumber');
+    expect(calls).toContain('added');
+  });
+
+  it('toggleBlame sets blameActive on first call', async () => {
+    const ref = React.createRef<EditorHandle>();
+    render(
+      <Editor
+        ref={ref}
+        tabs={[TAB_A]}
+        activeTabPath={TAB_A.path}
+        onTabChange={jest.fn()}
+        onTabClose={jest.fn()}
+        onContentChange={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+    await waitFor(() => screen.getByTestId('webview'));
+    // First call — activates blame (no injectJS expected for clear)
+    const callCountBefore = (capturedInjectJS as jest.Mock).mock.calls.length;
+    await act(async () => { await ref.current?.toggleBlame(); });
+    // Should not have injected CLEAR_BLAME_DECORATIONS on the first call
+    const callsAfterFirst = (capturedInjectJS as jest.Mock).mock.calls
+      .slice(callCountBefore)
+      .flat()
+      .join(' ');
+    expect(callsAfterFirst).not.toContain('CLEAR_BLAME_DECORATIONS');
+  });
+
+  it('toggleBlame sends CLEAR_BLAME_DECORATIONS on second call', async () => {
+    const ref = React.createRef<EditorHandle>();
+    render(
+      <Editor
+        ref={ref}
+        tabs={[TAB_A]}
+        activeTabPath={TAB_A.path}
+        onTabChange={jest.fn()}
+        onTabClose={jest.fn()}
+        onContentChange={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+    await waitFor(() => screen.getByTestId('webview'));
+    // First call — activate
+    await act(async () => { await ref.current?.toggleBlame(); });
+    // Second call — should clear
+    await act(async () => { await ref.current?.toggleBlame(); });
+    const calls = (capturedInjectJS as jest.Mock).mock.calls.flat().join(' ');
+    expect(calls).toContain('CLEAR_BLAME_DECORATIONS');
+  });
+});

@@ -39,6 +39,8 @@ import { getLanguageRules } from '../utils/languageRules';
 import { useTheme, getMonacoTheme, THEMES } from '../theme/tokens';
 import type { ThemeTokens } from '../theme/tokens';
 import useSettingsStore from '../stores/useSettingsStore';
+import type { GutterLine } from '../git/gutterDiff';
+import type { BlameLine } from '../git/gitBridge';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -64,6 +66,8 @@ export interface EditorHandle {
   requestViewStateSave: (path: string) => void;
   sendPrettierConfig: (config: Record<string, unknown>) => void;
   sendFormat: () => void;
+  setGutterDecorations: (lines: GutterLine[]) => void;
+  toggleBlame: () => Promise<void>;
 }
 
 interface EditorProps {
@@ -325,6 +329,9 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
 }, ref) {
   const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
+  const blameActiveRef = useRef(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const blameCacheRef  = useRef<BlameLine[] | null>(null);
 
   const t = useTheme();
   const fontSize    = useSettingsStore((s) => s.fontSize);
@@ -397,6 +404,12 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
     if (loadedPathRef.current === activeTab.path && !hasScrollIntent) return;
     if (loadedPathRef.current !== activeTab.path) {
       loadedPathRef.current = activeTab.path;
+      // Clear blame decorations on file/tab change
+      blameActiveRef.current = false;
+      blameCacheRef.current = null;
+      webViewRef.current?.injectJavaScript(
+        `window.dispatchEvent(new MessageEvent('message',{data:'{"type":"CLEAR_BLAME_DECORATIONS"}'}));true;`,
+      );
     }
 
     const msg = JSON.stringify({
@@ -476,13 +489,33 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
     [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange],
   );
 
-  // ── Expose imperative handle (fold commands, view state, prettier) ───────
+  // ── Expose imperative handle (fold commands, view state, prettier, gutter, blame) ───────
   useImperativeHandle(ref, () => ({
     sendFoldAll: () => sendToEditor('FOLD_ALL'),
     sendUnfoldAll: () => sendToEditor('UNFOLD_ALL'),
     requestViewStateSave: (path: string) => sendToEditor('REQUEST_VIEW_STATE', { path }),
     sendPrettierConfig: (config: Record<string, unknown>) => sendToEditor('PRETTIER_CONFIG', { config }),
     sendFormat: () => sendToEditor('FORMAT'),
+    setGutterDecorations: (lines: GutterLine[]) => {
+      const msg = JSON.stringify({ type: 'SET_GUTTER_DECORATIONS', lines });
+      webViewRef.current?.injectJavaScript(
+        `window.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));true;`,
+      );
+    },
+    toggleBlame: async () => {
+      if (blameActiveRef.current) {
+        blameActiveRef.current = false;
+        blameCacheRef.current = null;
+        webViewRef.current?.injectJavaScript(
+          `window.dispatchEvent(new MessageEvent('message',{data:'{"type":"CLEAR_BLAME_DECORATIONS"}'}));true;`,
+        );
+        return;
+      }
+      blameActiveRef.current = true;
+      // The actual GitBridge.blame() call is wired in App.tsx (Task 11) which has
+      // the full repoDir + activeTabPath context. This method exposes the
+      // decoration infrastructure (toggle state + clear path).
+    },
   }), [sendToEditor]);
 
   // ── Toolbar action dispatcher ────────────────────────────────────────────

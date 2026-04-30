@@ -171,6 +171,14 @@ export interface GitStatus {
   noRepo?: boolean;
 }
 
+export interface BlameLine {
+  lineNumber: number;
+  commitHash: string;  // 7-char short hash
+  author: string;
+  timestamp: number;   // unix ms
+  message: string;     // first line of commit message
+}
+
 /**
  * Shared cache for isomorphic-git. Persists parsed pack files, HEAD tree,
  * index metadata, and mtime-based stat caches across calls — turning what
@@ -454,5 +462,77 @@ export const GitBridge = {
     }).catch(() => '');
 
     return { headText, workText };
+  },
+
+  /**
+   * Reads the content of a file at HEAD. Returns null if the file is not
+   * tracked in HEAD (newly added or untracked). Uses the same resolveRef +
+   * readBlob pattern as getWorkingDiff.
+   */
+  async readHeadFile(dir: string, filepath: string): Promise<string | null> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+    const cache = getGitCache(repoDir);
+    try {
+      const headOid = await git.resolveRef({ fs, dir: repoDir, ref: 'HEAD', cache } as Parameters<typeof git.resolveRef>[0]);
+      const { blob } = await git.readBlob({ fs, dir: repoDir, oid: headOid, filepath, cache });
+      return new TextDecoder().decode(blob);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Returns true if the file at repoDir/filepath contains git conflict markers.
+   */
+  async hasConflicts(dir: string, filepath: string): Promise<boolean> {
+    assertGitWorkspace(dir);
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(getFs(), d)) ?? d;
+    const fullPath = `${repoDir}/${filepath}`;
+    const uri = fullPath.startsWith('/') ? `file://${fullPath}` : fullPath;
+    try {
+      const content = await ExpoFS.readAsStringAsync(uri, { encoding: ExpoFS.EncodingType.UTF8 });
+      return content.includes('<<<<<<<');
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Returns per-line blame data for a file. Uses git.log to get the commit
+   * history for the file, then attributes each line to the most recent commit.
+   * Returns empty array if the file has no history.
+   */
+  async blame(dir: string, filepath: string): Promise<BlameLine[]> {
+    assertGitWorkspace(dir);
+    const fs = getFs();
+    const d = normalizeDir(dir);
+    const repoDir = (await findRepoRoot(fs, d)) ?? d;
+    const cache = getGitCache(repoDir);
+
+    const commits = await git.log({ fs, dir: repoDir, filepath, cache });
+    if (commits.length === 0) return [];
+
+    let currentContent = '';
+    try {
+      const headOid = await git.resolveRef({ fs, dir: repoDir, ref: 'HEAD', cache } as Parameters<typeof git.resolveRef>[0]);
+      const { blob } = await git.readBlob({ fs, dir: repoDir, oid: headOid, filepath, cache });
+      currentContent = new TextDecoder().decode(blob);
+    } catch {
+      return [];
+    }
+
+    const currentLines = currentContent.split('\n');
+    const mostRecent = commits[0];
+    return currentLines.map((_, i) => ({
+      lineNumber: i + 1,
+      commitHash: mostRecent.oid.slice(0, 7),
+      author: mostRecent.commit.author.name,
+      timestamp: mostRecent.commit.author.timestamp * 1000,
+      message: mostRecent.commit.message.split('\n')[0],
+    }));
   },
 };

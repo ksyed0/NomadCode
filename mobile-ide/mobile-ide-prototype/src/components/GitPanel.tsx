@@ -1,5 +1,6 @@
 /**
  * US-0026 / US-0027 / US-0029: Git status, stage, commit, push, pull, branches.
+ * US-0068 / US-0069 / US-0071: Branch picker, stash, conflict badges.
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -15,6 +16,9 @@ import {
   Alert,
 } from 'react-native';
 import { GitBridge, type GitStatus } from '../utils/FileSystemBridge';
+import BranchPickerSheet from './BranchPickerSheet';
+import ConflictEditor from './ConflictEditor';
+import { stash, stashList, stashPop, stashApply, type StashEntry } from '../git/stashStore';
 import { fsProgress } from '../git/expoGitFs';
 import useGitStore from '../stores/useGitStore';
 import { useTheme } from '../theme/tokens';
@@ -47,6 +51,12 @@ export default function GitPanel({
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [scanProgress, setScanProgress] = useState<{ reads: number; bytes: number; elapsed: number } | null>(null);
+  const [branchPickerVisible, setBranchPickerVisible] = useState(false);
+  const [conflictFile, setConflictFile] = useState<string | null>(null);
+  const [stashEntries, setStashEntries] = useState<StashEntry[]>([]);
+  const [stashMessageExpanded, setStashMessageExpanded] = useState(false);
+  const [stashMessage, setStashMessage] = useState('');
+  const [conflictedFiles, setConflictedFiles] = useState<Set<string>>(new Set());
   const scanStartRef = useRef<number>(0);
 
   const refresh = useCallback(async () => {
@@ -75,6 +85,21 @@ export default function GitPanel({
       }
       const b = await GitBridge.branches(s.repoDir);
       setBranches(b);
+      // Load stash entries
+      if (s.repoDir) {
+        stashList(s.repoDir).then(setStashEntries).catch(() => {});
+      }
+      // Detect conflicted files
+      if (s.repoDir) {
+        Promise.all(
+          s.modified.map(async (f) => {
+            const has = await GitBridge.hasConflicts(s.repoDir!, f);
+            return has ? f : null;
+          })
+        ).then(results => {
+          setConflictedFiles(new Set(results.filter((f): f is string => f !== null)));
+        }).catch(() => {});
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setLastError(msg);
@@ -197,6 +222,7 @@ export default function GitPanel({
     : [];
 
   return (
+    <>
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={[styles.sheet, { backgroundColor: t.bgElevated, borderColor: t.border }]}>
@@ -286,14 +312,24 @@ export default function GitPanel({
                       >
                         <Text style={{ color: t.text }}>{isStaged ? '☑' : '☐'}</Text>
                       </TouchableOpacity>
+                      {conflictedFiles.has(f) && (
+                        <Text style={{ color: '#D97706', fontSize: 11 }}>⚡</Text>
+                      )}
                       <Text style={[styles.filePath, { color: t.text }]} numberOfLines={2}>
                         [{label}] {f}
                       </Text>
-                      {showDiff && (
+                      {conflictedFiles.has(f) ? (
+                        <TouchableOpacity
+                          onPress={() => { setConflictFile(`${repoPath}/${f}`); }}
+                          accessibilityLabel={`Resolve conflict ${f}`}
+                        >
+                          <Text style={{ color: '#D97706', fontSize: 12 }}>Resolve</Text>
+                        </TouchableOpacity>
+                      ) : showDiff ? (
                         <TouchableOpacity onPress={() => onOpenDiff(f)} accessibilityLabel={`Diff ${f}`}>
                           <Text style={{ color: t.accent, fontSize: 12 }}>Diff</Text>
                         </TouchableOpacity>
-                      )}
+                      ) : null}
                     </View>
                   );
                 })
@@ -319,6 +355,13 @@ export default function GitPanel({
                 <Text style={{ color: t.text, fontWeight: '600' }}>Commit</Text>
               </TouchableOpacity>
               <Text style={[styles.section, { color: t.text }]}>Branches</Text>
+              <TouchableOpacity
+                style={[styles.fullBtn, { marginBottom: 8 }]}
+                onPress={() => setBranchPickerVisible(true)}
+                accessibilityLabel="Switch branch"
+              >
+                <Text style={{ color: t.accent, fontWeight: '600', fontSize: 14 }}>Switch Branch</Text>
+              </TouchableOpacity>
               <View style={styles.branchCreate}>
                 <TextInput
                   style={[styles.input, { flex: 1, color: t.text, borderColor: t.border }]}
@@ -351,11 +394,94 @@ export default function GitPanel({
                   <Text style={{ color: t.text }}>{b === status?.branch ? `* ${b}` : `  ${b}`}</Text>
                 </TouchableOpacity>
               ))}
+              <Text style={[styles.section, { color: t.text }]}>Stash</Text>
+              {stashMessageExpanded ? (
+                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                  <TextInput
+                    style={[styles.input, { flex: 1, color: t.text, backgroundColor: t.bg }]}
+                    placeholder="Stash message (optional)"
+                    placeholderTextColor={t.textMuted}
+                    value={stashMessage}
+                    onChangeText={setStashMessage}
+                  />
+                  <TouchableOpacity
+                    style={[styles.smallBtn, { backgroundColor: t.accent }]}
+                    onPress={async () => {
+                      try {
+                        if (!repoPath) return;
+                        await stash(repoPath, stashMessage);
+                        setStashMessage('');
+                        setStashMessageExpanded(false);
+                        const list = await stashList(repoPath);
+                        setStashEntries(list);
+                        void refresh();
+                      } catch (e) {
+                        Alert.alert('Stash failed', e instanceof Error ? e.message : String(e));
+                      }
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: '600' }}>Confirm Stash</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.fullBtn, { marginBottom: 8 }]}
+                  onPress={() => setStashMessageExpanded(true)}
+                  accessibilityLabel="Stash changes"
+                >
+                  <Text style={{ color: t.text }}>Stash Changes</Text>
+                </TouchableOpacity>
+              )}
+              {stashEntries.map(entry => (
+                <View key={entry.id} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, gap: 8 }}>
+                  <Text style={{ color: t.textMuted, fontSize: 12, flex: 1 }} numberOfLines={1}>
+                    {entry.message}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={async () => {
+                      if (!repoPath) return;
+                      await stashPop(repoPath, entry.id);
+                      const list = await stashList(repoPath);
+                      setStashEntries(list);
+                      void refresh();
+                    }}
+                  >
+                    <Text style={{ color: t.accent, fontSize: 12 }}>Pop</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={async () => {
+                      if (!repoPath) return;
+                      await stashApply(repoPath, entry.id);
+                      void refresh();
+                    }}
+                  >
+                    <Text style={{ color: t.textMuted, fontSize: 12 }}>Apply</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
             </ScrollView>
           )}
         </View>
       </View>
     </Modal>
+    <BranchPickerSheet
+      visible={branchPickerVisible}
+      onClose={() => setBranchPickerVisible(false)}
+      currentBranch={status?.branch ?? ''}
+      repoDir={repoPath ?? ''}
+      onBranchSelected={() => { setBranchPickerVisible(false); void refresh(); }}
+    />
+    {conflictFile && repoPath && (
+      <Modal visible animationType="slide">
+        <ConflictEditor
+          filePath={conflictFile}
+          repoDir={repoPath}
+          onResolved={() => { setConflictFile(null); void refresh(); }}
+          onClose={() => setConflictFile(null)}
+        />
+      </Modal>
+    )}
+    </>
   );
 }
 

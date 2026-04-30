@@ -37,8 +37,11 @@ import ExtensionHost from './src/components/ExtensionHost';
 import GitCloneModal from './src/components/GitCloneModal';
 import GitDiffModal from './src/components/GitDiffModal';
 import GitPanel from './src/components/GitPanel';
+import BranchPickerSheet from './src/components/BranchPickerSheet';
+import ConflictEditor from './src/components/ConflictEditor';
 import TabletResponsive from './src/layout/TabletResponsive';
 import { FileSystemBridge, GitBridge } from './src/utils/FileSystemBridge';
+import { computeGutterLines } from './src/git/gutterDiff';
 import { simpleHash } from './src/utils/hash';
 import useSettingsStore from './src/stores/useSettingsStore';
 import useAuthStore from './src/stores/useAuthStore';
@@ -178,6 +181,8 @@ export default function App() {
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [diffFilepath, setDiffFilepath] = useState<string | null>(null);
   const [showShortcutsSheet, setShowShortcutsSheet] = useState(false);
+  const [branchPickerVisible, setBranchPickerVisible] = useState(false);
+  const [conflictEditorFile, setConflictEditorFile] = useState<string | null>(null);
 
   // ── Cloud-sync conflict detection ─────────────────────────────────────────
   // tabMetaRef holds a snapshot of each open tab's content hash at load/save
@@ -279,10 +284,27 @@ export default function App() {
       );
       // Refresh meta so the next foreground check won't flag this save as a conflict
       tabMetaRef.current.set(path, { path, loadedAt: Date.now(), contentHash: simpleHash(content) });
+      // Fire-and-forget gutter refresh: compare saved content against HEAD to show diff decorations
+      const repoDir = rootPath;
+      if (repoDir && path) {
+        const relPath = path.startsWith(repoDir + '/')
+          ? path.slice(repoDir.length + 1)
+          : path;
+        GitBridge.readHeadFile(repoDir, relPath)
+          .then((headContent) => {
+            if (headContent === null) {
+              editorRef.current?.setGutterDecorations([]);
+            } else {
+              const lines = computeGutterLines(headContent, content);
+              editorRef.current?.setGutterDecorations(lines);
+            }
+          })
+          .catch(() => {/* silent — gutter is cosmetic */});
+      }
     } catch (err) {
       Alert.alert('Save failed', String(err));
     }
-  }, []);
+  }, [rootPath]);
 
   const saveActiveFile = useCallback(() => {
     const tab = tabs.find((t) => t.path === activeTabPath);
@@ -560,11 +582,11 @@ export default function App() {
 
       {/* ── Status bar (top) ─────────────────────────────────────────────── */}
       <View style={[styles.statusBar, statusBarStyles.bar, { backgroundColor: t.bgElevated, borderBottomColor: t.border }]}>
-        {/* Branch pill — tapping opens Git panel */}
+        {/* Branch pill — tapping opens BranchPickerSheet */}
         <TouchableOpacity
-          onPress={gitStatus}
+          onPress={() => setBranchPickerVisible(true)}
           style={[styles.statusBranchPill, { backgroundColor: t.bgHighlight, borderColor: t.border }]}
-          accessibilityLabel={`Git branch ${gitBranch}, open git panel`}
+          accessibilityLabel="Switch branch"
         >
           <Text style={[styles.statusText, statusBarStyles.branch, { color: t.accent }]}>⎇ {gitBranch}</Text>
         </TouchableOpacity>
@@ -575,6 +597,15 @@ export default function App() {
           {tabs.find((tab) => tab.path === activeTabPath)?.isDirty && (
             <TouchableOpacity onPress={saveActiveFile} style={styles.savePill} accessibilityLabel="Save file">
               <Text style={[styles.statusDirty, statusBarStyles.branch, { color: '#D97706' }]}>● Save</Text>
+            </TouchableOpacity>
+          )}
+          {activeTabPath && (
+            <TouchableOpacity
+              onPress={() => editorRef.current?.toggleBlame()}
+              accessibilityLabel="Toggle git blame"
+              style={{ padding: 8, minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' }}
+            >
+              <Text style={[statusBarStyles.branch, { color: t.textMuted, fontSize: 12 }]}>⎇</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => setShowAbout(true)} style={styles.aboutBtn} accessibilityLabel="About NomadCode">
@@ -614,6 +645,8 @@ export default function App() {
             sidebarTab={sidebarTab}
             onSidebarTabChange={setSidebarTab}
             onSearchNavigate={handleSearchNavigate}
+            conflictedPaths={new Set<string>()}
+            onOpenConflict={(filePath) => setConflictEditorFile(filePath)}
           />
         }
         main={
@@ -725,6 +758,27 @@ export default function App() {
         onShowMessage={(text) => Alert.alert('Extension', text)}
         onShowError={(text) => Alert.alert('Extension Error', text, [{ text: 'OK', style: 'destructive' }])}
       />
+
+      {/* ── Branch picker sheet ───────────────────────────────────────────── */}
+      <BranchPickerSheet
+        visible={branchPickerVisible}
+        onClose={() => setBranchPickerVisible(false)}
+        currentBranch={gitBranch}
+        repoDir={rootPath ?? ''}
+        onBranchSelected={() => { setBranchPickerVisible(false); }}
+      />
+
+      {/* ── Git conflict editor modal ─────────────────────────────────────── */}
+      {conflictEditorFile && (
+        <Modal visible animationType="slide">
+          <ConflictEditor
+            filePath={conflictEditorFile}
+            repoDir={rootPath ?? ''}
+            onResolved={() => { setConflictEditorFile(null); }}
+            onClose={() => setConflictEditorFile(null)}
+          />
+        </Modal>
+      )}
     </SafeAreaView>
     </SafeAreaProvider>
   );

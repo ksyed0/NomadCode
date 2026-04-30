@@ -33,6 +33,10 @@ interface FileExplorerProps {
   sidebarTab: 'files' | 'search';
   onSidebarTabChange: (tab: 'files' | 'search') => void;
   onSearchNavigate: (filePath: string, lineNumber: number, matchStart: number, matchEnd: number) => void;
+  /** Paths of files with unresolved git conflicts. Tapping these opens onOpenConflict. */
+  conflictedPaths?: Set<string>;
+  /** Called when user taps a conflict-marked file instead of opening it normally. */
+  onOpenConflict?: (filePath: string) => void;
 }
 
 interface TreeNode extends FileEntry {
@@ -181,6 +185,8 @@ const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(function 
   sidebarTab,
   onSidebarTabChange,
   onSearchNavigate,
+  conflictedPaths,
+  onOpenConflict,
 }: FileExplorerProps, ref) {
   const t = useTheme();
   const [nodes, setNodes] = useState<TreeNode[]>([]);
@@ -284,10 +290,14 @@ const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(function 
         }
       } else {
         setSelectedPath(node.path);
-        onFileSelect(node.path);
+        if (conflictedPaths?.has(node.path) && onOpenConflict) {
+          onOpenConflict(node.path);
+        } else {
+          onFileSelect(node.path);
+        }
       }
     },
-    [loadDirectory, onFileSelect],
+    [loadDirectory, onFileSelect, conflictedPaths, onOpenConflict],
   );
 
   // ---------------------------------------------------------------------------
@@ -481,6 +491,9 @@ const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(function 
         >
           {item.name}
         </Text>
+        {conflictedPaths?.has(item.path) && (
+          <Text style={{ color: '#D97706', fontSize: 10, fontWeight: '700', marginLeft: 4 }}>⚡</Text>
+        )}
       </TouchableOpacity>
     );
   };
