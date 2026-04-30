@@ -1324,7 +1324,6 @@ describe('sidebar tab bar', () => {
     const onOpenConflict = jest.fn();
     const { queryByText } = render(
       <FileExplorer
-        ref={null}
         rootPath="/workspace"
         onFileSelect={jest.fn()}
         onOpenConflict={onOpenConflict}

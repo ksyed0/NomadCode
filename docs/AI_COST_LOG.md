@@ -347,3 +347,16 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-04-18 | 2b90599d-631b-4d6e-8e3f-2d2e27f16af3 | claude/pedantic-goodall-740e73 | 0 | 0 | 0 | 0.0000 |
 | 2026-04-19 | 2b90599d-631b-4d6e-8e3f-2d2e27f16af3 | claude/pedantic-goodall-740e73 | 0 | 0 | 0 | 0.0000 |
 | 2026-04-19 | 2b90599d-631b-4d6e-8e3f-2d2e27f16af3 | claude/pedantic-goodall-740e73 | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e [NO_DATA] | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e [NO_DATA] | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e [NO_DATA] | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e [NO_DATA] | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e [NO_DATA] | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
+| 2026-04-29 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | claude/youthful-tesla-1b670a | 0 | 0 | 0 | 0.0000 |
