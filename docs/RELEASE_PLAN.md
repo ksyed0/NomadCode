@@ -112,7 +112,7 @@ EPIC-0020: Advanced Git Workflows
 Description: Branch create/switch UI, merge conflict resolution editor, git gutter indicators, stash management, and git blame — completing a professional git workflow on mobile.
 Release Target: Release 1.0 (GA)
 Status: Done
-PR: #<pending> (open)
+PR: #121 (open)
 Dependencies: EPIC-0008
 
 EPIC-0021: Advanced Editor Features
