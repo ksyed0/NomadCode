@@ -16,7 +16,7 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
 }));
 
 import { buildMonacoThemeData, ALL_MONACO_THEMES } from '../../src/theme/monacoThemes';
-import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, ThemeId } from '../../src/theme/tokens';
+import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS } from '../../src/theme/tokens';
 
 describe('buildMonacoThemeData', () => {
   it('sets base to vs-dark for all dark themes', () => {
