@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import BranchPickerSheet from '../../src/components/BranchPickerSheet';
+import { GitBridge } from '../../src/git/gitBridge';
 
 jest.mock('../../src/git/gitBridge', () => ({
   GitBridge: {
@@ -46,7 +47,6 @@ describe('BranchPickerSheet', () => {
   });
 
   it('calls GitBridge.checkout and onBranchSelected on branch tap', async () => {
-    const { GitBridge } = require('../../src/git/gitBridge');
     const { getByText } = render(<BranchPickerSheet {...defaultProps} />);
     await waitFor(() => getByText('develop'));
     fireEvent.press(getByText('develop'));
@@ -57,7 +57,6 @@ describe('BranchPickerSheet', () => {
   });
 
   it('creates a new branch when name entered and Create pressed', async () => {
-    const { GitBridge } = require('../../src/git/gitBridge');
     const { getByText, getByPlaceholderText } = render(<BranchPickerSheet {...defaultProps} />);
     await waitFor(() => {});
     fireEvent.press(getByText('+ New branch'));

@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import ConflictEditor from '../../src/components/ConflictEditor';
+import { FileSystemBridge } from '../../src/utils/FileSystemBridge';
+import { GitBridge } from '../../src/git/gitBridge';
 
 const CONFLICT_CONTENT = `before
 <<<<<<< HEAD
@@ -64,8 +66,6 @@ describe('ConflictEditor', () => {
   });
 
   it('Mark Resolved & Stage writes file and calls add then onResolved', async () => {
-    const { FileSystemBridge } = require('../../src/utils/FileSystemBridge');
-    const { GitBridge } = require('../../src/git/gitBridge');
     const { getByText } = render(<ConflictEditor {...defaultProps} />);
     await waitFor(() => getByText('Ours'));
     fireEvent.press(getByText('Ours'));

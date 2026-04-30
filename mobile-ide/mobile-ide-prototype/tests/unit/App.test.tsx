@@ -489,7 +489,7 @@ describe('branch chip and conflict editor wiring (US-0068/0070/0072)', () => {
   });
 
   it('pressing the branch chip renders branch picker', async () => {
-    const { getByLabelText, queryByLabelText } = render(<App />);
+    const { getByLabelText } = render(<App />);
     const chip = getByLabelText('Switch branch');
     fireEvent.press(chip);
     // BranchPickerSheet becomes visible — it renders a close button or is in tree

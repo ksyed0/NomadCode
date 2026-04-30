@@ -1,4 +1,6 @@
 import { stash, stashList, stashPop, stashApply } from '../../src/git/stashStore';
+import { GitBridge } from '../../src/git/gitBridge';
+import { FileSystemBridge } from '../../src/utils/FileSystemBridge';
 
 // Mock AsyncStorage
 const mockStorage: Record<string, string> = {};
@@ -49,21 +51,27 @@ describe('stash', () => {
   });
 
   it('reverts modified files to HEAD content', async () => {
-    const { FileSystemBridge } = require('../../src/utils/FileSystemBridge');
     await stash('/repo');
-    expect(FileSystemBridge.writeFile).toHaveBeenCalledWith(
+    expect((FileSystemBridge.writeFile as jest.Mock)).toHaveBeenCalledWith(
       expect.stringContaining('src/a.ts'), 'head content',
     );
   });
 
   it('skips untracked files (readHeadFile returns null)', async () => {
-    const { GitBridge } = require('../../src/git/gitBridge');
-    GitBridge.readHeadFile
+    (GitBridge.readHeadFile as jest.Mock)
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce('head content');
     await stash('/repo');
     const [entry] = await stashList('/repo');
     expect(entry.files).toHaveLength(1);
+  });
+
+  it('throws when there are no unstaged modifications', async () => {
+    (GitBridge.status as jest.Mock).mockResolvedValueOnce({
+      modified: [], staged: [], untracked: [],
+      branch: 'main', ahead: 0, behind: 0, repoDir: '/repo', noRepo: false,
+    });
+    await expect(stash('/repo')).rejects.toThrow('Nothing to stash');
   });
 });
 
@@ -87,8 +95,11 @@ describe('stashPop', () => {
     const [entry] = await stashList('/repo');
     await stashPop('/repo', entry.id);
     expect(await stashList('/repo')).toHaveLength(0);
-    const { FileSystemBridge } = require('../../src/utils/FileSystemBridge');
-    expect(FileSystemBridge.writeFile).toHaveBeenCalled();
+    expect((FileSystemBridge.writeFile as jest.Mock)).toHaveBeenCalled();
+  });
+
+  it('throws when entry id is not found', async () => {
+    await expect(stashPop('/repo', 'nonexistent-id')).rejects.toThrow('Stash entry not found');
   });
 });
 
@@ -98,5 +109,9 @@ describe('stashApply', () => {
     const [entry] = await stashList('/repo');
     await stashApply('/repo', entry.id);
     expect(await stashList('/repo')).toHaveLength(1);
+  });
+
+  it('throws when entry id is not found', async () => {
+    await expect(stashApply('/repo', 'nonexistent-id')).rejects.toThrow('Stash entry not found');
   });
 });
