@@ -7,10 +7,10 @@
  * EPIC-0002: context menu, create file/folder, rename, delete, move picker.
  */
 
-import React from 'react';
+import React, { createRef } from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
-import FileExplorer from '../../src/components/FileExplorer';
+import FileExplorer, { FileExplorerHandle } from '../../src/components/FileExplorer';
 import { FileSystemBridge } from '../../src/utils/FileSystemBridge';
 
 jest.mock('../../src/hooks/useSearch', () => ({
@@ -1318,5 +1318,34 @@ describe('sidebar tab bar', () => {
       onSearchNavigate: jest.fn(),
     });
     expect(getByPlaceholderText('Search')).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FileExplorerHandle (imperative ref)
+// ---------------------------------------------------------------------------
+
+describe('FileExplorerHandle (imperative ref)', () => {
+  it('openNewFileDialog() opens the new-file modal', async () => {
+    mockListDirectory.mockResolvedValue(FILES);
+    const ref = createRef<FileExplorerHandle>();
+    const { queryByText } = render(
+      <FileExplorer
+        ref={ref}
+        rootPath="/workspace"
+        onFileSelect={jest.fn()}
+        sidebarTab="files"
+        onSidebarTabChange={jest.fn()}
+        onSearchNavigate={jest.fn()}
+      />,
+    );
+
+    expect(queryByText(/new file/i)).toBeNull();
+    act(() => {
+      ref.current?.openNewFileDialog();
+    });
+    await waitFor(() => {
+      expect(queryByText(/new file/i)).not.toBeNull();
+    });
   });
 });

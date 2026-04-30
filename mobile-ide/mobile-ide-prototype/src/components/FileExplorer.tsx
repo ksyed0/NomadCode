@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,11 @@ import { FileSystemBridge, FileEntry } from '../utils/FileSystemBridge';
 import { useTheme } from '../theme/tokens';
 import { GlobalSearch } from './GlobalSearch';
 
+export interface FileExplorerHandle {
+  /** Opens the new-file name modal. Call this imperatively from a parent handler. */
+  openNewFileDialog(): void;
+}
+
 interface FileExplorerProps {
   rootPath: string;
   /** Bumps when the tree should reload (e.g. after git clone) without changing rootPath. */
@@ -25,9 +30,6 @@ interface FileExplorerProps {
   onFileDelete?: (filePath: string) => void;
   onFileRename?: (oldPath: string, newPath: string) => void;
   onFileMove?: (from: string, to: string) => void;
-  /** Set true externally to open the new-file modal (e.g. from command palette). Reset via onNewFileDismissed. */
-  triggerNewFile?: boolean;
-  onNewFileDismissed?: () => void;
   sidebarTab: 'files' | 'search';
   onSidebarTabChange: (tab: 'files' | 'search') => void;
   onSearchNavigate: (filePath: string, lineNumber: number, matchStart: number, matchEnd: number) => void;
@@ -168,7 +170,7 @@ function showErrorAlert(err: unknown): void {
  * FileExplorer — displays a hierarchical directory tree with tap-to-open
  * and long-press context menu for file operations.
  */
-export default function FileExplorer({
+const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(function FileExplorer({
   rootPath,
   refreshKey = 0,
   onFileSelect,
@@ -176,12 +178,10 @@ export default function FileExplorer({
   onFileCreate,
   onFileRename,
   onFileMove,
-  triggerNewFile,
-  onNewFileDismissed,
   sidebarTab,
   onSidebarTabChange,
   onSearchNavigate,
-}: FileExplorerProps) {
+}: FileExplorerProps, ref) {
   const t = useTheme();
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -358,18 +358,14 @@ export default function FileExplorer({
     setNameModal({ visible: true, mode: 'create-file', initialValue: '', targetNode: null });
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    openNewFileDialog: handleHeaderNewFile,
+  }), [handleHeaderNewFile]);
+
   const handleHeaderNewFolder = useCallback(() => {
     setNameInputValue('');
     setNameModal({ visible: true, mode: 'create-dir', initialValue: '', targetNode: null });
   }, []);
-
-  useEffect(() => {
-    if (triggerNewFile) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      handleHeaderNewFile();
-      onNewFileDismissed?.();
-    }
-  }, [triggerNewFile, handleHeaderNewFile, onNewFileDismissed]);
 
   const handleContextMove = useCallback(async () => {
     const target = contextTarget!;
@@ -731,7 +727,10 @@ export default function FileExplorer({
       </Modal>
     </View>
   );
-}
+});   // closes forwardRef(...)
+
+FileExplorer.displayName = 'FileExplorer';
+export default FileExplorer;
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

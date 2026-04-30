@@ -27,7 +27,7 @@ import {
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Editor, { EditorHandle, EditorTab, getLanguageForFile, detectLanguageFromContent } from './src/components/Editor';
-import FileExplorer from './src/components/FileExplorer';
+import FileExplorer, { FileExplorerHandle } from './src/components/FileExplorer';
 import { TerminalWebView } from './src/components/TerminalWebView';
 import { Command, CommandPalette } from './src/components/CommandPalette';
 import SetupWizard from './src/components/SetupWizard';
@@ -172,7 +172,7 @@ export default function App() {
   const [showPalette, setShowPalette] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [terminalHeight, setTerminalHeight] = useState(220);
-  const [triggerNewFile, setTriggerNewFile] = useState(false);
+  const fileExplorerRef = useRef<FileExplorerHandle>(null);
   const [showAbout, setShowAbout] = useState(false);
   const [showGitPanel, setShowGitPanel] = useState(false);
   const [showCloneModal, setShowCloneModal] = useState(false);
@@ -446,10 +446,10 @@ export default function App() {
       tabs.forEach((tab) => { if (tab.isDirty) saveFile(tab.path, tab.content); });
     }},
     { key: '`', modifiers: ['cmd'], label: 'Toggle Terminal', action: () => setShowTerminal((v: boolean) => !v) },
-    { key: 'n', modifiers: ['cmd'], label: 'New File', action: () => setTriggerNewFile(true) },
+    { key: 'n', modifiers: ['cmd'], label: 'New File', action: () => fileExplorerRef.current?.openNewFileDialog() },
     { key: 'p', modifiers: ['cmd'], label: 'Command Palette', action: () => setShowPalette(true) },
     { key: '/', modifiers: ['cmd'], label: 'Keyboard Shortcuts', action: () => setShowShortcutsSheet(true) },
-  ], [saveActiveFile, saveFile, tabs, setShowTerminal, setTriggerNewFile, setShowPalette]);
+  ], [saveActiveFile, saveFile, tabs, setShowTerminal, setShowPalette]);
 
   useKeyboardShortcuts(shortcuts);
 
@@ -463,7 +463,7 @@ export default function App() {
       label: 'File: New File',
       description: 'Create a new file in the workspace',
       shortcut: '⌘N',
-      action: () => { setShowPalette(false); setTriggerNewFile(true); },
+      action: () => { setShowPalette(false); fileExplorerRef.current?.openNewFileDialog(); },
     },
     {
       id: 'file-save',
@@ -536,7 +536,7 @@ export default function App() {
     // AI_HOOK: Add AI commands here, e.g.:
     //   { id: 'ai-explain', label: 'AI: Explain Selection', action: () => AiService.explain(selection) }
     //   { id: 'ai-fix',     label: 'AI: Fix Error',        action: () => AiService.fix(activeTab) }
-  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setTriggerNewFile, setShowPalette, setShowShortcutsSheet]);
+  ], [saveActiveFile, closeTab, gitStatus, gitCommit, activeTabPath, setShowPalette, setShowShortcutsSheet]);
 
   const handlePaletteSelect = useCallback((cmd: Command) => {
     setShowPalette(false);
@@ -605,13 +605,12 @@ export default function App() {
       <TabletResponsive
         sidebar={
           <FileExplorer
+            ref={fileExplorerRef}
             rootPath={rootPath}
             refreshKey={fileTreeRevision}
             onFileSelect={openFile}
             onFileCreate={openFile}
             onFileDelete={deleteFile}
-            triggerNewFile={triggerNewFile}
-            onNewFileDismissed={() => setTriggerNewFile(false)}
             sidebarTab={sidebarTab}
             onSidebarTabChange={setSidebarTab}
             onSearchNavigate={handleSearchNavigate}

@@ -6,6 +6,14 @@
  *         clearCache(), cacheDir getter, and buildMonacoHtml().
  */
 
+// Mock useSettingsStore to avoid AsyncStorage native module pull-in via tokens.ts
+jest.mock('../../src/stores/useSettingsStore', () => ({
+  __esModule: true,
+  default: jest.fn((sel: (s: { theme: string }) => unknown) =>
+    sel({ theme: 'nomad-dark' })
+  ),
+}));
+
 import {
   MonacoAssetManager,
   buildMonacoHtml,
@@ -278,5 +286,31 @@ describe('buildMonacoHtml()', () => {
     const nextCaseIdx = html.indexOf("case 'format':", setContentIdx);
     const setContentBlock = html.slice(setContentIdx, nextCaseIdx);
     expect(setContentBlock).toContain('editor.focus()');
+  });
+
+  it('injects defineTheme calls for all 11 NomadCode themes', () => {
+    const html = buildMonacoHtml('file:///monaco/vs');
+    const themeIds = [
+      'nomad-dark', 'one-dark-pro', 'dracula', 'monokai', 'nord', 'tokyo-night',
+      'nomad-light', 'github-light', 'solarized-light', 'catppuccin-latte', 'night-owl-light',
+    ];
+    themeIds.forEach(id => {
+      expect(html).toContain(`monaco.editor.defineTheme("${id}"`);
+    });
+  });
+
+  it('uses the provided ThemeId as the initial theme in editor.create', () => {
+    const html = buildMonacoHtml('file:///monaco/vs', 'dracula');
+    expect(html).toContain('"dracula"');
+  });
+
+  it('sets light chrome colours for a light theme', () => {
+    const html = buildMonacoHtml('file:///monaco/vs', 'nomad-light');
+    expect(html).toContain('#ffffff');
+  });
+
+  it('sets dark chrome colours for a dark theme', () => {
+    const html = buildMonacoHtml('file:///monaco/vs', 'nomad-dark');
+    expect(html).toContain('#1e1e1e');
   });
 });

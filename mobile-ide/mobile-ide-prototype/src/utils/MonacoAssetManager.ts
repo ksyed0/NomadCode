@@ -22,6 +22,8 @@
  */
 
 import * as ExpoFS from 'expo-file-system/legacy';
+import { ThemeId, THEMES } from '../theme/tokens';
+import { ALL_MONACO_THEMES } from '../theme/monacoThemes';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -176,14 +178,21 @@ export const MonacoAssetManager = {
  *                   - CDN:    "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs"
  *                   - Local:  "file:///path/to/documentDirectory/monaco/0.45.0/vs"
  */
-export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark' = 'vs-dark', prettierSource?: string): string {
+export function buildMonacoHtml(vsBaseUrl: string, initialTheme: ThemeId = 'nomad-dark', prettierSource?: string): string {
   // Safely embed the URL in JS (no injection vector since it's our own constant)
   const safeBase = JSON.stringify(vsBaseUrl);
   const safeTheme = JSON.stringify(initialTheme);
   // Match the chrome (loading screen + body bg) to the editor theme so users
   // don't see a flash of the wrong colour while Monaco bootstraps.
-  const chromeBg = initialTheme === 'vs' ? '#ffffff' : '#1e1e1e';
-  const chromeText = initialTheme === 'vs' ? '#374151' : '#6b7280';
+  const isLight = THEMES[initialTheme].mode === 'light';
+  const chromeBg = isLight ? '#ffffff' : '#1e1e1e';
+  const chromeText = isLight ? '#374151' : '#6b7280';
+
+  // Serialise all 11 theme definitions into JS that runs inside the Monaco WebView.
+  const defineThemesScript = Object.entries(ALL_MONACO_THEMES)
+    .map(([id, data]) =>
+      `        monaco.editor.defineTheme(${JSON.stringify(id)}, ${JSON.stringify(data)});`)
+    .join('\n');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -345,6 +354,9 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: 'vs' | 'vs-dark
       require(['vs/editor/editor.main'], function () {
         setLoadPct(90);
         document.getElementById('loading').remove();
+
+        // ── Register NomadCode custom themes ─────────────────────────────
+${defineThemesScript}
 
         editor = monaco.editor.create(document.getElementById('container'), {
           value: '',
