@@ -4,6 +4,44 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 18 — 2026-04-30 (EPIC-0009 IAP & Monetization)
+
+### What Was Done
+
+**Context:** Full EPIC-0009 implementation — three-tier subscription model (Free / Pro / Pro+AI) via RevenueCat.
+
+#### EPIC-0009 Deliverables
+
+**US-0030 — Free Tier Limits & Paywall Trigger**
+- `src/iap/entitlements.ts`: `canOpenMoreFiles`, `hasAIAccess`, `tierLabel`, `tierColor`, `tierFromEntitlements`
+- Free tier capped at 3 simultaneous open files; 4th file triggers `PaywallSheet` bottom sheet
+- `src/components/SubscriptionBadge.tsx`: tier pill shown in Settings screen alongside upgrade CTA
+
+**US-0031 — Pro Subscription**
+- `src/iap/iapService.ts`: thin adapter around `react-native-purchases` (ONLY file that imports the SDK)
+- `src/stores/useSubscriptionStore.ts`: Zustand store with AsyncStorage persistence; tier cached offline
+- `src/components/PaywallSheet.tsx`: bottom sheet with monthly/annual toggle, Pro + Pro+AI cards, restore purchases
+- RevenueCat handles server-side receipt validation automatically on iOS and Android
+
+**US-0032 — Pro+AI Subscription**
+- Pro+AI tier ($14.99/mo · $119.99/yr) unlocks AI features in addition to all Pro features
+- Upgrading from Pro via RevenueCat never double-charges (handled by RevenueCat server-side)
+
+#### Key New Files
+- `src/iap/entitlements.ts`
+- `src/iap/iapService.ts`
+- `src/stores/useSubscriptionStore.ts`
+- `src/components/PaywallSheet.tsx`
+- `src/components/SubscriptionBadge.tsx`
+
+#### Test Results
+- 1153 tests passing, 0 failures, 53 test suites
+- Branch coverage: ≥75% (threshold met)
+- TypeScript: 0 errors
+- ESLint: 0 errors
+
+---
+
 ## Session 17 — 2026-04-18/19 (EPIC-0021 Advanced Editor Features)
 
 ### What Was Done

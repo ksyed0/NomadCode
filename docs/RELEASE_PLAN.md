@@ -60,7 +60,8 @@ Dependencies: EPIC-0007
 EPIC-0009: In-App Purchases & Monetization
 Description: Three-tier subscription model (Free / Pro / Pro+AI) via native IAP with receipt validation and feature gating.
 Release Target: Release 1.0 (GA)
-Status: Planned
+Status: Done
+PR: #<number> (open)
 Dependencies: EPIC-0007
 
 EPIC-0010: AI Suggestions
@@ -641,29 +642,32 @@ Dependencies: US-0025
 US-0030 (EPIC-0009): As a free-tier user, I want clear limits displayed, so that I understand what the free plan includes.
 Priority: Medium (P1)
 Estimate: S
-Status: Planned
+Status: Done
+Branch: feature/epic-0009-iap-monetization
 Acceptance Criteria:
-  - [ ] AC-0084: Free tier users can open up to 3 files simultaneously; attempting a 4th shows an upgrade prompt
-  - [ ] AC-0085: Free tier label is displayed in the settings screen alongside an upgrade CTA
+  - [x] AC-0084: Free tier users can open up to 3 files simultaneously; attempting a 4th shows an upgrade prompt
+  - [x] AC-0085: Free tier label is displayed in the settings screen alongside an upgrade CTA
 Dependencies: EPIC-0007
 
 US-0031 (EPIC-0009): As a developer, I want to subscribe to Pro, so that I can unlock unlimited files and advanced features.
 Priority: High (P0)
 Estimate: L
-Status: Planned
+Status: Done
+Branch: feature/epic-0009-iap-monetization
 Acceptance Criteria:
-  - [ ] AC-0086: Pro subscription is purchasable via the native IAP sheet on iOS and Google Play Billing on Android
-  - [ ] AC-0087: Successful purchase removes file-count limits and unlocks Pro-gated features immediately
-  - [ ] AC-0088: Subscription status persists across app restarts via server-side receipt validation
+  - [x] AC-0086: Pro subscription is purchasable via the native IAP sheet on iOS and Google Play Billing on Android
+  - [x] AC-0087: Successful purchase removes file-count limits and unlocks Pro-gated features immediately
+  - [x] AC-0088: Subscription status persists across app restarts via server-side receipt validation
 Dependencies: US-0030
 
 US-0032 (EPIC-0009): As a power user, I want to subscribe to Pro+AI, so that I can use AI-powered code suggestions.
 Priority: High (P0)
 Estimate: M
-Status: Planned
+Status: Done
+Branch: feature/epic-0009-iap-monetization
 Acceptance Criteria:
-  - [ ] AC-0089: Pro+AI subscription unlocks AI Suggestions features in addition to all Pro features
-  - [ ] AC-0090: Purchasing Pro+AI when already on Pro upgrades the subscription without double-charging
+  - [x] AC-0089: Pro+AI subscription unlocks AI Suggestions features in addition to all Pro features
+  - [x] AC-0090: Purchasing Pro+AI when already on Pro upgrades the subscription without double-charging
 Dependencies: US-0031
 ```
 
