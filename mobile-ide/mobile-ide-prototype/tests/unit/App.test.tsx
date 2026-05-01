@@ -52,20 +52,20 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
   ),
 }));
 
-jest.mock('../../src/stores/useSubscriptionStore', () => ({
-  __esModule: true,
-  default: jest.fn((sel: (s: object) => unknown) =>
-    sel({
-      tier: 'free',
-      isLoading: false,
-      error: null,
-      offerings: [],
-      hydrate: jest.fn(),
-      purchase: jest.fn(),
-      restore: jest.fn(),
-    })
-  ),
-}));
+jest.mock('../../src/stores/useSubscriptionStore', () => {
+  const state = {
+    tier: 'free',
+    isLoading: false,
+    error: null,
+    offerings: [],
+    hydrate: jest.fn(),
+    purchase: jest.fn(),
+    restore: jest.fn(),
+  };
+  const mockStore = jest.fn((sel: (s: object) => unknown) => sel(state));
+  mockStore.getState = () => state;
+  return { __esModule: true, default: mockStore };
+});
 
 jest.mock('../../src/iap/iapService', () => ({
   configure: jest.fn(),
@@ -73,6 +73,10 @@ jest.mock('../../src/iap/iapService', () => ({
   getOfferings: jest.fn().mockResolvedValue([]),
   purchase: jest.fn(),
   restorePurchases: jest.fn(),
+}));
+
+jest.mock('../../src/iap/entitlements', () => ({
+  hasAIAccess: jest.fn(() => false),
 }));
 
 jest.mock('../../src/components/PaywallSheet', () => 'PaywallSheet');
@@ -249,6 +253,18 @@ jest.mock('../../src/utils/MonacoAssetManager', () => ({
 // Mock stashStore to prevent AsyncStorage native module from loading
 jest.mock('../../src/git/stashStore', () => ({
   useStashStore: jest.fn(() => ({ stashes: [], pushStash: jest.fn(), popStash: jest.fn(), dropStash: jest.fn() })),
+}));
+
+// Mock AIChatPanel — avoid pulling in useAIStore → AsyncStorage
+jest.mock('../../src/components/AIChatPanel', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+// Mock PaywallAISheet — avoid transitive AsyncStorage dep
+jest.mock('../../src/components/PaywallAISheet', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 // Mock GitPanel — complex component with many native deps; smoke-test via null render
