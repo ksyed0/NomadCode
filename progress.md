@@ -4,41 +4,93 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
-## Session 18 — 2026-04-30 (EPIC-0009 IAP & Monetization)
+## Session 18 — 2026-04-30 (CI fixes, PR merges, EPIC-0020, EPIC-0009)
 
 ### What Was Done
 
-**Context:** Full EPIC-0009 implementation — three-tier subscription model (Free / Pro / Pro+AI) via RevenueCat.
+**Context:** Long session covering CI fixes for open PRs, merging feature branches, dependabot housekeeping, full EPIC-0020 implementation, and full EPIC-0009 implementation.
 
-#### EPIC-0009 Deliverables
+---
 
-**US-0030 — Free Tier Limits & Paywall Trigger**
-- `src/iap/entitlements.ts`: `canOpenMoreFiles`, `hasAIAccess`, `tierLabel`, `tierColor`, `tierFromEntitlements`
-- Free tier capped at 3 simultaneous open files; 4th file triggers `PaywallSheet` bottom sheet
-- `src/components/SubscriptionBadge.tsx`: tier pill shown in Settings screen alongside upgrade CTA
+#### Part 1 — CI Fixes and PR Merges
 
-**US-0031 — Pro Subscription**
-- `src/iap/iapService.ts`: thin adapter around `react-native-purchases` (ONLY file that imports the SDK)
-- `src/stores/useSubscriptionStore.ts`: Zustand store with AsyncStorage persistence; tier cached offline
-- `src/components/PaywallSheet.tsx`: bottom sheet with monthly/annual toggle, Pro + Pro+AI cards, restore purchases
-- RevenueCat handles server-side receipt validation automatically on iOS and Android
+**PRs fixed and merged to `develop`:**
 
-**US-0032 — Pro+AI Subscription**
-- Pro+AI tier ($14.99/mo · $119.99/yr) unlocks AI features in addition to all Pro features
-- Upgrading from Pro via RevenueCat never double-charges (handled by RevenueCat server-side)
+- **PR #120** (`feature/us-0067-bug-0042`) — Monaco custom themes (US-0067) + FileExplorer `useImperativeHandle` (BUG-0042)
+  - CI fixes: removed unused `ThemeId` import from `monacoThemes.test.ts`
+  - Branch: rebased on `develop`, retargeted from `main` → `develop`
+  - **Merged** ✅
 
-#### Key New Files
-- `src/iap/entitlements.ts`
-- `src/iap/iapService.ts`
-- `src/stores/useSubscriptionStore.ts`
-- `src/components/PaywallSheet.tsx`
-- `src/components/SubscriptionBadge.tsx`
+- **PR #121** (`feature/epic-0020-advanced-git-workflows`) — EPIC-0020 Advanced Git Workflows
+  - CI fixes: replaced `require()` with top-level imports in 4 test files; added stashStore error-path tests to push branch coverage above 75%
+  - Conflict resolution: `MonacoAssetManager.test.ts` (PR #120 defineTheme tests + PR #121 gutter/blame tests merged), `FileExplorer.tsx` (forwardRef + conflict badge props combined)
+  - Branch: rebased on `develop`, retargeted from `main` → `develop`
+  - **Merged** ✅
 
-#### Test Results
-- 1153 tests passing, 0 failures, 53 test suites
-- Branch coverage: ≥75% (threshold met)
-- TypeScript: 0 errors
-- ESLint: 0 errors
+**Dependabot PRs:**
+- Closed: #100 (react-native group, too risky), #115 (expo/metro-runtime major version), #117 (testing group, failed CI)
+- Auto-merged: #108, #109, #110, #111, #113, #114, #116, #118, #119 (safe patch bumps)
+
+---
+
+#### Part 2 — EPIC-0020 Advanced Git Workflows (already in PR #121, now on develop)
+
+Five user stories fully implemented:
+
+- **US-0068** — Branch picker bottom sheet (`BranchPickerSheet.tsx`) — search, checkout, create; status bar chip opens picker
+- **US-0069** — Inline conflict resolution (`ConflictEditor.tsx`, `conflictParser.ts`) — OURS/THEIRS/Both per hunk; ⚡ badge in FileExplorer + GitPanel; Mark Resolved & Stage
+- **US-0070** — Git gutter indicators (`gutterDiff.ts`) — green/amber/red updated on file save via Monaco decorations
+- **US-0071** — Stash management (`stashStore.ts`) — AsyncStorage soft stash; Stash/Pop/Apply in GitPanel
+- **US-0072** — Git blame annotations — per-line commit hash, author, relative timestamp toggle
+
+Deferred: AC-0215 (gutter tap detail), AC-0220 (blame annotation tap) — both require Monaco touch event WebView bridge.
+
+---
+
+#### Part 3 — EPIC-0009 IAP & Monetization (PR #122, open)
+
+Three-tier subscription model (Free / Pro / Pro+AI) via RevenueCat.
+
+- **US-0030** — Free tier: 3-file cap → paywall trigger; `SubscriptionBadge` in Settings; tier-contextual upgrade text
+- **US-0031** — Pro subscription ($7.99/mo · $59.99/yr): `iapService.ts` (RevenueCat boundary), `useSubscriptionStore` (Zustand + AsyncStorage), `PaywallSheet` bottom sheet with monthly/annual toggle
+- **US-0032** — Pro+AI ($14.99/mo · $119.99/yr): same purchase flow; RevenueCat handles upgrade proration
+
+**Key new files:**
+- `src/iap/entitlements.ts` — pure tier functions (migration-safe)
+- `src/iap/iapService.ts` — only file importing `react-native-purchases`
+- `src/stores/useSubscriptionStore.ts` — Zustand + AsyncStorage, persists `tier` only
+- `src/components/PaywallSheet.tsx` — bottom sheet paywall
+- `src/components/SubscriptionBadge.tsx` — tier pill
+
+**Test results:** 1153 tests, 0 failures, 53 suites, branch coverage ≥ 75%, 0 TS errors.
+
+---
+
+#### Docs & Design Artifacts
+
+- `docs/RELEASE_PLAN.md` — EPIC-0021 marked Done (PR #96); EPIC-0020 and EPIC-0009 marked Done with ACs checked
+- `docs/superpowers/specs/2026-04-30-epic-0009-iap-monetization-design.md` — full design spec
+- `docs/superpowers/plans/2026-04-30-epic-0009-iap-monetization.md` — 9-task implementation plan
+
+---
+
+### Current State
+
+| Branch | Status |
+|---|---|
+| `develop` | ✅ Clean — includes PR #120 + #121 + all dependabot merges |
+| `feature/epic-0009-iap-monetization` | 🔵 PR #122 open, CI running |
+
+### Open PRs
+- **PR #122** — EPIC-0009 IAP & Monetization → `develop` (CI pending)
+
+### Next Session Pick-up
+1. Confirm PR #122 CI green and merge to `develop`
+2. **Start EPIC-0010 (AI Suggestions)** — brainstorm first (inline completions + AI chat panel, Claude API, gated behind Pro+AI)
+   - US-0033: Inline code completions (ghost-text, 300ms debounce, Tab to accept)
+   - US-0034: AI chat panel (streamed response, session history)
+   - US-0035: Non-subscriber paywall (Pro+AI gate)
+   - Key decisions: Claude model selection, context window strategy, streaming implementation in WebView/React Native, prompt caching
 
 ---
 

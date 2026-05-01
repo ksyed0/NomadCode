@@ -374,3 +374,4 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-04-30 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e [NO_DATA] | feature/epic-0020-advanced-git-workflows | 0 | 0 | 0 | 0.0000 |
 | 2026-05-01 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | feature/epic-0020-advanced-git-workflows | 0 | 0 | 0 | 0.0000 |
 | 2026-05-01 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | feature/epic-0020-advanced-git-workflows | 0 | 0 | 0 | 0.0000 |
+| 2026-05-01 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | feature/epic-0009-iap-monetization | 0 | 0 | 0 | 0.0000 |
