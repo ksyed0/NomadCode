@@ -113,11 +113,11 @@ Three-tier subscription model (Free / Pro / Pro+AI) via RevenueCat.
 |---|---|
 | `develop` | ✅ Clean — includes PR #120 + #121 + all dependabot merges |
 | `feature/epic-0009-iap-monetization` | 🔵 PR #122 open, CI running |
-| `feature/epic-0010-ai-suggestions` | 🔵 PR open, CI running |
+| `feature/epic-0010-ai-suggestions` | 🔵 PR #124 open, CI running |
 
 ### Open PRs
 - **PR #122** — EPIC-0009 IAP & Monetization → `develop` (CI pending)
-- **PR (EPIC-0010)** — AI Suggestions → `develop` (CI running)
+- **PR #124** — EPIC-0010 AI Suggestions → `develop` (CI running)
 
 ### Next Session Pick-up
 1. Confirm PR #122 (EPIC-0009) and EPIC-0010 PR CI green and merge both to `develop`
