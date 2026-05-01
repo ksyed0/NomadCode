@@ -62,8 +62,10 @@ jest.mock('../../src/stores/useSubscriptionStore', () => {
     purchase: jest.fn(),
     restore: jest.fn(),
   };
-  const mockStore = jest.fn((sel: (s: object) => unknown) => sel(state));
-  mockStore.getState = () => state;
+  const mockStore = Object.assign(
+    jest.fn((sel: (s: object) => unknown) => sel(state)),
+    { getState: () => state },
+  );
   return { __esModule: true, default: mockStore };
 });
 

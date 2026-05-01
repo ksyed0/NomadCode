@@ -5,9 +5,8 @@ import {
   StyleSheet, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useTheme } from '../theme/tokens';
-import useAIStore, { selectIsOverQuota } from '../stores/useAIStore';
+import useAIStore from '../stores/useAIStore';
 import type { ChatMessage } from '../ai/aiProvider';
-import { DAILY_CAP_CENTS } from '../ai/quotaConfig';
 
 interface AIChatPanelProps {
   activeFilePath: string | null;
@@ -45,7 +44,7 @@ export default function AIChatPanel({ activeFilePath, activeFileContent, activeF
 
   const spendLabel = selectedProviderId === 'custom'
     ? 'custom'
-    : `${(dailySpendCents / 10).toFixed(1)}¢`;
+    : `${dailySpendCents.toFixed(1)}¢`;
 
   const allMessages: ChatMessage[] = [
     ...messages,

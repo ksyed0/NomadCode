@@ -133,7 +133,7 @@ const useAIStore = create<AIState>()(
             abortController: null,
             dailySpendCents: get().dailySpendCents + actualCost,
           });
-        } catch (err) {
+        } catch (_err) {
           if (abort.signal.aborted) {
             const partial = get().streamingText;
             set({

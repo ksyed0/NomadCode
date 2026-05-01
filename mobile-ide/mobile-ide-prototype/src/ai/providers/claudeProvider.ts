@@ -1,6 +1,6 @@
 // src/ai/providers/claudeProvider.ts
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import type { AIProvider, ChatMessage } from '../aiProvider';
+import type { AIProvider } from '../aiProvider';
 import { COMPLETION_MAX_TOKENS, CHAT_MAX_TOKENS } from '../quotaConfig';
 
 const API_KEY      = process.env.EXPO_PUBLIC_CLAUDE_API_KEY ?? '';
