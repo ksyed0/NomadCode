@@ -82,6 +82,7 @@ src/components/
 | `src/components/FileExplorer.tsx` | Add `'ai'` to `SidebarTab` union type; render `AIChatPanel` / `PaywallAISheet` for AI tab |
 | `App.tsx` | `COMPLETION_CONTEXT` handler with `completionRequestRef`; AI store init; AI tab wiring |
 | `src/components/SettingsScreen.tsx` | AI Settings section — provider dropdown, custom-only fields, SecureStore key write |
+| `mobile-ide/mobile-ide-prototype/package.json` | Add `@microsoft/fetch-event-source` dependency |
 | `.env.example` | Document `EXPO_PUBLIC_CLAUDE_API_KEY`, `EXPO_PUBLIC_GEMINI_API_KEY`, `EXPO_PUBLIC_KIMI_API_KEY` |
 
 ### 4.3 Models Used
@@ -228,7 +229,7 @@ Custom provider: `estimateCostCents` always returns 0 → never blocked, tracked
 User → AIChatPanel.onSend(text)
   → useAIStore.sendMessage(text, fileContent, language)
     → checkAndResetQuota()
-    → if selectIsOverQuota() && provider !== 'custom' → push quota-error message, return
+    → if selectIsOverQuota() → push quota-error message, return
     → set({ isStreaming: true, abortController: new AbortController() })
     → pre-flight cost estimate → if over cap → push quota-error message, return
     → getActiveProvider().streamChat(messages, fileContent, language, signal, onChunk)
@@ -389,19 +390,33 @@ Added to `SettingsScreen.tsx` below existing settings.
 Three additions inside `buildMonacoHtml`, within the `bootEditor` function:
 
 ### 14.1 `COMPLETION_CONTEXT` outbound message
-Added inside `editor.onDidChangeModelContent`:
+
+Added alongside the existing `contentChanged` post in `editor.onDidChangeModelContent`.
+A 100ms debounce in the WebView reduces bridge traffic for fast typists; RN adds a
+further 200ms debounce, giving an effective 300ms delay (satisfying AC-0091) while
+cutting bridge message volume by ~80%.
+
 ```js
-var pos = editor.getPosition();
-if (pos) {
-  var content = editor.getValue();
-  var offset = model.getOffsetAt(pos);
-  post({
-    type: 'COMPLETION_CONTEXT',
-    prefix: content.slice(0, offset),
-    suffix: content.slice(offset),
-    language: currentLanguage,
-  });
-}
+var completionContextTimer = null;
+
+editor.onDidChangeModelContent(function () {
+  post({ type: 'contentChanged', content: editor.getValue() }); // existing — unchanged
+
+  // Debounced COMPLETION_CONTEXT: cheap to recompute, expensive to bridge on every key
+  if (completionContextTimer) clearTimeout(completionContextTimer);
+  completionContextTimer = setTimeout(function () {
+    var pos = editor.getPosition();
+    if (!pos) return;
+    var content = editor.getValue();
+    var offset = model.getOffsetAt(pos);
+    post({
+      type: 'COMPLETION_CONTEXT',
+      prefix: content.slice(0, offset),
+      suffix: content.slice(offset),
+      language: currentLanguage,
+    });
+  }, 100);
+});
 ```
 
 ### 14.2 `registerInlineCompletionsProvider`
