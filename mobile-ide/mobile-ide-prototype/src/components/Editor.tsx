@@ -68,6 +68,7 @@ export interface EditorHandle {
   sendFormat: () => void;
   setGutterDecorations: (lines: GutterLine[]) => void;
   toggleBlame: () => Promise<void>;
+  injectMessage: (payload: { type: string } & Record<string, unknown>) => void;
 }
 
 interface EditorProps {
@@ -515,6 +516,10 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
       // The actual GitBridge.blame() call is wired in App.tsx (Task 11) which has
       // the full repoDir + activeTabPath context. This method exposes the
       // decoration infrastructure (toggle state + clear path).
+    },
+    injectMessage: (payload) => {
+      const { type, ...extra } = payload;
+      sendToEditor(type, extra);
     },
   }), [sendToEditor]);
 
