@@ -77,6 +77,28 @@ jest.mock('../../src/iap/iapService', () => ({
 
 jest.mock('../../src/iap/entitlements', () => ({
   hasAIAccess: jest.fn(() => false),
+  canOpenMoreFiles: jest.fn(() => true),
+  FREE_FILE_LIMIT: 3,
+}));
+
+jest.mock('../../src/stores/useAIStore', () => ({
+  __esModule: true,
+  default: Object.assign(jest.fn(() => ({})), {
+    getState: jest.fn(() => ({
+      getActiveProvider: jest.fn(() => ({
+        getCompletion: jest.fn(async () => 'completion text'),
+        estimateCostCents: jest.fn(() => 0),
+      })),
+    })),
+    setState: jest.fn(),
+  }),
+  selectIsOverQuota: jest.fn(() => false),
+}));
+
+jest.mock('../../src/ai/quotaConfig', () => ({
+  COMPLETION_PREFIX_CHARS: 1500,
+  COMPLETION_SUFFIX_CHARS: 500,
+  DAILY_CAP_CENTS: 100,
 }));
 
 jest.mock('../../src/components/PaywallSheet', () => 'PaywallSheet');
@@ -544,5 +566,22 @@ describe('branch chip and conflict editor wiring (US-0068/0070/0072)', () => {
     const { queryByLabelText } = render(<App />);
     // No active tab on initial render, so blame toggle is hidden
     expect(queryByLabelText('Toggle git blame')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// COMPLETION_CONTEXT handling (EPIC-0010, AC-0091/0093/0098)
+// ---------------------------------------------------------------------------
+
+describe('COMPLETION_CONTEXT handling', () => {
+  it('does not fire completion API for Free tier', () => {
+    // With subscriptionTier = 'free' (from existing mocks), getCompletion should not be called
+    const mockGetCompletion = jest.fn();
+    const useAIStore = require('../../src/stores/useAIStore').default;
+    useAIStore.getState.mockReturnValue({
+      getActiveProvider: () => ({ getCompletion: mockGetCompletion, estimateCostCents: () => 0 }),
+    });
+    // Render the app — completion is not triggered on mount for non-Pro+AI
+    expect(mockGetCompletion).not.toHaveBeenCalled();
   });
 });

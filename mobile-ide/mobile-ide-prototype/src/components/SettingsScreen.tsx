@@ -148,7 +148,10 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const [paywallVisible, setPaywallVisible] = useState(false);
 
   // AI store
-  const { selectedProviderId, customConfig, dailySpendCents } = useAIStore();
+  const aiState = useAIStore();
+  const selectedProviderId: ProviderId = aiState?.selectedProviderId ?? 'claude';
+  const customConfig = aiState?.customConfig ?? { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false };
+  const dailySpendCents: number = aiState?.dailySpendCents ?? 0;
   const [showProviderPicker, setShowProviderPicker] = useState(false);
   const [customBaseUrl, setCustomBaseUrl] = useState(customConfig.baseUrl);
   const [customModelName, setCustomModelName] = useState(customConfig.modelName);

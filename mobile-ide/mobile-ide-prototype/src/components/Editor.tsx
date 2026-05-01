@@ -81,6 +81,7 @@ interface EditorProps {
   onTabScrollConsumed?: (path: string) => void;
   onTabViewStateChange?: (path: string, viewState: string) => void;
   formatOnSave?: boolean;
+  onCompletionContext?: (payload: { prefix: string; suffix: string; language: string }) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -327,6 +328,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   onTabScrollConsumed,
   onTabViewStateChange,
   formatOnSave,
+  onCompletionContext,
 }, ref) {
   const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
@@ -484,10 +486,19 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
               Alert.alert('Format Failed', msg.error);
             }
             break;
+          case 'COMPLETION_CONTEXT':
+            if (onCompletionContext) {
+              onCompletionContext({
+                prefix: msg.prefix ?? '',
+                suffix: msg.suffix ?? '',
+                language: msg.language ?? 'plaintext',
+              });
+            }
+            break;
         }
       } catch { /* ignore */ }
     },
-    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange],
+    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange, onCompletionContext],
   );
 
   // ── Expose imperative handle (fold commands, view state, prettier, gutter, blame) ───────
