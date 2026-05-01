@@ -55,12 +55,13 @@ jest.mock('../../src/components/PaywallAISheet', () => {
   };
 });
 
-jest.mock('../../src/stores/useSubscriptionStore', () => ({
-  __esModule: true,
-  default: {
-    getState: () => ({ tier: 'free' }),
-  },
-}));
+jest.mock('../../src/stores/useSubscriptionStore', () => {
+  const store = Object.assign(
+    (selector: (s: { tier: string }) => unknown) => selector({ tier: 'free' }),
+    { getState: () => ({ tier: 'free' }) },
+  );
+  return { __esModule: true, default: store };
+});
 
 jest.mock('../../src/iap/entitlements', () => ({
   hasAIAccess: jest.fn(() => false),

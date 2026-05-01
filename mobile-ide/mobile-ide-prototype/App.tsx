@@ -640,6 +640,14 @@ export default function App() {
           .getActiveProvider()
           .getCompletion(trimmedPrefix, trimmedSuffix, language, abort.signal);
 
+        const cost = aiStore.getActiveProvider().estimateCostCents(
+          Math.ceil((trimmedPrefix.length + trimmedSuffix.length) / 4),
+          Math.ceil((text?.length ?? 0) / 4),
+        );
+        if (cost > 0) {
+          useAIStore.setState((s) => ({ dailySpendCents: s.dailySpendCents + cost }));
+        }
+
         if (!abort.signal.aborted) {
           editorRef.current?.injectMessage({ type: 'SET_INLINE_COMPLETION', text });
         }

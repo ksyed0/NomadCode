@@ -485,7 +485,7 @@ ${defineThemesScript}
               }]
             };
           },
-          freeInlineCompletions: function () {}
+          freeInlineCompletions: function () { pendingCompletion = null; }
         });
 
         post({ type: 'ready', offline: ${safeBase}.startsWith('file') });

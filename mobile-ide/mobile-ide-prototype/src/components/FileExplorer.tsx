@@ -201,6 +201,7 @@ const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(function 
   onUpgrade,
 }: FileExplorerProps, ref) {
   const t = useTheme();
+  const tier = useSubscriptionStore((s) => s.tier);
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -567,7 +568,7 @@ const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(function 
 
       {/* Panel content */}
       {sidebarTab === 'ai' ? (
-        hasAIAccess(useSubscriptionStore.getState().tier) ? (
+        hasAIAccess(tier) ? (
           <AIChatPanel
             activeFilePath={activeFilePath ?? null}
             activeFileContent={activeFileContent ?? ''}
