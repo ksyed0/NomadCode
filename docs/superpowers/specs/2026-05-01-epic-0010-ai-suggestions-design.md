@@ -525,7 +525,28 @@ Minimum 80% coverage on all new/modified files per CLAUDE.md.
 
 ---
 
-## 18. AC Traceability
+## 18. Dev & QA Testing Strategy
+
+**Tier simulation:** Use RevenueCat's Customer Override — no bypass code in the app binary.
+
+1. Launch any build (local dev client, TestFlight, or production) and log in with GitHub
+2. RevenueCat dashboard → Customers → search for your GitHub numeric user ID (appears within seconds of `Purchases.configure()` being called)
+3. Grant or revoke entitlements (`pro`, `pro_ai`) directly in the dashboard
+4. Pull down to refresh or cold-launch the app — `useSubscriptionStore.hydrate()` picks up the new entitlement state
+5. All entitlement-gated features (`hasAIAccess`, `canOpenMoreFiles`, paywall display) update automatically
+
+**Testing the AI features specifically:**
+- Grant `pro_ai` entitlement in RevenueCat dashboard
+- Use your own Anthropic/Google/Moonshot API key via the **Custom provider** setting in the app — this avoids hitting the built-in provider budget during QA cycles
+- Revoke `pro_ai` → test the `PaywallAISheet` renders correctly and ghost text disappears
+
+**Unit tests:** Mock `useSubscriptionStore` to return any tier. No RevenueCat network calls involved in unit tests.
+
+**Why no UI toggle or env var override:** App Store guideline 3.1.1 prohibits mechanisms that bypass IAP in distributed binaries. The RevenueCat server-side override is the legitimate, sanctioned testing path — the app binary contains no override code.
+
+---
+
+## 19. AC Traceability
 
 | AC | Satisfied by |
 |---|---|
