@@ -73,6 +73,10 @@ module.exports = [
       'react/react-in-jsx-scope': 'off', // Not needed with React 17+ JSX transform
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // Disable React Compiler lint rule — the React Compiler transpiler is not enabled
+      // in this project's Metro/Babel config, so its static-analysis rule produces
+      // false positives for valid setState-in-effect and memoization patterns.
+      'react-hooks/react-compiler': 'off',
     },
   },
 ];

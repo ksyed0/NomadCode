@@ -1,6 +1,6 @@
 // tests/unit/PaywallSheet.test.tsx
 import React from 'react';
-import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import PaywallSheet from '../../src/components/PaywallSheet';
 
