@@ -31,6 +31,9 @@ import { requestWorkspacePermission } from '../utils/FileSystemBridge';
 WebBrowser.maybeCompleteAuthSession();
 import useSettingsStore from '../stores/useSettingsStore';
 import useAuthStore from '../stores/useAuthStore';
+import useSubscriptionStore from '../stores/useSubscriptionStore';
+import SubscriptionBadge from './SubscriptionBadge';
+import PaywallSheet from './PaywallSheet';
 import { THEMES, DARK_THEME_IDS, LIGHT_THEME_IDS, useTheme } from '../theme/tokens';
 import { BUILTIN_SNIPPETS } from '../utils/builtinSnippets';
 import type { ThemeId } from '../theme/tokens';
@@ -135,6 +138,10 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const [newLanguage, setNewLanguage] = useState('all');
   const [patValue, setPatValue] = useState('');
   const [workspacePicking, setWorkspacePicking] = useState(false);
+
+  // Subscription store
+  const subscriptionTier = useSubscriptionStore((s) => s.tier);
+  const [paywallVisible, setPaywallVisible] = useState(false);
 
   // Active theme tokens for theming the UI
   const tokens = useTheme();
@@ -563,6 +570,32 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
           <TouchableOpacity style={[styles.addBtn, { borderColor: tokens.accent }]} onPress={() => setShowAddSnippet(true)}>
             <Text style={{ color: tokens.accent }}>Add Snippet</Text>
           </TouchableOpacity>
+
+          {/* ── Subscription ─────────────────────────────────────────── */}
+          <Text style={[styles.sectionLabel, { color: tokens.textMuted }]}>SUBSCRIPTION</Text>
+          <View style={[styles.row, { justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 }]}>
+            <SubscriptionBadge
+              tier={subscriptionTier}
+              showUpgradeButton={subscriptionTier !== 'pro_ai'}
+              onUpgradePress={() => setPaywallVisible(true)}
+            />
+          </View>
+          {subscriptionTier === 'free' && (
+            <Text style={{ color: tokens.textMuted, fontSize: 12, paddingBottom: 8, paddingHorizontal: 4 }}>
+              Free plan: up to 3 open files. Upgrade for unlimited files and AI features.
+            </Text>
+          )}
+          {subscriptionTier === 'pro' && (
+            <Text style={{ color: tokens.textMuted, fontSize: 12, paddingBottom: 8, paddingHorizontal: 4 }}>
+              Pro plan: unlimited files. Upgrade to Pro+AI to unlock AI features.
+            </Text>
+          )}
+
+          <PaywallSheet
+            visible={paywallVisible}
+            onClose={() => setPaywallVisible(false)}
+            currentTier={subscriptionTier}
+          />
 
           <Modal visible={showAddSnippet} transparent animationType="slide" onRequestClose={() => setShowAddSnippet(false)}>
             <View style={styles.modalBackdrop}>

@@ -110,6 +110,23 @@ jest.mock('expo-web-browser', () => ({
   maybeCompleteAuthSession: jest.fn(),
 }));
 
+jest.mock('../../src/stores/useSubscriptionStore', () => ({
+  __esModule: true,
+  default: jest.fn((sel: (s: object) => unknown) =>
+    sel({
+      tier: 'free',
+      isLoading: false,
+      error: null,
+      offerings: [],
+      hydrate: jest.fn(),
+      purchase: jest.fn(),
+      restore: jest.fn(),
+    })
+  ),
+}));
+jest.mock('../../src/components/SubscriptionBadge', () => 'SubscriptionBadge');
+jest.mock('../../src/components/PaywallSheet', () => 'PaywallSheet');
+
 import SettingsScreen from '../../src/components/SettingsScreen';
 
 beforeEach(() => {
