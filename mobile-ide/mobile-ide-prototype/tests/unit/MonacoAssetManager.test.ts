@@ -339,3 +339,40 @@ describe('buildMonacoHtml()', () => {
     expect(html).toContain('CLEAR_BLAME_DECORATIONS');
   });
 });
+
+// ---------------------------------------------------------------------------
+// SET_INLINE_COMPLETION message handler
+// ---------------------------------------------------------------------------
+
+describe('SET_INLINE_COMPLETION message handler', () => {
+  it('is present in the built HTML', () => {
+    const html = buildMonacoHtml('https://example.com/vs');
+    expect(html).toContain('SET_INLINE_COMPLETION');
+  });
+
+  it('includes registerInlineCompletionsProvider', () => {
+    const html = buildMonacoHtml('https://example.com/vs');
+    expect(html).toContain('registerInlineCompletionsProvider');
+  });
+
+  it('includes pendingCompletion variable', () => {
+    const html = buildMonacoHtml('https://example.com/vs');
+    expect(html).toContain('pendingCompletion');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// COMPLETION_CONTEXT outbound message
+// ---------------------------------------------------------------------------
+
+describe('COMPLETION_CONTEXT outbound message', () => {
+  it('is present in the built HTML', () => {
+    const html = buildMonacoHtml('https://example.com/vs');
+    expect(html).toContain('COMPLETION_CONTEXT');
+  });
+
+  it('includes completionContextTimer debounce', () => {
+    const html = buildMonacoHtml('https://example.com/vs');
+    expect(html).toContain('completionContextTimer');
+  });
+});
