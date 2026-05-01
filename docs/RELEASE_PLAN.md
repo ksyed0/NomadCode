@@ -61,7 +61,7 @@ EPIC-0009: In-App Purchases & Monetization
 Description: Three-tier subscription model (Free / Pro / Pro+AI) via native IAP with receipt validation and feature gating.
 Release Target: Release 1.0 (GA)
 Status: Done
-PR: #<number> (open)
+PR: #122 (open)
 Dependencies: EPIC-0007
 
 EPIC-0010: AI Suggestions
