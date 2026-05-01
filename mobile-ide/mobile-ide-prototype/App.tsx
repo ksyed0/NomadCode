@@ -46,6 +46,10 @@ import { simpleHash } from './src/utils/hash';
 import useSettingsStore from './src/stores/useSettingsStore';
 import useAuthStore from './src/stores/useAuthStore';
 import useGitStore from './src/stores/useGitStore';
+import * as iapService from './src/iap/iapService';
+import { canOpenMoreFiles, FREE_FILE_LIMIT } from './src/iap/entitlements';
+import useSubscriptionStore from './src/stores/useSubscriptionStore';
+import PaywallSheet from './src/components/PaywallSheet';
 import { useTheme } from './src/theme/tokens';
 import type { OpenTabMeta, ConflictInfo, ConflictResolution } from './src/types/workspace';
 import splashImage from './assets/splash.png';
@@ -115,14 +119,27 @@ export default function App() {
   const hydrateAuth = useAuthStore((s) => s.hydrate);
   const authToken = useAuthStore((s) => s.token);
 
+  // ── Subscription store ────────────────────────────────────────────────────
+  const hydrateSubscription = useSubscriptionStore((s) => s.hydrate);
+  const subscriptionTier = useSubscriptionStore((s) => s.tier);
+  const [paywallVisible, setPaywallVisible] = useState(false);
+  const lapseAlertShownRef = useRef(false);
+
   // ── Git store (branch + file tree revision) ───────────────────────────────
   const gitBranch = useGitStore((s) => s.branch);
   const fileTreeRevision = useGitStore((s) => s.fileTreeRevision);
   const setBranchInfo = useGitStore((s) => s.setBranchInfo);
 
-  // Restore auth session from keychain on mount
+  // Restore auth session from keychain on mount; configure RevenueCat and hydrate subscription.
   useEffect(() => {
-    hydrateAuth();
+    // Configure RevenueCat before hydrating subscription state.
+    const rcKey = Platform.OS === 'ios'
+      ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY
+      : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;
+    if (rcKey) iapService.configure(rcKey);
+
+    void hydrateAuth();
+    void hydrateSubscription();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Refresh branch label when workspace or tree changes (e.g. after clone).
@@ -194,6 +211,26 @@ export default function App() {
   const tabsRef = useRef(tabs);
   useEffect(() => { tabsRef.current = tabs; }, [tabs]);
 
+  // Close excess tabs if subscription lapses (e.g. renewal failed).
+  useEffect(() => {
+    if (subscriptionTier === 'free' && tabs.length > FREE_FILE_LIMIT) {
+      if (!lapseAlertShownRef.current) {
+        lapseAlertShownRef.current = true;
+        setTabs((prev) => prev.slice(0, FREE_FILE_LIMIT));
+        setActiveTabPath((prev) => {
+          const kept = tabs.slice(0, FREE_FILE_LIMIT).map((t) => t.path);
+          return prev && kept.includes(prev) ? prev : (kept[0] ?? null);
+        });
+        Alert.alert(
+          'Pro subscription expired',
+          'Your subscription has ended. Excess file tabs have been closed.',
+        );
+      }
+    } else {
+      lapseAlertShownRef.current = false;
+    }
+  }, [subscriptionTier, tabs.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ---------------------------------------------------------------------------
   // File operations
   // ---------------------------------------------------------------------------
@@ -227,6 +264,13 @@ export default function App() {
       );
       return;
     }
+
+    // ── Subscription gate ──────────────────────────────────────────────────
+    if (!canOpenMoreFiles(tabs.length, subscriptionTier)) {
+      setPaywallVisible(true);
+      return;
+    }
+    // ── End subscription gate ──────────────────────────────────────────────
 
     try {
       const content = await FileSystemBridge.readFile(path);
@@ -779,6 +823,12 @@ export default function App() {
           />
         </Modal>
       )}
+      <PaywallSheet
+        visible={paywallVisible}
+        onClose={() => setPaywallVisible(false)}
+        currentTier={subscriptionTier}
+        reason="file_limit"
+      />
     </SafeAreaView>
     </SafeAreaProvider>
   );

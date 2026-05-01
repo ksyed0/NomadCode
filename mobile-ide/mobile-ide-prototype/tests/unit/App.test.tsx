@@ -52,6 +52,31 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
   ),
 }));
 
+jest.mock('../../src/stores/useSubscriptionStore', () => ({
+  __esModule: true,
+  default: jest.fn((sel: (s: object) => unknown) =>
+    sel({
+      tier: 'free',
+      isLoading: false,
+      error: null,
+      offerings: [],
+      hydrate: jest.fn(),
+      purchase: jest.fn(),
+      restore: jest.fn(),
+    })
+  ),
+}));
+
+jest.mock('../../src/iap/iapService', () => ({
+  configure: jest.fn(),
+  getActiveEntitlements: jest.fn().mockResolvedValue([]),
+  getOfferings: jest.fn().mockResolvedValue([]),
+  purchase: jest.fn(),
+  restorePurchases: jest.fn(),
+}));
+
+jest.mock('../../src/components/PaywallSheet', () => 'PaywallSheet');
+
 // Mock react-native-document-picker (not available in Jest)
 jest.mock('react-native-document-picker', () => ({
   pickDirectory: jest.fn(),
