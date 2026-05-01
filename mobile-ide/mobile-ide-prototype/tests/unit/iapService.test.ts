@@ -94,7 +94,7 @@ describe('iapService', () => {
     it('detects annual period from product identifier when packageType is not ANNUAL', async () => {
       const pkgs = [{
         identifier: 'annual_pkg',
-        packageType: 'CUSTOM',
+        packageType: 'CUSTOM' as ReturnType<typeof makePackage>['packageType'],
         product: { identifier: 'com.nomadcode.pro.annual', priceString: '$59.99' },
       }];
       getOfferingsMock.mockResolvedValueOnce(makeOfferings(pkgs));
