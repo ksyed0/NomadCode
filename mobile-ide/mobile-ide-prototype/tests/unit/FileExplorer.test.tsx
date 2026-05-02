@@ -37,6 +37,36 @@ jest.mock('../../src/components/GlobalSearch', () => {
   };
 });
 
+jest.mock('../../src/components/AIChatPanel', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View, Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: () => React.createElement(View, { testID: 'ai-chat-panel' }, React.createElement(Text, null, 'AI Chat')),
+  };
+});
+
+jest.mock('../../src/components/PaywallAISheet', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View, Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: () => React.createElement(View, { testID: 'paywall-ai-sheet' }, React.createElement(Text, null, 'Paywall')),
+  };
+});
+
+jest.mock('../../src/stores/useSubscriptionStore', () => {
+  const store = Object.assign(
+    (selector: (s: { tier: string }) => unknown) => selector({ tier: 'free' }),
+    { getState: () => ({ tier: 'free' }) },
+  );
+  return { __esModule: true, default: store };
+});
+
+jest.mock('../../src/iap/entitlements', () => ({
+  hasAIAccess: jest.fn(() => false),
+}));
+
 // Mock useTheme so FileExplorer can render without a real Zustand store
 jest.mock('../../src/theme/tokens', () => ({
   useTheme: () => ({
@@ -1335,6 +1365,21 @@ describe('sidebar tab bar', () => {
     );
     // Props accepted without error — no crash
     expect(queryByText('⚡')).toBeDefined(); // null is acceptable since tree may not have loaded
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AI tab (EPIC-0010, AC-0094, AC-0097)
+// ---------------------------------------------------------------------------
+
+describe('FileExplorer — AI tab', () => {
+  it('renders AI tab in the tab bar', () => {
+    const { getByText } = renderExplorer({
+      sidebarTab: 'files',
+      onSidebarTabChange: jest.fn(),
+      onSearchNavigate: jest.fn(),
+    });
+    expect(getByText('✦ AI')).toBeTruthy();
   });
 });
 

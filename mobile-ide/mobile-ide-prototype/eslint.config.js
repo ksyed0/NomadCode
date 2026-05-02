@@ -72,13 +72,22 @@ module.exports = [
       // Project-specific overrides
       'react/react-in-jsx-scope': 'off', // Not needed with React 17+ JSX transform
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       // Disable React Compiler static-analysis rules — the React Compiler transpiler
       // is not enabled in this project's Metro/Babel config. eslint-plugin-react-hooks@7
       // bundles compiler rules in its `recommended` preset; they produce false positives
       // for valid setState-in-effect and manual-memoization patterns here.
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/preserve-manual-memoization': 'off',
+    },
+  },
+
+  // Test-file overrides — Jest idioms require() inside jest.mock() factories and
+  // per-test mock overrides are intentional and safe; suppress no-require-imports.
+  {
+    files: ['tests/**/*.ts', 'tests/**/*.tsx', '**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
 ];

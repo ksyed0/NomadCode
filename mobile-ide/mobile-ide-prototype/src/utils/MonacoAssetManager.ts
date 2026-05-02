@@ -323,6 +323,8 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: ThemeId = 'noma
 
     // ── Breadcrumb: symbol on cursor move (debounced 150ms) ───────────────────
     var breadcrumbTimer = null;
+    var completionContextTimer = null;
+    var pendingCompletion = null;
     // SYNC-NOTE: SYMBOL_PATTERNS_BC mirrors symbolExtractor.ts — update both when adding language patterns.
     var SYMBOL_PATTERNS_BC = [
       /^(?:export\\s+)?(?:default\\s+)?(?:async\\s+)?function\\s+(\\w+)/m,
@@ -406,6 +408,21 @@ ${defineThemesScript}
         // ── Content changes → RN ─────────────────────────────────────────
         editor.onDidChangeModelContent(function () {
           post({ type: 'contentChanged', content: editor.getValue() });
+
+          if (completionContextTimer) clearTimeout(completionContextTimer);
+          completionContextTimer = setTimeout(function () {
+            var pos = editor.getPosition();
+            if (!pos) return;
+            var content = editor.getValue();
+            var model = editor.getModel();
+            var offset = model.getOffsetAt(pos);
+            post({
+              type: 'COMPLETION_CONTEXT',
+              prefix: content.slice(0, offset),
+              suffix: content.slice(offset),
+              language: model.getLanguageId ? model.getLanguageId() : 'plaintext',
+            });
+          }, 100);
         });
 
         // ── Breadcrumb: post symbol on cursor position change ────────────
@@ -453,6 +470,23 @@ ${defineThemesScript}
           window.focus();
           editor.focus();
         }, { passive: true });
+
+        // ── Inline completions provider ──────────────────────────────────
+        monaco.languages.registerInlineCompletionsProvider({ pattern: '**' }, {
+          provideInlineCompletions: function (model, position) {
+            if (!pendingCompletion) return { items: [] };
+            return {
+              items: [{
+                insertText: pendingCompletion,
+                range: new monaco.Range(
+                  position.lineNumber, position.column,
+                  position.lineNumber, position.column
+                )
+              }]
+            };
+          },
+          freeInlineCompletions: function () { pendingCompletion = null; }
+        });
 
         post({ type: 'ready', offline: ${safeBase}.startsWith('file') });
         setLoadPct(100);
@@ -704,6 +738,14 @@ ${defineThemesScript}
             if (!editor) break;
             window._blameDecorations = editor.deltaDecorations(
               window._blameDecorations || [], []);
+            break;
+          }
+
+          case 'SET_INLINE_COMPLETION': {
+            pendingCompletion = data.text || null;
+            if (pendingCompletion) {
+              editor.trigger('keyboard', 'editor.action.inlineSuggest.trigger', {});
+            }
             break;
           }
 

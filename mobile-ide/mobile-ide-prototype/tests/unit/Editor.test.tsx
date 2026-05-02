@@ -1021,3 +1021,21 @@ describe('EditorHandle gutter + blame', () => {
     expect(calls).toContain('CLEAR_BLAME_DECORATIONS');
   });
 });
+
+// ---------------------------------------------------------------------------
+// EditorHandle — injectMessage
+// ---------------------------------------------------------------------------
+
+describe('EditorHandle — injectMessage', () => {
+  it('exposes injectMessage on the handle', () => {
+    const ref = React.createRef<EditorHandle>();
+    render(<Editor ref={ref} tabs={[]} activeTabPath={null} onTabChange={jest.fn()} onTabClose={jest.fn()} onContentChange={jest.fn()} onSave={jest.fn()} />);
+    expect(typeof ref.current?.injectMessage).toBe('function');
+  });
+
+  it('injectMessage does not throw when called', () => {
+    const ref = React.createRef<EditorHandle>();
+    render(<Editor ref={ref} tabs={[]} activeTabPath={null} onTabChange={jest.fn()} onTabClose={jest.fn()} onContentChange={jest.fn()} onSave={jest.fn()} />);
+    expect(() => ref.current?.injectMessage({ type: 'SET_INLINE_COMPLETION', text: 'hello' })).not.toThrow();
+  });
+});

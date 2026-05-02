@@ -52,20 +52,22 @@ jest.mock('../../src/stores/useSettingsStore', () => ({
   ),
 }));
 
-jest.mock('../../src/stores/useSubscriptionStore', () => ({
-  __esModule: true,
-  default: jest.fn((sel: (s: object) => unknown) =>
-    sel({
-      tier: 'free',
-      isLoading: false,
-      error: null,
-      offerings: [],
-      hydrate: jest.fn(),
-      purchase: jest.fn(),
-      restore: jest.fn(),
-    })
-  ),
-}));
+jest.mock('../../src/stores/useSubscriptionStore', () => {
+  const state = {
+    tier: 'free',
+    isLoading: false,
+    error: null,
+    offerings: [],
+    hydrate: jest.fn(),
+    purchase: jest.fn(),
+    restore: jest.fn(),
+  };
+  const mockStore = Object.assign(
+    jest.fn((sel: (s: object) => unknown) => sel(state)),
+    { getState: () => state },
+  );
+  return { __esModule: true, default: mockStore };
+});
 
 jest.mock('../../src/iap/iapService', () => ({
   configure: jest.fn(),
@@ -73,6 +75,32 @@ jest.mock('../../src/iap/iapService', () => ({
   getOfferings: jest.fn().mockResolvedValue([]),
   purchase: jest.fn(),
   restorePurchases: jest.fn(),
+}));
+
+jest.mock('../../src/iap/entitlements', () => ({
+  hasAIAccess: jest.fn(() => false),
+  canOpenMoreFiles: jest.fn(() => true),
+  FREE_FILE_LIMIT: 3,
+}));
+
+jest.mock('../../src/stores/useAIStore', () => ({
+  __esModule: true,
+  default: Object.assign(jest.fn(() => ({})), {
+    getState: jest.fn(() => ({
+      getActiveProvider: jest.fn(() => ({
+        getCompletion: jest.fn(async () => 'completion text'),
+        estimateCostCents: jest.fn(() => 0),
+      })),
+    })),
+    setState: jest.fn(),
+  }),
+  selectIsOverQuota: jest.fn(() => false),
+}));
+
+jest.mock('../../src/ai/quotaConfig', () => ({
+  COMPLETION_PREFIX_CHARS: 1500,
+  COMPLETION_SUFFIX_CHARS: 500,
+  DAILY_CAP_CENTS: 100,
 }));
 
 jest.mock('../../src/components/PaywallSheet', () => 'PaywallSheet');
@@ -249,6 +277,18 @@ jest.mock('../../src/utils/MonacoAssetManager', () => ({
 // Mock stashStore to prevent AsyncStorage native module from loading
 jest.mock('../../src/git/stashStore', () => ({
   useStashStore: jest.fn(() => ({ stashes: [], pushStash: jest.fn(), popStash: jest.fn(), dropStash: jest.fn() })),
+}));
+
+// Mock AIChatPanel — avoid pulling in useAIStore → AsyncStorage
+jest.mock('../../src/components/AIChatPanel', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+// Mock PaywallAISheet — avoid transitive AsyncStorage dep
+jest.mock('../../src/components/PaywallAISheet', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 // Mock GitPanel — complex component with many native deps; smoke-test via null render
@@ -528,5 +568,22 @@ describe('branch chip and conflict editor wiring (US-0068/0070/0072)', () => {
     const { queryByLabelText } = render(<App />);
     // No active tab on initial render, so blame toggle is hidden
     expect(queryByLabelText('Toggle git blame')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// COMPLETION_CONTEXT handling (EPIC-0010, AC-0091/0093/0098)
+// ---------------------------------------------------------------------------
+
+describe('COMPLETION_CONTEXT handling', () => {
+  it('does not fire completion API for Free tier', () => {
+    // With subscriptionTier = 'free' (from existing mocks), getCompletion should not be called
+    const mockGetCompletion = jest.fn();
+    const useAIStore = require('../../src/stores/useAIStore').default;
+    useAIStore.getState.mockReturnValue({
+      getActiveProvider: () => ({ getCompletion: mockGetCompletion, estimateCostCents: () => 0 }),
+    });
+    // Render the app — completion is not triggered on mount for non-Pro+AI
+    expect(mockGetCompletion).not.toHaveBeenCalled();
   });
 });

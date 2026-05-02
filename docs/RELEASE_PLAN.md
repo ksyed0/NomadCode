@@ -67,7 +67,7 @@ Dependencies: EPIC-0007
 EPIC-0010: AI Suggestions
 Description: Inline code completions and AI chat panel powered by Claude API, gated behind the Pro+AI subscription tier.
 Release Target: Release 1.0 (GA)
-Status: Planned
+Status: Done
 Dependencies: EPIC-0009, EPIC-0008
 
 EPIC-0011: App Store & EAS Build Delivery

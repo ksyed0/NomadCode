@@ -47,8 +47,10 @@ import useSettingsStore from './src/stores/useSettingsStore';
 import useAuthStore from './src/stores/useAuthStore';
 import useGitStore from './src/stores/useGitStore';
 import * as iapService from './src/iap/iapService';
-import { canOpenMoreFiles, FREE_FILE_LIMIT } from './src/iap/entitlements';
+import { canOpenMoreFiles, FREE_FILE_LIMIT, hasAIAccess } from './src/iap/entitlements';
 import useSubscriptionStore from './src/stores/useSubscriptionStore';
+import useAIStore, { selectIsOverQuota } from './src/stores/useAIStore';
+import { COMPLETION_PREFIX_CHARS, COMPLETION_SUFFIX_CHARS } from './src/ai/quotaConfig';
 import PaywallSheet from './src/components/PaywallSheet';
 import { useTheme } from './src/theme/tokens';
 import type { OpenTabMeta, ConflictInfo, ConflictResolution } from './src/types/workspace';
@@ -163,6 +165,12 @@ export default function App() {
   // ── Editor ref (imperative handle for fold/view-state) ───────────────────
   const editorRef = useRef<EditorHandle | null>(null);
 
+  // ── AI completion request tracker ─────────────────────────────────────────
+  const completionRequestRef = useRef<{
+    timer: ReturnType<typeof setTimeout>;
+    abort: AbortController;
+  } | null>(null);
+
   // ── Prettier config resolution — reads .prettierrc* from root ─────────────
   useEffect(() => {
     if (!rootPath) return;
@@ -185,7 +193,7 @@ export default function App() {
   const [activeTabPath, setActiveTabPath] = useState<string | null>(null);
 
   // ── Sidebar tab ───────────────────────────────────────────────────────────
-  const [sidebarTab, setSidebarTab] = useState<'files' | 'search'>('files');
+  const [sidebarTab, setSidebarTab] = useState<'files' | 'search' | 'ai'>('files');
 
   // ── Panel visibility ──────────────────────────────────────────────────────
   const [showTerminal, setShowTerminal] = useState(false);
@@ -609,6 +617,48 @@ export default function App() {
     cmd.action();
   }, []);
 
+  // ── AI inline completion ───────────────────────────────────────────────────
+  const handleCompletionContext = useCallback((payload: { prefix: string; suffix: string; language: string }) => {
+    if (!hasAIAccess(subscriptionTier)) return;
+
+    completionRequestRef.current?.abort.abort();
+    clearTimeout(completionRequestRef.current?.timer);
+    editorRef.current?.injectMessage({ type: 'SET_INLINE_COMPLETION', text: '' });
+
+    const abort = new AbortController();
+    const { prefix, suffix, language } = payload;
+
+    const timer = setTimeout(async () => {
+      try {
+        const aiStore = useAIStore.getState();
+        if (selectIsOverQuota(aiStore)) return;
+
+        const trimmedPrefix = prefix.slice(-COMPLETION_PREFIX_CHARS);
+        const trimmedSuffix = suffix.slice(0, COMPLETION_SUFFIX_CHARS);
+
+        const text = await aiStore
+          .getActiveProvider()
+          .getCompletion(trimmedPrefix, trimmedSuffix, language, abort.signal);
+
+        const cost = aiStore.getActiveProvider().estimateCostCents(
+          Math.ceil((trimmedPrefix.length + trimmedSuffix.length) / 4),
+          Math.ceil((text?.length ?? 0) / 4),
+        );
+        if (cost > 0) {
+          useAIStore.setState((s) => ({ dailySpendCents: s.dailySpendCents + cost }));
+        }
+
+        if (!abort.signal.aborted) {
+          editorRef.current?.injectMessage({ type: 'SET_INLINE_COMPLETION', text });
+        }
+      } catch {
+        // Completion failures are always silent
+      }
+    }, 300);
+
+    completionRequestRef.current = { timer, abort };
+  }, [subscriptionTier]);
+
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
@@ -691,6 +741,10 @@ export default function App() {
             onSearchNavigate={handleSearchNavigate}
             conflictedPaths={new Set<string>()}
             onOpenConflict={(filePath) => setConflictEditorFile(filePath)}
+            activeFilePath={activeTabPath}
+            activeFileContent={tabs.find((t) => t.path === activeTabPath)?.content ?? ''}
+            activeFileLanguage={tabs.find((t) => t.path === activeTabPath)?.language ?? 'plaintext'}
+            onUpgrade={() => setPaywallVisible(true)}
           />
         }
         main={
@@ -705,6 +759,7 @@ export default function App() {
             onTabScrollConsumed={handleTabScrollConsumed}
             onTabViewStateChange={handleTabViewStateChange}
             formatOnSave={formatOnSave}
+            onCompletionContext={handleCompletionContext}
           />
         }
         terminal={<TerminalWebView workingDirectory={rootPath} onCommand={handleCommandComplete} visible={showTerminal} />}

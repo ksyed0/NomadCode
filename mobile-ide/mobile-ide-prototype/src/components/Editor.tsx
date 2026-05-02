@@ -68,6 +68,7 @@ export interface EditorHandle {
   sendFormat: () => void;
   setGutterDecorations: (lines: GutterLine[]) => void;
   toggleBlame: () => Promise<void>;
+  injectMessage: (payload: { type: string } & Record<string, unknown>) => void;
 }
 
 interface EditorProps {
@@ -80,6 +81,7 @@ interface EditorProps {
   onTabScrollConsumed?: (path: string) => void;
   onTabViewStateChange?: (path: string, viewState: string) => void;
   formatOnSave?: boolean;
+  onCompletionContext?: (payload: { prefix: string; suffix: string; language: string }) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -326,6 +328,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   onTabScrollConsumed,
   onTabViewStateChange,
   formatOnSave,
+  onCompletionContext,
 }, ref) {
   const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
@@ -483,10 +486,19 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
               Alert.alert('Format Failed', msg.error);
             }
             break;
+          case 'COMPLETION_CONTEXT':
+            if (onCompletionContext) {
+              onCompletionContext({
+                prefix: msg.prefix ?? '',
+                suffix: msg.suffix ?? '',
+                language: msg.language ?? 'plaintext',
+              });
+            }
+            break;
         }
       } catch { /* ignore */ }
     },
-    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange],
+    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange, onCompletionContext],
   );
 
   // ── Expose imperative handle (fold commands, view state, prettier, gutter, blame) ───────
@@ -515,6 +527,10 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
       // The actual GitBridge.blame() call is wired in App.tsx (Task 11) which has
       // the full repoDir + activeTabPath context. This method exposes the
       // decoration infrastructure (toggle state + clear path).
+    },
+    injectMessage: (payload) => {
+      const { type, ...extra } = payload;
+      sendToEditor(type, extra);
     },
   }), [sendToEditor]);
 

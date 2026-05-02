@@ -127,6 +127,19 @@ jest.mock('../../src/stores/useSubscriptionStore', () => ({
 jest.mock('../../src/components/SubscriptionBadge', () => 'SubscriptionBadge');
 jest.mock('../../src/components/PaywallSheet', () => 'PaywallSheet');
 
+jest.mock('../../src/stores/useAIStore', () => ({
+  __esModule: true,
+  default: Object.assign(
+    jest.fn(() => ({
+      selectedProviderId: 'claude',
+      customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
+      dailySpendCents: 0,
+    })),
+    { setState: jest.fn() },
+  ),
+}));
+jest.mock('expo-secure-store', () => ({ setItemAsync: jest.fn(), getItemAsync: jest.fn() }));
+
 import SettingsScreen from '../../src/components/SettingsScreen';
 
 beforeEach(() => {
@@ -489,5 +502,36 @@ describe('SettingsScreen — snippets section', () => {
     fireEvent.press(screen.getByText('Add Snippet'));
     expect(screen.getByPlaceholderText('Prefix (trigger)')).toBeTruthy();
     expect(screen.getByPlaceholderText('Expansion body')).toBeTruthy();
+  });
+});
+
+const defaultProps = { visible: true as const, onClose: jest.fn() };
+
+describe('AI Settings section', () => {
+  it('renders AI SETTINGS section header', () => {
+    const { getByText } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByText('AI SETTINGS')).toBeTruthy();
+  });
+
+  it('shows current provider name', () => {
+    const { getByText } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByText(/Claude/)).toBeTruthy();
+  });
+
+  it('does not show custom fields for built-in provider', () => {
+    const { queryByPlaceholderText } = render(<SettingsScreen {...defaultProps} />);
+    expect(queryByPlaceholderText('http://localhost:11434/v1')).toBeNull();
+  });
+
+  it('shows custom fields when Custom provider is selected', () => {
+    const useAIStore = require('../../src/stores/useAIStore').default;
+    useAIStore.mockReturnValue({
+      selectedProviderId: 'custom',
+      customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
+      dailySpendCents: 0,
+    });
+    const { getByPlaceholderText } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByPlaceholderText('http://localhost:11434/v1')).toBeTruthy();
+    expect(getByPlaceholderText('llama3.2')).toBeTruthy();
   });
 });

@@ -148,6 +148,39 @@ Deferred: AC-0215 (gutter tap detail), AC-0220 (blame annotation tap) — both r
 
 ---
 
+#### Part 4 — EPIC-0010 AI Suggestions (PR TBD, open)
+
+Full implementation of AI Suggestions epic: ghost-text completions, multi-provider AI chat panel, and inline paywalling.
+
+**User stories completed:**
+- **US-0033** (AC-0091/0092/0093) — Ghost-text inline completions via Monaco's `registerInlineCompletionsProvider`; 300ms debounce, Tab accepts, Escape dismisses, Pro+AI only; shared 15¢/day quota across built-in providers; zero API calls for non-Pro+AI users
+- **US-0034** (AC-0094/0095/0096) — AI chat panel in left sidebar tab with streaming responses (Claude Haiku/Sonnet, Gemini 3 Flash, Kimi K2.6, Custom/Ollama); session-only `streamingText`/`abortController` excluded from persist
+- **US-0035** (AC-0097/0098) — Inline `PaywallAISheet` for Free/Pro users; completions completely hidden with no API calls
+
+**Architecture highlights:**
+- `AIProvider` interface + 4 provider implementations (`claudeProvider`, `geminiProvider`, `kimiProvider`, `customProvider`) + `providerRegistry` factory
+- `useAIStore` (Zustand) — quota tracking, streaming state, provider selection; cross-provider spend gaming blocked via shared `dailySpendCents`
+- Custom provider: user's own OpenAI-compatible endpoint (Ollama, LM Studio), key in keychain, no daily cap
+- `injectMessage` on `EditorHandle` + `onCompletionContext` callback prop on Editor for clean separation of concerns
+
+**Key new files:**
+- `src/ai/aiProvider.ts` — AIProvider interface + ChatMessage type
+- `src/ai/providers/claudeProvider.ts`, `geminiProvider.ts`, `kimiProvider.ts`, `customProvider.ts`
+- `src/ai/providerRegistry.ts` — factory
+- `src/ai/quotaConfig.ts` — DAILY_CAP_CENTS, token limits
+- `src/stores/useAIStore.ts` — Zustand store
+- `src/components/AIChatPanel.tsx` — streaming chat UI with quota chip
+- `src/components/PaywallAISheet.tsx` — inline AI paywall
+- 8 new test files covering all new modules
+
+**Verification pass (final):**
+- Spend chip fix: `dailySpendCents / 10` → `dailySpendCents` (was showing dimes not cents)
+- Lint: 0 errors (45 pre-existing warnings)
+- Type-check: 0 errors
+- Tests: **1217 passing**, 62 suites
+
+---
+
 #### Part 3 — EPIC-0009 IAP & Monetization (PR #122, open)
 
 Three-tier subscription model (Free / Pro / Pro+AI) via RevenueCat.
@@ -181,17 +214,15 @@ Three-tier subscription model (Free / Pro / Pro+AI) via RevenueCat.
 |---|---|
 | `develop` | ✅ Clean — includes PR #120 + #121 + all dependabot merges |
 | `feature/epic-0009-iap-monetization` | 🔵 PR #122 open, CI running |
+| `feature/epic-0010-ai-suggestions` | 🔵 PR #124 open, CI running |
 
 ### Open PRs
 - **PR #122** — EPIC-0009 IAP & Monetization → `develop` (CI pending)
+- **PR #124** — EPIC-0010 AI Suggestions → `develop` (CI running)
 
 ### Next Session Pick-up
-1. Confirm PR #122 CI green and merge to `develop`
-2. **Start EPIC-0010 (AI Suggestions)** — brainstorm first (inline completions + AI chat panel, Claude API, gated behind Pro+AI)
-   - US-0033: Inline code completions (ghost-text, 300ms debounce, Tab to accept)
-   - US-0034: AI chat panel (streamed response, session history)
-   - US-0035: Non-subscriber paywall (Pro+AI gate)
-   - Key decisions: Claude model selection, context window strategy, streaming implementation in WebView/React Native, prompt caching
+1. Confirm PR #122 (EPIC-0009) and EPIC-0010 PR CI green and merge both to `develop`
+2. **Start EPIC-0011 (App Store & EAS Build Delivery)** or next prioritized EPIC from the backlog
 
 ---
 

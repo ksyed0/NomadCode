@@ -23,9 +23,13 @@ import {
 } from 'react-native';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import * as SecureStore from 'expo-secure-store';
 import { activateExtension, deactivateExtension } from '../extensions/sandbox';
 import type { ExtensionManifest } from '../extensions/sandbox';
 import { requestWorkspacePermission } from '../utils/FileSystemBridge';
+import useAIStore from '../stores/useAIStore';
+import { DAILY_CAP_CENTS } from '../ai/quotaConfig';
+import type { ProviderId } from '../ai/aiProvider';
 
 // Required once per file by expo-auth-session to complete any pending auth sessions.
 WebBrowser.maybeCompleteAuthSession();
@@ -143,6 +147,17 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   const subscriptionTier = useSubscriptionStore((s) => s.tier);
   const [paywallVisible, setPaywallVisible] = useState(false);
 
+  // AI store
+  const aiState = useAIStore();
+  const selectedProviderId: ProviderId = aiState?.selectedProviderId ?? 'claude';
+  const customConfig = aiState?.customConfig ?? { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false };
+  const dailySpendCents: number = aiState?.dailySpendCents ?? 0;
+  const [showProviderPicker, setShowProviderPicker] = useState(false);
+  const [customBaseUrl, setCustomBaseUrl] = useState(customConfig.baseUrl);
+  const [customModelName, setCustomModelName] = useState(customConfig.modelName);
+  const [customContextSize, setCustomContextSize] = useState(customConfig.contextWindowSize);
+  const [customApiKey, setCustomApiKey] = useState('');
+
   // Active theme tokens for theming the UI
   const tokens = useTheme();
 
@@ -250,6 +265,33 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
   // Memoize derived booleans (fix M-3)
   const darkModeActive = useMemo(() => selectedMode === 'dark', [selectedMode]);
   const lightModeActive = useMemo(() => selectedMode === 'light', [selectedMode]);
+
+  const PROVIDER_DISPLAY: Record<ProviderId, string> = {
+    claude: '✦ Claude',
+    gemini: '◈ Gemini 3 Flash',
+    kimi:   '◉ Kimi K2.6',
+    custom: '⚙ Custom',
+  };
+
+  const saveCustomConfig = useCallback(() => {
+    useAIStore.setState((s) => ({
+      customConfig: {
+        ...s.customConfig,
+        baseUrl: customBaseUrl,
+        modelName: customModelName,
+        contextWindowSize: customContextSize,
+      },
+    }));
+  }, [customBaseUrl, customModelName, customContextSize]);
+
+  const saveApiKey = useCallback(async () => {
+    if (customApiKey) {
+      await SecureStore.setItemAsync('nomadcode_custom_ai_key', customApiKey);
+      useAIStore.setState((s) => ({
+        customConfig: { ...s.customConfig, apiKeyIsStored: true },
+      }));
+    }
+  }, [customApiKey]);
 
   if (!visible) return null;
 
@@ -596,6 +638,130 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
             onClose={() => setPaywallVisible(false)}
             currentTier={subscriptionTier}
           />
+
+          {/* ── Section: AI Settings ─────────────────────────────────────── */}
+          <Text style={[styles.sectionLabel, dynamicSectionLabel]}>AI SETTINGS</Text>
+
+          {/* Provider picker row */}
+          <TouchableOpacity
+            testID="ai-provider-row"
+            style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}
+            onPress={() => setShowProviderPicker(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Select AI provider"
+          >
+            <Text style={[styles.editorRowLabel, { color: tokens.text }]}>Provider</Text>
+            <Text style={{ color: tokens.accent, fontSize: 14 }}>{PROVIDER_DISPLAY[selectedProviderId]}</Text>
+          </TouchableOpacity>
+
+          {/* Quota bar */}
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: tokens.textMuted, fontSize: 12, marginBottom: 4 }}>
+              Daily spend: ${(dailySpendCents / 100).toFixed(2)} / ${(DAILY_CAP_CENTS / 100).toFixed(2)}
+            </Text>
+            <View style={{ height: 4, borderRadius: 2, backgroundColor: tokens.border }}>
+              <View
+                style={{
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: dailySpendCents >= DAILY_CAP_CENTS ? tokens.error : tokens.accent,
+                  width: `${Math.min(100, (dailySpendCents / DAILY_CAP_CENTS) * 100)}%` as unknown as number,
+                }}
+              />
+            </View>
+          </View>
+
+          {/* Custom provider fields */}
+          {selectedProviderId === 'custom' && (
+            <View>
+              <TextInput
+                testID="ai-custom-base-url"
+                placeholder="http://localhost:11434/v1"
+                placeholderTextColor={tokens.textMuted}
+                value={customBaseUrl}
+                onChangeText={setCustomBaseUrl}
+                onBlur={saveCustomConfig}
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+              />
+              <TextInput
+                testID="ai-custom-api-key"
+                placeholder="API Key (stored in keychain)"
+                placeholderTextColor={tokens.textMuted}
+                value={customApiKey}
+                onChangeText={setCustomApiKey}
+                onBlur={() => { saveApiKey(); }}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+              />
+              <TextInput
+                testID="ai-custom-model-name"
+                placeholder="llama3.2"
+                placeholderTextColor={tokens.textMuted}
+                value={customModelName}
+                onChangeText={setCustomModelName}
+                onBlur={saveCustomConfig}
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+              />
+              <TextInput
+                testID="ai-custom-context-size"
+                placeholder="4096"
+                placeholderTextColor={tokens.textMuted}
+                value={String(customContextSize)}
+                onChangeText={(v) => setCustomContextSize(Number(v) || 4096)}
+                onBlur={saveCustomConfig}
+                keyboardType="numeric"
+                style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+              />
+            </View>
+          )}
+
+          {/* Provider picker modal */}
+          <Modal
+            visible={showProviderPicker}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowProviderPicker(false)}
+          >
+            <View style={styles.modalBackdrop}>
+              <View style={[styles.modalContent, { backgroundColor: tokens.bgElevated }]}>
+                <Text style={[styles.sectionHeader, { color: tokens.text }]}>Select AI Provider</Text>
+                {(['claude', 'gemini', 'kimi', 'custom'] as ProviderId[]).map((id) => (
+                  <TouchableOpacity
+                    key={id}
+                    testID={`provider-option-${id}`}
+                    style={[
+                      styles.addBtn,
+                      {
+                        borderColor: selectedProviderId === id ? tokens.accent : tokens.border,
+                        backgroundColor: selectedProviderId === id ? tokens.bgHighlight : 'transparent',
+                      },
+                    ]}
+                    onPress={() => {
+                      useAIStore.setState({ selectedProviderId: id });
+                      setShowProviderPicker(false);
+                    }}
+                    accessibilityRole="button"
+                  >
+                    <Text style={{ color: selectedProviderId === id ? tokens.accent : tokens.text }}>
+                      {PROVIDER_DISPLAY[id]}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity
+                  style={[styles.addBtn, { borderColor: tokens.border, marginTop: 8 }]}
+                  onPress={() => setShowProviderPicker(false)}
+                >
+                  <Text style={{ color: tokens.textMuted }}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
 
           <Modal visible={showAddSnippet} transparent animationType="slide" onRequestClose={() => setShowAddSnippet(false)}>
             <View style={styles.modalBackdrop}>

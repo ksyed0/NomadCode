@@ -15,6 +15,10 @@ import {
 import { FileSystemBridge, FileEntry } from '../utils/FileSystemBridge';
 import { useTheme } from '../theme/tokens';
 import { GlobalSearch } from './GlobalSearch';
+import AIChatPanel from './AIChatPanel';
+import PaywallAISheet from './PaywallAISheet';
+import useSubscriptionStore from '../stores/useSubscriptionStore';
+import { hasAIAccess } from '../iap/entitlements';
 
 export interface FileExplorerHandle {
   /** Opens the new-file name modal. Call this imperatively from a parent handler. */
@@ -30,13 +34,17 @@ interface FileExplorerProps {
   onFileDelete?: (filePath: string) => void;
   onFileRename?: (oldPath: string, newPath: string) => void;
   onFileMove?: (from: string, to: string) => void;
-  sidebarTab: 'files' | 'search';
-  onSidebarTabChange: (tab: 'files' | 'search') => void;
+  sidebarTab: 'files' | 'search' | 'ai';
+  onSidebarTabChange: (tab: 'files' | 'search' | 'ai') => void;
   onSearchNavigate: (filePath: string, lineNumber: number, matchStart: number, matchEnd: number) => void;
   /** Paths of files with unresolved git conflicts. Tapping these opens onOpenConflict. */
   conflictedPaths?: Set<string>;
   /** Called when user taps a conflict-marked file instead of opening it normally. */
   onOpenConflict?: (filePath: string) => void;
+  activeFilePath?: string | null;
+  activeFileContent?: string;
+  activeFileLanguage?: string;
+  onUpgrade?: () => void;
 }
 
 interface TreeNode extends FileEntry {
@@ -187,8 +195,13 @@ const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(function 
   onSearchNavigate,
   conflictedPaths,
   onOpenConflict,
+  activeFilePath,
+  activeFileContent,
+  activeFileLanguage,
+  onUpgrade,
 }: FileExplorerProps, ref) {
   const t = useTheme();
+  const tier = useSubscriptionStore((s) => s.tier);
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -536,21 +549,35 @@ const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(function 
     <View style={[styles.container, { backgroundColor: t.bgElevated }]}>
       {/* Tab bar */}
       <View style={[styles.tabBar, { borderBottomColor: t.border }]}>
-        {(['files', 'search'] as const).map((tab) => (
+        {([
+          { label: 'Files', value: 'files' as const },
+          { label: 'Search', value: 'search' as const },
+          { label: '✦ AI', value: 'ai' as const },
+        ]).map(({ label, value }) => (
           <TouchableOpacity
-            key={tab}
-            style={[styles.tab, sidebarTab === tab && { borderBottomColor: t.accent, borderBottomWidth: 2 }]}
-            onPress={() => onSidebarTabChange(tab)}
+            key={value}
+            style={[styles.tab, sidebarTab === value && { borderBottomColor: t.accent, borderBottomWidth: 2 }]}
+            onPress={() => onSidebarTabChange(value)}
           >
-            <Text style={[styles.tabLabel, { color: sidebarTab === tab ? t.accent : t.textMuted }]}>
-              {tab === 'files' ? 'Files' : 'Search'}
+            <Text style={[styles.tabLabel, { color: sidebarTab === value ? t.accent : t.textMuted }]}>
+              {label}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
       {/* Panel content */}
-      {sidebarTab === 'search' ? (
+      {sidebarTab === 'ai' ? (
+        hasAIAccess(tier) ? (
+          <AIChatPanel
+            activeFilePath={activeFilePath ?? null}
+            activeFileContent={activeFileContent ?? ''}
+            activeFileLanguage={activeFileLanguage ?? 'plaintext'}
+          />
+        ) : (
+          <PaywallAISheet onUpgrade={onUpgrade ?? (() => {})} />
+        )
+      ) : sidebarTab === 'search' ? (
         <GlobalSearch workspaceRoot={rootPath} onNavigate={onSearchNavigate} />
       ) : (
         <View style={styles.treeContainer}>
