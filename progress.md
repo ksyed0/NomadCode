@@ -4,6 +4,107 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 19 — 2026-05-01 (EPIC-0010 AI Suggestions)
+
+### What Was Done
+
+**Context:** Full EPIC-0010 implementation — AI Suggestions (inline code completions, AI chat panel, multi-provider support, paywall). Preceded by PR #122 (EPIC-0009) lint fixes and branch cleanup.
+
+---
+
+#### Pre-work
+
+**Branch cleanup:** Removed stale local/remote branches left over from previous sessions (claude/* worktrees, merged feature branches, closed dependabot branches).
+
+**PR #122 (EPIC-0009) CI fixes and merge:**
+- Fixed `react-hooks/set-state-in-effect` + `react-hooks/preserve-manual-memoization` (eslint-plugin-react-hooks@7 bundles React Compiler rules under those names — disabled them since NomadCode doesn't use the React Compiler)
+- Fixed `waitFor` unused import in `PaywallSheet.test.tsx`
+- Fixed `packageType: 'CUSTOM'` strict union TypeScript error in `iapService.test.ts`
+- **Merged** ✅
+
+---
+
+#### EPIC-0010 Design (Brainstorming + Spec + Plan)
+
+Key decisions made during brainstorm:
+- **Cost model:** Developer-pays via EAS secrets (Claude/Gemini 3 Flash/Kimi K2.6 keys injected at build time)
+- **Streaming:** `@microsoft/fetch-event-source` for SSE in React Native
+- **Chat placement:** Left sidebar "✦ AI" tab (consistent with existing Files/Git/Search tab pattern)
+- **Context:** Active file only (bounded cost; `@file` deferred to EPIC-0025)
+- **Quota:** Shared 15¢/day dollar-denominated cap across ALL built-in providers (blocks cross-provider gaming)
+- **Custom provider:** OpenAI-compatible endpoint, user's own API key via `expo-secure-store`, no cap
+- **Testing:** RevenueCat Customer Override (no IAP bypass code in binary)
+
+Design spec: `docs/superpowers/specs/2026-05-01-epic-0010-ai-suggestions-design.md`
+Implementation plan: `docs/superpowers/plans/2026-05-01-epic-0010-ai-suggestions.md`
+
+---
+
+#### EPIC-0010 Implementation (PR #124, CI green)
+
+16 tasks via subagent-driven development on `feature/epic-0010-ai-suggestions`.
+
+**New files:**
+| File | Responsibility |
+|---|---|
+| `src/ai/aiProvider.ts` | `AIProvider` interface, `ChatMessage`, `ProviderId`, `CustomConfig` |
+| `src/ai/quotaConfig.ts` | Constants: `DAILY_CAP_CENTS=15`, `COMPLETION_MAX_TOKENS=256`, etc. |
+| `src/ai/providerRegistry.ts` | `getProvider()` factory |
+| `src/ai/providers/claudeProvider.ts` | Haiku 4.5 completions, Sonnet 4.6 chat, prompt caching |
+| `src/ai/providers/geminiProvider.ts` | Gemini 3 Flash (maps `assistant`→`model` role) |
+| `src/ai/providers/kimiProvider.ts` | Kimi K2.6, OpenAI-compatible SSE |
+| `src/ai/providers/customProvider.ts` | User-configured endpoint; key in `expo-secure-store`; cost = 0 |
+| `src/stores/useAIStore.ts` | Quota, streaming state, multi-provider dispatch; session fields excluded from persist |
+| `src/components/AIChatPanel.tsx` | Chat UI: streaming bubbles, spend chip, Stop button |
+| `src/components/PaywallAISheet.tsx` | Inline paywall for Free/Pro tier |
+
+**Modified files:**
+| File | Change |
+|---|---|
+| `src/components/Editor.tsx` | `injectMessage(payload)` on `EditorHandle` via existing `sendToEditor` |
+| `src/utils/MonacoAssetManager.ts` | `registerInlineCompletionsProvider`, `SET_INLINE_COMPLETION` case, `COMPLETION_CONTEXT` outbound (100ms WebView debounce) |
+| `src/components/FileExplorer.tsx` | `SidebarTab` extended to `'files' \| 'search' \| 'ai'`; reactive `useSubscriptionStore` tier selector |
+| `src/components/SettingsScreen.tsx` | AI Settings section: provider picker, custom config fields, daily quota bar |
+| `App.tsx` | `onCompletionContext` prop → `handleCompletionContext` (300ms debounce, AbortController race guard, quota check) |
+
+**Notable architecture decisions:**
+- `onCompletionContext` callback prop on Editor keeps App.tsx decoupled from WebView message serialisation
+- `partialize` in useAIStore excludes `messages`/`streamingText`/`abortController` — session-only per AC-0096
+- `freeInlineCompletions` clears `pendingCompletion` to prevent stale ghost text re-offer after Tab/Escape
+- Reactive `useSubscriptionStore((s) => s.tier)` in FileExplorer (critical fix: `getState()` doesn't cause re-renders)
+
+**Code review issues fixed before PR:**
+- `useSubscriptionStore.getState()` → reactive selector in FileExplorer (critical)
+- Inline completion cost tracking added to `handleCompletionContext` (important)
+- `freeInlineCompletions: () => { pendingCompletion = null; }` (important)
+
+---
+
+### Test Results
+
+- **1224 tests, 0 failures** (62 suites) — up from 1153 baseline
+- All new files ≥80% coverage (`customProvider.ts` boosted to 96.87%)
+- Lint: 0 errors | Type-check: 0 errors
+
+---
+
+### Current State
+
+| Branch | Status |
+|---|---|
+| `develop` | ✅ Clean — includes PRs #120, #121, #122 |
+| `feature/epic-0010-ai-suggestions` | 🔵 PR #124 open, CI green, ready to merge |
+
+### Open PRs
+- **PR #124** — EPIC-0010 AI Suggestions → `develop` (CI green, awaiting merge)
+
+### Next Session Pick-up
+1. **Merge PR #124** to `develop` (CI is green)
+2. **EPIC-0011 (App Store & EAS Build)** — the final v1.0 GA gate; depends on EPIC-0010 being merged
+3. Clean up `.worktrees/epic-0010` after merge: `git worktree remove .worktrees/epic-0010`
+
+---
+
 ## Session 18 — 2026-04-30 (CI fixes, PR merges, EPIC-0020, EPIC-0009)
 
 ### What Was Done

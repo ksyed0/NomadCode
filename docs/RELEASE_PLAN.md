@@ -674,33 +674,40 @@ Dependencies: US-0031
 ### EPIC-0010: AI Suggestions
 
 ```
+EPIC-0010: AI Suggestions
+Description: Inline code completions and AI chat panel powered by Claude API, gated behind the Pro+AI subscription tier.
+Release Target: Release 1.0 (GA)
+Status: Done
+PR: #124 (open, CI green, targeting develop)
+Dependencies: EPIC-0009, EPIC-0008
+
 US-0033 (EPIC-0010): As a Pro+AI user, I want inline code completions, so that I can write code faster.
 Priority: High (P0)
 Estimate: XL
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0091: While typing, ghost-text completions appear after a 300 ms debounce
-  - [ ] AC-0092: Pressing Tab accepts the current completion; pressing Escape dismisses it
-  - [ ] AC-0093: Completions are only triggered for Pro+AI subscribers; other users see no ghost text
+  - [x] AC-0091: While typing, ghost-text completions appear after a 300 ms debounce
+  - [x] AC-0092: Pressing Tab accepts the current completion; pressing Escape dismisses it
+  - [x] AC-0093: Completions are only triggered for Pro+AI subscribers; other users see no ghost text
 Dependencies: EPIC-0009, EPIC-0008
 
 US-0034 (EPIC-0010): As a Pro+AI user, I want an AI chat panel, so that I can ask questions about my code.
 Priority: High (P0)
 Estimate: L
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0094: A chat panel can be opened alongside the editor via a toolbar button
-  - [ ] AC-0095: User can type a prompt referencing the current file and receive a streamed response
-  - [ ] AC-0096: Chat history persists for the session and is cleared on app restart
+  - [x] AC-0094: A chat panel can be opened alongside the editor via a toolbar button
+  - [x] AC-0095: User can type a prompt referencing the current file and receive a streamed response
+  - [x] AC-0096: Chat history persists for the session and is cleared on app restart
 Dependencies: US-0033
 
 US-0035 (EPIC-0010): As a non-subscriber, I want AI features gated with a clear upgrade prompt, so that I understand what I'm missing.
 Priority: Medium (P1)
 Estimate: S
-Status: Planned
+Status: Done
 Acceptance Criteria:
-  - [ ] AC-0097: Non-Pro+AI users see a paywall prompt when attempting to open the AI chat panel
-  - [ ] AC-0098: AI completion ghost text is hidden entirely for Free and Pro tier users
+  - [x] AC-0097: Non-Pro+AI users see a paywall prompt when attempting to open the AI chat panel
+  - [x] AC-0098: AI completion ghost text is hidden entirely for Free and Pro tier users
 Dependencies: US-0033, US-0034
 ```
 
