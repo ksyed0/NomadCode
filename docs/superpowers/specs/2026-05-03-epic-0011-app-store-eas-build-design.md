@@ -32,7 +32,7 @@ EPIC-0011 consists of four parallel work streams with explicit blocking dependen
 
 ### Current blockers
 
-- **Apple Developer Program**: Identity verification failing — enrollment in progress. Will unblock iOS build + submit (Streams 1 and 4 for iOS). ETA: unknown.
+- **Apple Developer Program**: Identity verification failing — enrollment in progress. Will unblock iOS build + submit (Streams 3 and 4). ETA: unknown.
 - **Google Play Console**: Not yet enrolled ($25 one-time, no ID verification). Should resolve quickly.
 
 ### Version bump
