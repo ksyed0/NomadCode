@@ -4,7 +4,7 @@
 // unit-testable without SDK mocks.
 
 const SENSITIVE_PATTERNS: RegExp[] = [
-  /ghp_[a-zA-Z0-9]{36}/g,                // GitHub PAT (classic)
+  /ghp_[a-zA-Z0-9]{36,}/g,                // GitHub PAT (classic)
   /github_pat_[a-zA-Z0-9_]{82,}/g,        // GitHub fine-grained PAT
   /sk-ant-[a-zA-Z0-9\-]{90,}/g,          // Anthropic key
   /AIza[a-zA-Z0-9\-_]{30,}/g,             // Google API key
