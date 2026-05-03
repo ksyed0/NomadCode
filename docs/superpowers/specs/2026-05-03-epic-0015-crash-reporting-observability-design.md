@@ -237,15 +237,15 @@ Add `EXPO_PUBLIC_SENTRY_DSN` to **all three** build profiles (development, previ
 
 ```json
 "development": {
-  "env": { "EXPO_PUBLIC_SENTRY_DSN": "<dsn-from-sentry-dashboard>" }
+  "env": { "EXPO_PUBLIC_SENTRY_DSN": "https://4d0ca8de7cdf9df11b212786fd3af78e@o4511328521551872.ingest.us.sentry.io/4511328528171008" }
 },
 "preview": {
-  "env": { "EXPO_PUBLIC_SENTRY_DSN": "<dsn-from-sentry-dashboard>" }
+  "env": { "EXPO_PUBLIC_SENTRY_DSN": "https://4d0ca8de7cdf9df11b212786fd3af78e@o4511328521551872.ingest.us.sentry.io/4511328528171008" }
 },
 "production": {
   "autoIncrement": true,
   "env": {
-    "EXPO_PUBLIC_SENTRY_DSN": "<dsn-from-sentry-dashboard>",
+    "EXPO_PUBLIC_SENTRY_DSN": "https://4d0ca8de7cdf9df11b212786fd3af78e@o4511328521551872.ingest.us.sentry.io/4511328528171008",
     "EXPO_PUBLIC_OPENROUTER_API_KEY": "EAS_SECRET",
     "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "EAS_SECRET",
     "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "EAS_SECRET"
@@ -265,7 +265,7 @@ Add `EXPO_PUBLIC_SENTRY_DSN` to **all three** build profiles (development, previ
     "@sentry/react-native/expo",
     {
       "project": "nomadcode",
-      "organization": "<sentry-org-slug>"
+      "organization": "fablesoft"
     }
   ]
 ]
