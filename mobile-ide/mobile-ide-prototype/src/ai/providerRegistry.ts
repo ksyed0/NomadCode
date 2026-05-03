@@ -1,16 +1,14 @@
 // src/ai/providerRegistry.ts
-import { claudeProvider } from './providers/claudeProvider';
-import { geminiProvider } from './providers/geminiProvider';
-import { kimiProvider }   from './providers/kimiProvider';
-import { buildCustomProvider } from './providers/customProvider';
-import type { AIProvider, ProviderId, CustomConfig } from './aiProvider';
+import { buildOpenRouterProvider } from './providers/openRouterProvider';
+import { buildByokProvider }       from './providers/byokProvider';
+import type { AIProvider, ProviderId, OpenRouterConfig, BYOKConfig } from './aiProvider';
 
-export function getProvider(id: ProviderId, customConfig?: CustomConfig): AIProvider {
+export function getProvider(
+  id: ProviderId,
+  config: OpenRouterConfig | BYOKConfig,
+): AIProvider {
   switch (id) {
-    case 'claude':  return claudeProvider;
-    case 'gemini':  return geminiProvider;
-    case 'kimi':    return kimiProvider;
-    case 'custom':  return buildCustomProvider(customConfig!);
-    default:        return claudeProvider;
+    case 'openrouter': return buildOpenRouterProvider(config as OpenRouterConfig);
+    case 'byok':       return buildByokProvider(config as BYOKConfig);
   }
 }
