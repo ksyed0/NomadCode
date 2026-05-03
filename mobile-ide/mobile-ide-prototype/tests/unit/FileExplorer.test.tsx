@@ -12,6 +12,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import { Alert } from 'react-native';
 import FileExplorer, { FileExplorerHandle } from '../../src/components/FileExplorer';
 import { FileSystemBridge } from '../../src/utils/FileSystemBridge';
+import { hasAIAccess } from '../../src/iap/entitlements';
 
 jest.mock('../../src/hooks/useSearch', () => ({
   useSearch: () => ({
@@ -134,7 +135,7 @@ type ExplorerOpts = {
   onFileCreate?: jest.Mock;
   onFileRename?: jest.Mock;
   onFileMove?: jest.Mock;
-  sidebarTab?: 'files' | 'search';
+  sidebarTab?: 'files' | 'search' | 'ai';
   onSidebarTabChange?: jest.Mock;
   onSearchNavigate?: jest.Mock;
 };
@@ -1380,6 +1381,51 @@ describe('FileExplorer — AI tab', () => {
       onSearchNavigate: jest.fn(),
     });
     expect(getByText('✦ AI')).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AI tab tier gating (US-0036)
+// ---------------------------------------------------------------------------
+
+describe('AI tab tier gating', () => {
+  const mockHasAIAccess = hasAIAccess as jest.Mock;
+
+  it('shows PaywallAISheet for Free tier', () => {
+    mockHasAIAccess.mockReturnValue(false);
+    const { getByTestId, queryByTestId } = renderExplorer({
+      sidebarTab: 'ai',
+      onSidebarTabChange: jest.fn(),
+      onSearchNavigate: jest.fn(),
+    });
+    expect(getByTestId('paywall-ai-sheet')).toBeTruthy();
+    expect(queryByTestId('ai-chat-panel')).toBeNull();
+  });
+
+  it('shows PaywallAISheet for Pro tier (no built-in AI)', () => {
+    mockHasAIAccess.mockReturnValue(false);
+    const { getByTestId, queryByTestId } = renderExplorer({
+      sidebarTab: 'ai',
+      onSidebarTabChange: jest.fn(),
+      onSearchNavigate: jest.fn(),
+    });
+    expect(getByTestId('paywall-ai-sheet')).toBeTruthy();
+    expect(queryByTestId('ai-chat-panel')).toBeNull();
+  });
+
+  it('shows AIChatPanel for Pro+AI tier', () => {
+    mockHasAIAccess.mockReturnValue(true);
+    const { getByTestId, queryByTestId } = renderExplorer({
+      sidebarTab: 'ai',
+      onSidebarTabChange: jest.fn(),
+      onSearchNavigate: jest.fn(),
+    });
+    expect(getByTestId('ai-chat-panel')).toBeTruthy();
+    expect(queryByTestId('paywall-ai-sheet')).toBeNull();
+  });
+
+  afterEach(() => {
+    mockHasAIAccess.mockReturnValue(false);
   });
 });
 
