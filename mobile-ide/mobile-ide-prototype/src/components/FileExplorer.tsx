@@ -575,7 +575,7 @@ const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(function 
             activeFileLanguage={activeFileLanguage ?? 'plaintext'}
           />
         ) : (
-          <PaywallAISheet onUpgrade={onUpgrade ?? (() => {})} />
+          <PaywallAISheet reason="builtin" onUpgrade={onUpgrade ?? (() => {})} />
         )
       ) : sidebarTab === 'search' ? (
         <GlobalSearch workspaceRoot={rootPath} onNavigate={onSearchNavigate} />

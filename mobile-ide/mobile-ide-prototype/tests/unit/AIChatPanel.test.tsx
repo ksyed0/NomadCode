@@ -21,10 +21,18 @@ jest.mock('../../src/stores/useAIStore', () => ({
     isStreaming: false,
     streamingText: '',
     dailySpendCents: 0,
-    selectedProviderId: 'claude',
+    builtInModel: 'anthropic/claude-3-5-haiku',
+    byokEnabled: false,
+    byokConfig: { preset: 'openrouter', modelName: '', customEndpoint: '', apiKeyIsStored: false },
+    modelPricingMap: {},
+    openRouterModels: [],
+    byokKeyConfigured: false,
     sendMessage: mockSendMessage,
     cancelStream: mockCancelStream,
     clearHistory: mockClearHistory,
+    setBuiltInModel: jest.fn(),
+    setByokEnabled: jest.fn(),
+    loadOpenRouterModels: jest.fn(),
   })),
   selectIsOverQuota: jest.fn(() => false),
 }));
@@ -35,21 +43,29 @@ const defaultProps = {
   activeFileLanguage: 'typescript',
 };
 
-const defaultStoreState = {
+const defaultMockState = {
   messages: [],
   isStreaming: false,
   streamingText: '',
   dailySpendCents: 0,
-  selectedProviderId: 'claude',
+  builtInModel: 'anthropic/claude-3-5-haiku',
+  byokEnabled: false,
+  byokConfig: { preset: 'openrouter', modelName: '', customEndpoint: '', apiKeyIsStored: false },
+  modelPricingMap: {},
+  openRouterModels: [],
+  byokKeyConfigured: false,
   sendMessage: mockSendMessage,
   cancelStream: mockCancelStream,
   clearHistory: mockClearHistory,
+  setBuiltInModel: jest.fn(),
+  setByokEnabled: jest.fn(),
+  loadOpenRouterModels: jest.fn(),
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
   const useAIStore = require('../../src/stores/useAIStore').default;
-  useAIStore.mockReturnValue(defaultStoreState);
+  useAIStore.mockReturnValue(defaultMockState);
 });
 
 describe('AIChatPanel', () => {
@@ -66,17 +82,11 @@ describe('AIChatPanel', () => {
   it('renders messages from the store', () => {
     const useAIStore = require('../../src/stores/useAIStore').default;
     useAIStore.mockReturnValue({
+      ...defaultMockState,
       messages: [
         { role: 'user', content: 'hello' },
         { role: 'assistant', content: 'world' },
       ],
-      isStreaming: false,
-      streamingText: '',
-      dailySpendCents: 0,
-      selectedProviderId: 'claude',
-      sendMessage: mockSendMessage,
-      cancelStream: mockCancelStream,
-      clearHistory: mockClearHistory,
     });
     const { getByText } = render(<AIChatPanel {...defaultProps} />);
     expect(getByText('hello')).toBeTruthy();
@@ -96,14 +106,9 @@ describe('AIChatPanel', () => {
   it('disables send button while streaming', () => {
     const useAIStore = require('../../src/stores/useAIStore').default;
     useAIStore.mockReturnValue({
-      messages: [],
+      ...defaultMockState,
       isStreaming: true,
       streamingText: 'partial...',
-      dailySpendCents: 0,
-      selectedProviderId: 'claude',
-      sendMessage: mockSendMessage,
-      cancelStream: mockCancelStream,
-      clearHistory: mockClearHistory,
     });
     const { getByAccessibilityHint } = render(<AIChatPanel {...defaultProps} />);
     expect(getByAccessibilityHint('Send message').props.accessibilityState?.disabled).toBe(true);
@@ -112,14 +117,9 @@ describe('AIChatPanel', () => {
   it('shows Stop button while streaming', () => {
     const useAIStore = require('../../src/stores/useAIStore').default;
     useAIStore.mockReturnValue({
-      messages: [],
+      ...defaultMockState,
       isStreaming: true,
       streamingText: 'hi',
-      dailySpendCents: 0,
-      selectedProviderId: 'claude',
-      sendMessage: mockSendMessage,
-      cancelStream: mockCancelStream,
-      clearHistory: mockClearHistory,
     });
     const { getByText } = render(<AIChatPanel {...defaultProps} />);
     expect(getByText('■ Stop')).toBeTruthy();
@@ -134,7 +134,51 @@ describe('AIChatPanel', () => {
   });
 
   it('shows spend chip for built-in provider', () => {
+    const useAIStore = require('../../src/stores/useAIStore').default;
+    useAIStore.mockReturnValue({
+      ...defaultMockState,
+      dailySpendCents: 0,
+      modelPricingMap: { 'anthropic/claude-3-5-haiku': { prompt: '0.0000008', completion: '0.000004' } },
+    });
     const { getByText } = render(<AIChatPanel {...defaultProps} />);
     expect(getByText(/0\.0¢/)).toBeTruthy();
+  });
+});
+
+describe('spend chip display', () => {
+  it('shows spend amount for paid model', () => {
+    (require('../../src/stores/useAIStore').default as jest.Mock).mockReturnValue({
+      ...defaultMockState,
+      builtInModel: 'anthropic/claude-3-5-haiku',
+      byokEnabled: false,
+      dailySpendCents: 5,
+      modelPricingMap: { 'anthropic/claude-3-5-haiku': { prompt: '0.0000008', completion: '0.000004' } },
+      isStreaming: false,
+    });
+    const { getByText } = render(<AIChatPanel activeFilePath={null} activeFileContent="" activeFileLanguage="typescript" />);
+    expect(getByText('5.0¢')).toBeTruthy();
+  });
+
+  it('shows "free" for free model', () => {
+    (require('../../src/stores/useAIStore').default as jest.Mock).mockReturnValue({
+      ...defaultMockState,
+      builtInModel: 'meta-llama/llama-3.1-8b-instruct:free',
+      byokEnabled: false,
+      dailySpendCents: 0,
+      modelPricingMap: { 'meta-llama/llama-3.1-8b-instruct:free': { prompt: '0', completion: '0' } },
+      isStreaming: false,
+    });
+    const { getByText } = render(<AIChatPanel activeFilePath={null} activeFileContent="" activeFileLanguage="typescript" />);
+    expect(getByText('free')).toBeTruthy();
+  });
+
+  it('shows "BYOK" when byokEnabled', () => {
+    (require('../../src/stores/useAIStore').default as jest.Mock).mockReturnValue({
+      ...defaultMockState,
+      byokEnabled: true,
+      isStreaming: false,
+    });
+    const { getByText } = render(<AIChatPanel activeFilePath={null} activeFileContent="" activeFileLanguage="typescript" />);
+    expect(getByText('BYOK')).toBeTruthy();
   });
 });

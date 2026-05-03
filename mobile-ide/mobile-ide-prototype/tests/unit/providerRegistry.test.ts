@@ -1,29 +1,49 @@
-// tests/unit/providerRegistry.test.ts
 import { getProvider } from '../../src/ai/providerRegistry';
+import type { OpenRouterConfig, BYOKConfig } from '../../src/ai/aiProvider';
 
-jest.mock('../../src/ai/providers/claudeProvider', () => ({ claudeProvider: { id: 'claude' } }));
-jest.mock('../../src/ai/providers/geminiProvider', () => ({ geminiProvider: { id: 'gemini' } }));
-jest.mock('../../src/ai/providers/kimiProvider',   () => ({ kimiProvider:   { id: 'kimi'   } }));
-jest.mock('../../src/ai/providers/customProvider', () => ({
-  buildCustomProvider: (cfg: object) => ({ id: 'custom', config: cfg }),
-}));
+jest.mock('@microsoft/fetch-event-source');
+jest.mock('expo-secure-store');
+
+const OR_CONFIG: OpenRouterConfig = {
+  modelId: 'anthropic/claude-3-5-haiku',
+  pricingMap: { 'anthropic/claude-3-5-haiku': { prompt: '0.0000008', completion: '0.000004' } },
+};
+
+const BYOK_CONFIG: BYOKConfig = {
+  preset: 'openrouter',
+  modelName: 'openai/gpt-4o',
+  customEndpoint: '',
+  apiKeyIsStored: false,
+};
 
 describe('getProvider', () => {
-  it('returns claudeProvider for id=claude', () => {
-    expect(getProvider('claude').id).toBe('claude');
+  it('returns openrouter provider for openrouter id', () => {
+    const p = getProvider('openrouter', OR_CONFIG);
+    expect(p.id).toBe('openrouter');
   });
-  it('returns geminiProvider for id=gemini', () => {
-    expect(getProvider('gemini').id).toBe('gemini');
+
+  it('returns byok provider for byok id', () => {
+    const p = getProvider('byok', BYOK_CONFIG);
+    expect(p.id).toBe('byok');
   });
-  it('returns kimiProvider for id=kimi', () => {
-    expect(getProvider('kimi').id).toBe('kimi');
+
+  it('openrouter provider has correct displayName', () => {
+    const p = getProvider('openrouter', OR_CONFIG);
+    expect(p.displayName).toBe('OpenRouter');
   });
-  it('builds custom provider with config', () => {
-    const cfg = { baseUrl: 'http://localhost:11434/v1', modelName: 'llama3', contextWindowSize: 4096, apiKeyIsStored: false };
-    const p = getProvider('custom', cfg);
-    expect(p.id).toBe('custom');
+
+  it('byok provider has correct displayName', () => {
+    const p = getProvider('byok', BYOK_CONFIG);
+    expect(p.displayName).toBe('BYOK');
   });
-  it('falls back to claude for unknown id', () => {
-    expect(getProvider('unknown' as any).id).toBe('claude');
+
+  it('openrouter provider estimateCostCents works', () => {
+    const p = getProvider('openrouter', OR_CONFIG);
+    expect(typeof p.estimateCostCents(1000, 500)).toBe('number');
+  });
+
+  it('byok provider always returns 0 cost', () => {
+    const p = getProvider('byok', BYOK_CONFIG);
+    expect(p.estimateCostCents(100000, 100000)).toBe(0);
   });
 });

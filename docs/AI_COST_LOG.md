@@ -376,3 +376,23 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-05-01 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | feature/epic-0020-advanced-git-workflows | 0 | 0 | 0 | 0.0000 |
 | 2026-05-01 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | feature/epic-0009-iap-monetization | 0 | 0 | 0 | 0.0000 |
 | 2026-05-01 | 0a7747a9-b4a8-4762-af42-8620cd5daa4e | feature/epic-0009-iap-monetization | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 [NO_DATA] | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-03 | bd807657-fa8b-48c7-a955-2d9e21a8df38 | claude/vigorous-colden-368091 | 0 | 0 | 0 | 0.0000 |

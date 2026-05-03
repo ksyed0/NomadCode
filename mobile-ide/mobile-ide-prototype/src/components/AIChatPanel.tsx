@@ -14,13 +14,6 @@ interface AIChatPanelProps {
   activeFileLanguage: string;
 }
 
-const PROVIDER_LABELS: Record<string, string> = {
-  claude: '✦ Claude',
-  gemini: '◈ Gemini',
-  kimi:   '◉ Kimi',
-  custom: '⚙ Custom',
-};
-
 function filename(path: string | null): string {
   if (!path) return 'no file open';
   return path.split('/').pop() ?? path;
@@ -29,7 +22,8 @@ function filename(path: string | null): string {
 export default function AIChatPanel({ activeFilePath, activeFileContent, activeFileLanguage }: AIChatPanelProps) {
   const t = useTheme();
   const storeState = useAIStore();
-  const { messages, isStreaming, streamingText, dailySpendCents, selectedProviderId,
+  const { messages, isStreaming, streamingText, dailySpendCents,
+          byokEnabled, builtInModel, modelPricingMap, byokConfig,
           sendMessage, cancelStream, clearHistory } = storeState;
 
   const [inputText, setInputText] = useState('');
@@ -42,8 +36,14 @@ export default function AIChatPanel({ activeFilePath, activeFileContent, activeF
     await sendMessage(text, activeFileContent, activeFileLanguage);
   }, [inputText, isStreaming, sendMessage, activeFileContent, activeFileLanguage]);
 
-  const spendLabel = selectedProviderId === 'custom'
-    ? 'custom'
+  const isFree = byokEnabled ||
+    (modelPricingMap[builtInModel]?.prompt === '0' &&
+     modelPricingMap[builtInModel]?.completion === '0');
+
+  const spendLabel = byokEnabled
+    ? 'BYOK'
+    : isFree
+    ? 'free'
     : `${dailySpendCents.toFixed(1)}¢`;
 
   const allMessages: ChatMessage[] = [
@@ -61,7 +61,10 @@ export default function AIChatPanel({ activeFilePath, activeFileContent, activeF
         <View>
           <Text style={[styles.headerTitle, { color: t.text }]}>AI Chat</Text>
           <Text style={[styles.headerSub, { color: t.textMuted }]}>
-            Context: {filename(activeFilePath)}
+            {byokEnabled
+              ? `BYOK · ${byokConfig.modelName || 'no model set'}`
+              : (builtInModel.split('/').pop() ?? builtInModel)
+            } · {filename(activeFilePath)}
           </Text>
         </View>
         <View style={styles.headerActions}>
@@ -98,7 +101,7 @@ export default function AIChatPanel({ activeFilePath, activeFileContent, activeF
           <View style={item.role === 'user' ? styles.userBubbleWrap : styles.assistantBubbleWrap}>
             {item.role === 'assistant' && (
               <Text style={[styles.providerLabel, { color: t.accent }]}>
-                {PROVIDER_LABELS[selectedProviderId] ?? '✦ AI'}
+                {byokEnabled ? 'BYOK' : `✦ ${builtInModel.split('/').pop() ?? 'AI'}`}
               </Text>
             )}
             <View style={[
