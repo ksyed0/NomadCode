@@ -79,6 +79,9 @@ module.exports = [
       // for valid setState-in-effect and manual-memoization patterns here.
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/preserve-manual-memoization': 'off',
+      // react-hooks@7.1.1 added react-compiler to the recommended preset.
+      // NomadCode does not use the React Compiler transpiler — disable to avoid false positives.
+      'react-hooks/react-compiler': 'off',
     },
   },
 
