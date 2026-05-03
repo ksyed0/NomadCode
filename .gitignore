@@ -5,6 +5,9 @@ node_modules/
 docs/coverage/
 coverage/
 
+# Jest output artifacts — regenerated on every test run
+**/junit.xml
+
 # Generated plan visualizer artifacts — deployed to GitHub Pages, not committed
 docs/plan-status.html
 docs/plan-status.json
