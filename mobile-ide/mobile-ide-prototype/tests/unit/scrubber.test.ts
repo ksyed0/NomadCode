@@ -38,6 +38,14 @@ describe('scrubEvent — token scrubbing', () => {
     expect(JSON.stringify(result.extra)).not.toContain('AIza');
   });
 
+  it('strips GitHub fine-grained PAT from extra data', () => {
+    const token = 'github_pat_' + 'a'.repeat(22) + '_' + 'b'.repeat(59);
+    const event = makeEvent({ extra: { key: token } });
+    const result = scrubEvent(event);
+    expect(JSON.stringify(result.extra)).not.toContain('github_pat_');
+    expect(JSON.stringify(result.extra)).toContain('[redacted]');
+  });
+
   it('strips generic Bearer token from breadcrumb data', () => {
     const event = makeEvent({
       breadcrumbs: {
