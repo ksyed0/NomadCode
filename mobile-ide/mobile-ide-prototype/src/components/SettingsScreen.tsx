@@ -29,7 +29,8 @@ import type { ExtensionManifest } from '../extensions/sandbox';
 import { requestWorkspacePermission } from '../utils/FileSystemBridge';
 import useAIStore from '../stores/useAIStore';
 import { DAILY_CAP_CENTS } from '../ai/quotaConfig';
-import type { ProviderId } from '../ai/aiProvider';
+import type { ProviderId, BYOKPreset } from '../ai/aiProvider';
+import { BYOK_SECURE_KEY } from '../ai/providers/byokProvider';
 
 // Required once per file by expo-auth-session to complete any pending auth sessions.
 WebBrowser.maybeCompleteAuthSession();
@@ -149,14 +150,39 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
 
   // AI store
   const aiState = useAIStore();
-  const selectedProviderId: ProviderId = aiState?.selectedProviderId ?? 'claude';
+  const selectedProviderId: ProviderId = aiState?.selectedProviderId ?? 'openrouter';
   const customConfig = aiState?.customConfig ?? { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false };
   const dailySpendCents: number = aiState?.dailySpendCents ?? 0;
+  const byokEnabled: boolean = aiState?.byokEnabled ?? false;
+  const byokConfig = aiState?.byokConfig ?? { preset: 'openrouter' as BYOKPreset, modelName: '', customEndpoint: '', apiKeyIsStored: false };
+  const builtInModel: string = aiState?.builtInModel ?? '';
+  const setByokEnabled = aiState?.setByokEnabled ?? (() => {});
+  const setByokConfig = aiState?.setByokConfig ?? (() => {});
+  const setByokKeyConfigured = aiState?.setByokKeyConfigured ?? (() => {});
   const [showProviderPicker, setShowProviderPicker] = useState(false);
   const [customBaseUrl, setCustomBaseUrl] = useState(customConfig.baseUrl);
   const [customModelName, setCustomModelName] = useState(customConfig.modelName);
   const [customContextSize, setCustomContextSize] = useState(customConfig.contextWindowSize);
   const [customApiKey, setCustomApiKey] = useState('');
+
+  // BYOK local state
+  const [byokKeyInput, setByokKeyInput] = useState('');
+
+  async function saveBYOKKey() {
+    const trimmed = byokKeyInput.trim();
+    if (!trimmed) return;
+    await SecureStore.setItemAsync(BYOK_SECURE_KEY, trimmed);
+    setByokKeyConfigured(true);
+    setByokKeyInput('');
+  }
+
+  const PRESET_LABELS: Record<BYOKPreset, string> = {
+    openrouter: 'OpenRouter',
+    anthropic:  'Anthropic (Claude)',
+    google:     'Google (Gemini)',
+    openai:     'OpenAI / Codex',
+    custom:     'Custom endpoint',
+  };
 
   // Active theme tokens for theming the UI
   const tokens = useTheme();
@@ -718,6 +744,113 @@ export default function SettingsScreen({ visible, onClose }: SettingsScreenProps
                 keyboardType="numeric"
                 style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
               />
+            </View>
+          )}
+
+          {/* ── Section: BYOK (hidden for free tier) ────────────────────── */}
+          {subscriptionTier !== 'free' && (
+            <View>
+              <Text style={[styles.sectionLabel, dynamicSectionLabel]}>Bring Your Own Key</Text>
+
+              {/* Enable / disable BYOK toggle */}
+              <View style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}>
+                <Text style={[styles.editorRowLabel, { color: tokens.text }]}>Enable BYOK</Text>
+                <Switch
+                  testID="byok-enable-toggle"
+                  value={byokEnabled}
+                  onValueChange={(v) => setByokEnabled(v)}
+                  trackColor={{ true: tokens.accent }}
+                />
+              </View>
+
+              {/* Pro+AI built-in model display (when BYOK is off) */}
+              {subscriptionTier === 'pro_ai' && !byokEnabled && (
+                <View testID="byok-builtin-model-display" style={[styles.editorRow, { backgroundColor: tokens.bgElevated, borderColor: tokens.border }]}>
+                  <Text style={[styles.editorRowLabel, { color: tokens.text }]}>Built-in model</Text>
+                  <Text style={{ color: tokens.accent, fontSize: 13 }}>{builtInModel}</Text>
+                </View>
+              )}
+
+              {/* BYOK fields (only when enabled) */}
+              {byokEnabled && (
+                <View>
+                  {/* Preset picker rows */}
+                  {(['openrouter', 'anthropic', 'google', 'openai', 'custom'] as BYOKPreset[]).map((preset) => (
+                    <TouchableOpacity
+                      key={preset}
+                      testID={`byok-preset-${preset}`}
+                      style={[
+                        styles.addBtn,
+                        {
+                          borderColor: byokConfig.preset === preset ? tokens.accent : tokens.border,
+                          backgroundColor: byokConfig.preset === preset ? tokens.bgHighlight : 'transparent',
+                        },
+                      ]}
+                      onPress={() => setByokConfig({ ...byokConfig, preset })}
+                      accessibilityRole="button"
+                    >
+                      <Text style={{ color: byokConfig.preset === preset ? tokens.accent : tokens.text }}>
+                        {PRESET_LABELS[preset]}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+
+                  {/* API key input */}
+                  <TextInput
+                    testID="byok-api-key-input"
+                    placeholder="API Key (stored in keychain)"
+                    placeholderTextColor={tokens.textMuted}
+                    value={byokKeyInput}
+                    onChangeText={setByokKeyInput}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+                  />
+                  <TouchableOpacity
+                    testID="byok-save-key-btn"
+                    onPress={saveBYOKKey}
+                    disabled={!byokKeyInput.trim()}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: !byokKeyInput.trim() }}
+                    style={[
+                      styles.extInstallBtn,
+                      { backgroundColor: byokKeyInput.trim() ? tokens.accent : tokens.bgElevated, borderColor: tokens.border },
+                    ]}
+                  >
+                    <Text style={{ color: byokKeyInput.trim() ? '#FFFFFF' : tokens.textMuted, fontWeight: '600', fontSize: 15 }}>
+                      Save Key
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Model name input */}
+                  <TextInput
+                    testID="byok-model-name-input"
+                    placeholder="Model name (e.g. claude-3-5-haiku)"
+                    placeholderTextColor={tokens.textMuted}
+                    value={byokConfig.modelName}
+                    onChangeText={(v) => setByokConfig({ ...byokConfig, modelName: v })}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+                  />
+
+                  {/* Custom endpoint — only shown when preset is 'custom' */}
+                  {byokConfig.preset === 'custom' && (
+                    <TextInput
+                      testID="byok-custom-endpoint-input"
+                      placeholder="https://my-api.example.com/v1"
+                      placeholderTextColor={tokens.textMuted}
+                      value={byokConfig.customEndpoint}
+                      onChangeText={(v) => setByokConfig({ ...byokConfig, customEndpoint: v })}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      keyboardType="url"
+                      style={[styles.extInput, { color: tokens.text, borderColor: tokens.border, backgroundColor: tokens.bgElevated }]}
+                    />
+                  )}
+                </View>
+              )}
             </View>
           )}
 

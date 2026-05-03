@@ -110,11 +110,13 @@ jest.mock('expo-web-browser', () => ({
   maybeCompleteAuthSession: jest.fn(),
 }));
 
+let mockSubscriptionTier: 'free' | 'pro' | 'pro_ai' = 'free';
+
 jest.mock('../../src/stores/useSubscriptionStore', () => ({
   __esModule: true,
   default: jest.fn((sel: (s: object) => unknown) =>
     sel({
-      tier: 'free',
+      get tier() { return mockSubscriptionTier; },
       isLoading: false,
       error: null,
       offerings: [],
@@ -127,6 +129,18 @@ jest.mock('../../src/stores/useSubscriptionStore', () => ({
 jest.mock('../../src/components/SubscriptionBadge', () => 'SubscriptionBadge');
 jest.mock('../../src/components/PaywallSheet', () => 'PaywallSheet');
 
+let mockByokEnabled = false;
+let mockByokConfig = {
+  preset: 'openrouter' as 'openrouter' | 'anthropic' | 'google' | 'openai' | 'custom',
+  modelName: '',
+  customEndpoint: '',
+  apiKeyIsStored: false,
+};
+let mockBuiltInModel = 'anthropic/claude-3-5-haiku';
+const mockSetByokEnabled = jest.fn();
+const mockSetByokConfig = jest.fn();
+const mockSetByokKeyConfigured = jest.fn();
+
 jest.mock('../../src/stores/useAIStore', () => ({
   __esModule: true,
   default: Object.assign(
@@ -134,6 +148,12 @@ jest.mock('../../src/stores/useAIStore', () => ({
       selectedProviderId: 'claude',
       customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
       dailySpendCents: 0,
+      byokEnabled: mockByokEnabled,
+      byokConfig: mockByokConfig,
+      builtInModel: mockBuiltInModel,
+      setByokEnabled: mockSetByokEnabled,
+      setByokConfig: mockSetByokConfig,
+      setByokKeyConfigured: mockSetByokKeyConfigured,
     })),
     { setState: jest.fn() },
   ),
@@ -163,6 +183,29 @@ beforeEach(() => {
   mockRequestWorkspacePermission.mockReset();
   mockSetWorkspaceRoot.mockReset();
   mockSetFormatOnSave.mockReset();
+  mockSubscriptionTier = 'free';
+  mockByokEnabled = false;
+  mockByokConfig = {
+    preset: 'openrouter',
+    modelName: '',
+    customEndpoint: '',
+    apiKeyIsStored: false,
+  };
+  mockBuiltInModel = 'anthropic/claude-3-5-haiku';
+
+  // Re-sync useAIStore mock with updated module-level variables
+  const useAIStore = require('../../src/stores/useAIStore').default;
+  useAIStore.mockImplementation(() => ({
+    selectedProviderId: 'claude',
+    customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
+    dailySpendCents: 0,
+    byokEnabled: mockByokEnabled,
+    byokConfig: mockByokConfig,
+    builtInModel: mockBuiltInModel,
+    setByokEnabled: mockSetByokEnabled,
+    setByokConfig: mockSetByokConfig,
+    setByokKeyConfigured: mockSetByokKeyConfigured,
+  }));
 });
 
 describe('SettingsScreen', () => {
@@ -529,9 +572,153 @@ describe('AI Settings section', () => {
       selectedProviderId: 'custom',
       customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
       dailySpendCents: 0,
+      byokEnabled: false,
+      byokConfig: { preset: 'openrouter', modelName: '', customEndpoint: '', apiKeyIsStored: false },
+      builtInModel: 'anthropic/claude-3-5-haiku',
+      setByokEnabled: mockSetByokEnabled,
+      setByokConfig: mockSetByokConfig,
+      setByokKeyConfigured: mockSetByokKeyConfigured,
     });
     const { getByPlaceholderText } = render(<SettingsScreen {...defaultProps} />);
     expect(getByPlaceholderText('http://localhost:11434/v1')).toBeTruthy();
     expect(getByPlaceholderText('llama3.2')).toBeTruthy();
+  });
+});
+
+describe('BYOK settings section', () => {
+  it('hides BYOK section for Free tier', () => {
+    mockSubscriptionTier = 'free';
+    const { queryByText } = render(<SettingsScreen {...defaultProps} />);
+    expect(queryByText('Bring Your Own Key')).toBeNull();
+  });
+
+  it('shows BYOK section for Pro tier', () => {
+    mockSubscriptionTier = 'pro';
+    const { getByText } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByText('Bring Your Own Key')).toBeTruthy();
+  });
+
+  it('shows BYOK section for Pro+AI tier', () => {
+    mockSubscriptionTier = 'pro_ai';
+    const { getByText } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByText('Bring Your Own Key')).toBeTruthy();
+  });
+
+  it('shows BYOK enable toggle', () => {
+    mockSubscriptionTier = 'pro';
+    const { getByTestId } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByTestId('byok-enable-toggle')).toBeTruthy();
+  });
+
+  it('shows preset picker rows when byokEnabled is true', () => {
+    mockSubscriptionTier = 'pro';
+    mockByokEnabled = true;
+    const useAIStore = require('../../src/stores/useAIStore').default;
+    useAIStore.mockReturnValue({
+      selectedProviderId: 'claude',
+      customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
+      dailySpendCents: 0,
+      byokEnabled: true,
+      byokConfig: { preset: 'openrouter', modelName: '', customEndpoint: '', apiKeyIsStored: false },
+      builtInModel: 'anthropic/claude-3-5-haiku',
+      setByokEnabled: mockSetByokEnabled,
+      setByokConfig: mockSetByokConfig,
+      setByokKeyConfigured: mockSetByokKeyConfigured,
+    });
+    const { getByText } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByText('OpenRouter')).toBeTruthy();
+    expect(getByText('Anthropic (Claude)')).toBeTruthy();
+    expect(getByText('OpenAI / Codex')).toBeTruthy();
+  });
+
+  it('hides preset rows when byokEnabled is false', () => {
+    mockSubscriptionTier = 'pro';
+    const { queryByText } = render(<SettingsScreen {...defaultProps} />);
+    expect(queryByText('OpenRouter')).toBeNull();
+  });
+
+  it('shows API key input when byokEnabled is true', () => {
+    mockSubscriptionTier = 'pro';
+    const useAIStore = require('../../src/stores/useAIStore').default;
+    useAIStore.mockReturnValue({
+      selectedProviderId: 'claude',
+      customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
+      dailySpendCents: 0,
+      byokEnabled: true,
+      byokConfig: { preset: 'openrouter', modelName: '', customEndpoint: '', apiKeyIsStored: false },
+      builtInModel: 'anthropic/claude-3-5-haiku',
+      setByokEnabled: mockSetByokEnabled,
+      setByokConfig: mockSetByokConfig,
+      setByokKeyConfigured: mockSetByokKeyConfigured,
+    });
+    const { getByTestId } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByTestId('byok-api-key-input')).toBeTruthy();
+    expect(getByTestId('byok-save-key-btn')).toBeTruthy();
+  });
+
+  it('shows custom endpoint input only when preset is custom', () => {
+    mockSubscriptionTier = 'pro';
+    const useAIStore = require('../../src/stores/useAIStore').default;
+    useAIStore.mockReturnValue({
+      selectedProviderId: 'claude',
+      customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
+      dailySpendCents: 0,
+      byokEnabled: true,
+      byokConfig: { preset: 'custom', modelName: '', customEndpoint: '', apiKeyIsStored: false },
+      builtInModel: 'anthropic/claude-3-5-haiku',
+      setByokEnabled: mockSetByokEnabled,
+      setByokConfig: mockSetByokConfig,
+      setByokKeyConfigured: mockSetByokKeyConfigured,
+    });
+    const { getByTestId } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByTestId('byok-custom-endpoint-input')).toBeTruthy();
+  });
+
+  it('does not show custom endpoint input when preset is not custom', () => {
+    mockSubscriptionTier = 'pro';
+    const useAIStore = require('../../src/stores/useAIStore').default;
+    useAIStore.mockReturnValue({
+      selectedProviderId: 'claude',
+      customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
+      dailySpendCents: 0,
+      byokEnabled: true,
+      byokConfig: { preset: 'anthropic', modelName: '', customEndpoint: '', apiKeyIsStored: false },
+      builtInModel: 'anthropic/claude-3-5-haiku',
+      setByokEnabled: mockSetByokEnabled,
+      setByokConfig: mockSetByokConfig,
+      setByokKeyConfigured: mockSetByokKeyConfigured,
+    });
+    const { queryByTestId } = render(<SettingsScreen {...defaultProps} />);
+    expect(queryByTestId('byok-custom-endpoint-input')).toBeNull();
+  });
+
+  it('shows built-in model name for proAI when BYOK is disabled', () => {
+    mockSubscriptionTier = 'pro_ai';
+    const { getByTestId } = render(<SettingsScreen {...defaultProps} />);
+    expect(getByTestId('byok-builtin-model-display')).toBeTruthy();
+  });
+
+  it('saves API key to SecureStore and calls setByokKeyConfigured on Save', async () => {
+    mockSubscriptionTier = 'pro';
+    const useAIStore = require('../../src/stores/useAIStore').default;
+    useAIStore.mockReturnValue({
+      selectedProviderId: 'claude',
+      customConfig: { baseUrl: '', modelName: '', contextWindowSize: 4096, apiKeyIsStored: false },
+      dailySpendCents: 0,
+      byokEnabled: true,
+      byokConfig: { preset: 'openrouter', modelName: '', customEndpoint: '', apiKeyIsStored: false },
+      builtInModel: 'anthropic/claude-3-5-haiku',
+      setByokEnabled: mockSetByokEnabled,
+      setByokConfig: mockSetByokConfig,
+      setByokKeyConfigured: mockSetByokKeyConfigured,
+    });
+    const SecureStore = require('expo-secure-store');
+    const { getByTestId } = render(<SettingsScreen {...defaultProps} />);
+    fireEvent.changeText(getByTestId('byok-api-key-input'), 'sk-test-key-123');
+    fireEvent.press(getByTestId('byok-save-key-btn'));
+    await waitFor(() => {
+      expect(SecureStore.setItemAsync).toHaveBeenCalledWith('nomadcode_custom_ai_key', 'sk-test-key-123');
+      expect(mockSetByokKeyConfigured).toHaveBeenCalledWith(true);
+    });
   });
 });
