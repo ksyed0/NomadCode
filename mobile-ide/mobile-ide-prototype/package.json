@@ -1,6 +1,6 @@
 {
   "name": "mobile-ide-prototype",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "NomadCode mobile IDE prototype",
   "private": true,
   "main": "index.js",
