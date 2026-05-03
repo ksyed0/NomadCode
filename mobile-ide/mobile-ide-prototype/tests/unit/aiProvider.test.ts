@@ -1,5 +1,5 @@
 import type {
-  ProviderId, BYOKPreset, BYOKConfig, OpenRouterModel, OpenRouterConfig, AIProvider
+  ProviderId, BYOKPreset, BYOKConfig, OpenRouterModel, OpenRouterConfig,
 } from '../../src/ai/aiProvider';
 
 describe('aiProvider types', () => {
