@@ -56,6 +56,15 @@ describe('scrubEvent — token scrubbing', () => {
     const bc = (result.breadcrumbs as { values: Array<{ data: Record<string, string> }> }).values[0];
     expect(bc.data.Authorization).not.toContain('eyJhbGci');
   });
+
+  it('strips tokens on repeated scrubEvent calls (stateful regex guard)', () => {
+    const msg = 'ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ123456789012';
+    const make = () => makeEvent({ message: msg });
+    scrubEvent(make()); // first call
+    const result = scrubEvent(make()); // second call must still redact
+    expect(result.message).not.toContain('ghp_');
+    expect(result.message).toContain('[redacted]');
+  });
 });
 
 describe('scrubEvent — truncation', () => {
@@ -100,5 +109,16 @@ describe('scrubEvent — edge cases', () => {
     const result = scrubEvent(event);
     expect(result.message).toBe('Nothing sensitive here');
     expect((result.extra as Record<string, number>).count).toBe(42);
+  });
+
+  it('handles array values inside breadcrumb data without corrupting to plain object', () => {
+    const event = makeEvent({
+      breadcrumbs: {
+        values: [{ category: 'http', data: { headers: ['Content-Type', 'application/json'] } }],
+      },
+    });
+    const result = scrubEvent(event);
+    const bc = (result.breadcrumbs as { values: Array<{ data: Record<string, unknown> }> }).values[0];
+    expect(Array.isArray(bc.data.headers)).toBe(true);
   });
 });

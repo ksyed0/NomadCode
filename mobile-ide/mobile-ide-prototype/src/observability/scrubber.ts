@@ -3,13 +3,13 @@
 // No @sentry/react-native import — operates on plain objects so it is fully
 // unit-testable without SDK mocks.
 
-const SENSITIVE_PATTERNS: RegExp[] = [
-  /ghp_[a-zA-Z0-9]{36,}/g,                // GitHub PAT (classic)
-  /github_pat_[a-zA-Z0-9_]{82,}/g,        // GitHub fine-grained PAT
-  /sk-ant-[a-zA-Z0-9\-]{90,}/g,          // Anthropic key
-  /AIza[a-zA-Z0-9\-_]{30,}/g,             // Google API key
-  /sk-or-[a-zA-Z0-9\-]{40,}/g,           // OpenRouter key
-  /Bearer\s+[a-zA-Z0-9._\-]{20,}/g,      // Generic bearer token
+const SENSITIVE_PATTERN_SOURCES: string[] = [
+  String.raw`ghp_[a-zA-Z0-9]{36,}`,           // GitHub PAT (classic)
+  String.raw`github_pat_[a-zA-Z0-9_]{82,}`,    // GitHub fine-grained PAT
+  String.raw`sk-ant-[a-zA-Z0-9\-]{90,}`,       // Anthropic key
+  String.raw`AIza[a-zA-Z0-9\-_]{30,}`,          // Google API key
+  String.raw`sk-or-[a-zA-Z0-9\-]{40,}`,        // OpenRouter key
+  String.raw`Bearer\s+[a-zA-Z0-9._+/\-]{20,}`, // Generic bearer token (incl. base64 chars)
 ];
 
 const EXTRA_MAX_LEN       = 500;
@@ -19,13 +19,15 @@ const TRUNCATE_TAG        = '[truncated]';
 
 function redactString(value: string): string {
   let result = value;
-  for (const pattern of SENSITIVE_PATTERNS) {
-    result = result.replace(pattern, REDACT_TAG);
+  for (const src of SENSITIVE_PATTERN_SOURCES) {
+    result = result.replace(new RegExp(src, 'g'), REDACT_TAG);
   }
   return result;
 }
 
 function processString(value: string, maxLen: number): string {
+  // Truncate first: a fully-replaced string cannot leak tokens.
+  // Only strings short enough to pass through are redacted.
   if (value.length > maxLen) return TRUNCATE_TAG;
   return redactString(value);
 }
@@ -38,6 +40,14 @@ function scrubObject(
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === 'string') {
       result[key] = processString(value, maxLen);
+    } else if (Array.isArray(value)) {
+      result[key] = (value as unknown[]).map((item) =>
+        typeof item === 'string'
+          ? processString(item, maxLen)
+          : item !== null && typeof item === 'object'
+            ? scrubObject(item as Record<string, unknown>, maxLen)
+            : item
+      );
     } else if (value !== null && typeof value === 'object') {
       result[key] = scrubObject(value as Record<string, unknown>, maxLen);
     } else {
@@ -65,7 +75,7 @@ export function scrubEvent(event: SentryEvent): SentryEvent {
 
   // Scrub event.message
   if (typeof result.message === 'string') {
-    result.message = redactString(result.message);
+    result.message = processString(result.message, EXTRA_MAX_LEN);
   }
 
   // Scrub + truncate event.extra values
