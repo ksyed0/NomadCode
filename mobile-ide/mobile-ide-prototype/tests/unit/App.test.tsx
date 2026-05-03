@@ -91,10 +91,12 @@ jest.mock('../../src/stores/useAIStore', () => ({
         getCompletion: jest.fn(async () => 'completion text'),
         estimateCostCents: jest.fn(() => 0),
       })),
+      loadOpenRouterModels: jest.fn(),
     })),
     setState: jest.fn(),
   }),
   selectIsOverQuota: jest.fn(() => false),
+  selectIsFreeModel: jest.fn(() => false),
 }));
 
 jest.mock('../../src/ai/quotaConfig', () => ({
@@ -582,6 +584,7 @@ describe('COMPLETION_CONTEXT handling', () => {
     const useAIStore = require('../../src/stores/useAIStore').default;
     useAIStore.getState.mockReturnValue({
       getActiveProvider: () => ({ getCompletion: mockGetCompletion, estimateCostCents: () => 0 }),
+      loadOpenRouterModels: jest.fn(),
     });
     // Render the app — completion is not triggered on mount for non-Pro+AI
     expect(mockGetCompletion).not.toHaveBeenCalled();

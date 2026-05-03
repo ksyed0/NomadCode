@@ -144,6 +144,11 @@ export default function App() {
     void hydrateSubscription();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Load OpenRouter model list + pricing on mount (cached for 24h).
+  useEffect(() => {
+    useAIStore.getState().loadOpenRouterModels();
+  }, []);
+
   // Refresh branch label when workspace or tree changes (e.g. after clone).
   // Uses the fast branch-only lookup (reads HEAD, no statusMatrix scan)
   // so the 100ms job doesn't block the JS thread for ~30s on a large repo.

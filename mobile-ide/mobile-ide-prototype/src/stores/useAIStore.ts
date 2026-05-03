@@ -4,16 +4,23 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getProvider } from '../ai/providerRegistry';
 import { DAILY_CAP_CENTS } from '../ai/quotaConfig';
-import type { AIProvider, ChatMessage, CustomConfig, ProviderId } from '../ai/aiProvider';
+import { fetchOpenRouterModels, buildPricingMap } from '../ai/openRouterModelsService';
+import type {
+  AIProvider, ChatMessage, BYOKConfig, OpenRouterModel, OpenRouterConfig,
+} from '../ai/aiProvider';
 
-interface AIState {
+export interface AIState {
   // ── Persisted ─────────────────────────────────────────────────────────────
-  selectedProviderId: ProviderId;
-  customConfig: CustomConfig;
+  builtInModel: string;
+  byokEnabled: boolean;
+  byokConfig: BYOKConfig;
   dailySpendCents: number;
   quotaResetDate: string;
 
-  // ── Session only (not persisted — satisfies AC-0096) ──────────────────────
+  // ── Session only (not persisted) ──────────────────────────────────────────
+  openRouterModels: OpenRouterModel[];
+  modelPricingMap: Record<string, { prompt: string; completion: string }>;
+  byokKeyConfigured: boolean;
   messages: ChatMessage[];
   isStreaming: boolean;
   streamingText: string;
@@ -25,28 +32,47 @@ interface AIState {
   clearHistory(): void;
   checkAndResetQuota(): void;
   getActiveProvider(): AIProvider;
+  loadOpenRouterModels(): Promise<void>;
+  setBuiltInModel(modelId: string): void;
+  setByokEnabled(enabled: boolean): void;
+  setByokConfig(config: BYOKConfig): void;
+  setByokKeyConfigured(configured: boolean): void;
 }
 
-export const selectIsOverQuota = (s: AIState): boolean =>
-  s.selectedProviderId !== 'custom' && s.dailySpendCents >= DAILY_CAP_CENTS;
-
-const DEFAULT_CUSTOM_CONFIG: CustomConfig = {
-  baseUrl: '',
+const DEFAULT_BYOK_CONFIG: BYOKConfig = {
+  preset: 'openrouter',
   modelName: '',
-  contextWindowSize: 4096,
+  customEndpoint: '',
   apiKeyIsStored: false,
 };
 
+export const selectIsOverQuota = (s: AIState): boolean => {
+  if (s.byokEnabled) return false;
+  const pricing = s.modelPricingMap[s.builtInModel];
+  if (pricing && pricing.prompt === '0' && pricing.completion === '0') return false;
+  return s.dailySpendCents >= DAILY_CAP_CENTS;
+};
+
+export const selectIsFreeModel = (s: AIState): boolean => {
+  if (s.byokEnabled) return true;
+  const pricing = s.modelPricingMap[s.builtInModel];
+  return !!(pricing && pricing.prompt === '0' && pricing.completion === '0');
+};
+
 const QUOTA_ERROR_MSG =
-  '⚠ Daily AI limit reached (15¢). Resets at midnight. Switch to a Custom provider to continue without limits.';
+  '⚠ Daily AI limit reached (15¢). Resets at midnight. Enable BYOK or switch to a free model to continue.';
 
 const useAIStore = create<AIState>()(
   persist(
     (set, get) => ({
-      selectedProviderId: 'claude',
-      customConfig: DEFAULT_CUSTOM_CONFIG,
+      builtInModel: 'anthropic/claude-3-5-haiku',
+      byokEnabled: false,
+      byokConfig: DEFAULT_BYOK_CONFIG,
       dailySpendCents: 0,
       quotaResetDate: new Date().toISOString().slice(0, 10),
+      openRouterModels: [],
+      modelPricingMap: {},
+      byokKeyConfigured: false,
       messages: [],
       isStreaming: false,
       streamingText: '',
@@ -60,8 +86,25 @@ const useAIStore = create<AIState>()(
       },
 
       getActiveProvider() {
-        return getProvider(get().selectedProviderId, get().customConfig);
+        if (get().byokEnabled) {
+          return getProvider('byok', get().byokConfig);
+        }
+        const orConfig: OpenRouterConfig = {
+          modelId: get().builtInModel,
+          pricingMap: get().modelPricingMap,
+        };
+        return getProvider('openrouter', orConfig);
       },
+
+      async loadOpenRouterModels() {
+        const models = await fetchOpenRouterModels();
+        set({ openRouterModels: models, modelPricingMap: buildPricingMap(models) });
+      },
+
+      setBuiltInModel(modelId) { set({ builtInModel: modelId }); },
+      setByokEnabled(enabled)  { set({ byokEnabled: enabled }); },
+      setByokConfig(config)    { set({ byokConfig: config }); },
+      setByokKeyConfigured(c)  { set({ byokKeyConfigured: c }); },
 
       async sendMessage(userText, fileContent, language) {
         get().checkAndResetQuota();
@@ -95,14 +138,9 @@ const useAIStore = create<AIState>()(
         try {
           const provider = get().getActiveProvider();
 
-          // Pre-flight estimate — block if request would push over cap
           const estInput = Math.ceil((fileContent.length + userText.length) / 4);
-          const estCost = provider.estimateCostCents(estInput, 256);
-          if (
-            get().selectedProviderId !== 'custom' &&
-            get().dailySpendCents + estCost > DAILY_CAP_CENTS
-          ) {
-            // Undo the user message push
+          const estCost  = provider.estimateCostCents(estInput, 256);
+          if (!get().byokEnabled && get().dailySpendCents + estCost > DAILY_CAP_CENTS) {
             set({ messages: get().messages.slice(0, -1) });
             pushError(QUOTA_ERROR_MSG);
             return;
@@ -120,7 +158,6 @@ const useAIStore = create<AIState>()(
             },
           );
 
-          // Post-request: update with actual token estimate
           const actualCost = provider.estimateCostCents(
             Math.ceil((fileContent.length + userText.length) / 4),
             Math.ceil(fullText.length / 4),
@@ -176,13 +213,14 @@ const useAIStore = create<AIState>()(
       },
     }),
     {
-      name: 'nomadcode-ai-store',
+      name: 'nomadcode-ai-store-v2',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        selectedProviderId: state.selectedProviderId,
-        customConfig: state.customConfig,
+        builtInModel:    state.builtInModel,
+        byokEnabled:     state.byokEnabled,
+        byokConfig:      state.byokConfig,
         dailySpendCents: state.dailySpendCents,
-        quotaResetDate: state.quotaResetDate,
+        quotaResetDate:  state.quotaResetDate,
       }),
     },
   ),
