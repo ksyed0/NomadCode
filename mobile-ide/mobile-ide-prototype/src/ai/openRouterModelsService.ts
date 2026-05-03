@@ -36,7 +36,15 @@ export async function fetchOpenRouterModels(): Promise<OpenRouterModel[]> {
     const res = await fetch('https://openrouter.ai/api/v1/models');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    const models: OpenRouterModel[] = json.data ?? [];
+    const raw: unknown[] = Array.isArray(json.data) ? json.data : [];
+    const models: OpenRouterModel[] = raw.filter(
+      (m): m is OpenRouterModel =>
+        typeof m === 'object' && m !== null &&
+        typeof (m as OpenRouterModel).id === 'string' &&
+        typeof (m as OpenRouterModel).name === 'string' &&
+        typeof (m as OpenRouterModel).pricing?.prompt === 'string' &&
+        typeof (m as OpenRouterModel).pricing?.completion === 'string',
+    );
     await writeCache(models);
     return models;
   } catch {

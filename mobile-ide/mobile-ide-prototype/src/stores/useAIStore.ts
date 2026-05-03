@@ -140,7 +140,7 @@ const useAIStore = create<AIState>()(
 
           const estInput = Math.ceil((fileContent.length + userText.length) / 4);
           const estCost  = provider.estimateCostCents(estInput, 256);
-          if (!get().byokEnabled && get().dailySpendCents + estCost > DAILY_CAP_CENTS) {
+          if (selectIsOverQuota({ ...get(), dailySpendCents: get().dailySpendCents + estCost })) {
             set({ messages: get().messages.slice(0, -1) });
             pushError(QUOTA_ERROR_MSG);
             return;

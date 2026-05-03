@@ -3,7 +3,7 @@
     "name": "NomadCode",
     "slug": "nomadcode",
     "scheme": "nomadcode",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "splash": {
@@ -22,14 +22,28 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nomadcode.mobileide"
+      "bundleIdentifier": "com.nomadcode.mobileide",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Used to secure your stored credentials"
+      },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          }
+        ]
+      }
     },
     "android": {
       "package": "com.nomadcode.mobileide",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F172A"
-      }
+      },
+      "versionCode": 1,
+      "permissions": []
     },
     "plugins": [
       "expo-secure-store",
