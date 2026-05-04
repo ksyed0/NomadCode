@@ -181,16 +181,19 @@ jobs:
           cache-dependency-path: mobile-ide/package-lock.json
 
       - name: Install dependencies
+        working-directory: mobile-ide
         run: npm ci
 
       # Block on HIGH or CRITICAL vulnerabilities in production deps.
       # Uses audit-ci so known-unfixable issues (expo@52 tar CVEs) can be
       # allowlisted in audit-ci.json without silencing all HIGH checks.
       - name: Audit production dependencies
+        working-directory: mobile-ide
         run: npx --yes audit-ci@^7 --omit=dev
 
       # Report dev dep issues (informational — non-blocking)
       - name: Audit dev dependencies
+        working-directory: mobile-ide
         run: npm audit --audit-level=critical
         continue-on-error: true
 

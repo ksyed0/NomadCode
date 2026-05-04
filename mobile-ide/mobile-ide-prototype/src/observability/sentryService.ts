@@ -14,14 +14,12 @@ export function init(): void {
 
   Sentry.init({
     dsn,
-    environment:                  __DEV__ ? 'development' : 'production',
-    enableAutoPerformanceTracing:  true,  // cold start + navigation
-    enableNativeFramesTracking:    true,  // slow/frozen frame detection
-    enableNetworkInstrumentation:  true,  // wraps all fetch() calls
-    tracesSampleRate:              0.3,   // 30% of sessions get full trace
-    attachProps:                   false, // prevents React props/state capture
-    attachStacktrace:              true,  // always include stack on message events
-    beforeSend: scrubEvent as Parameters<typeof Sentry.init>[0]['beforeSend'],
+    environment:                 __DEV__ ? 'development' : 'production',
+    enableAutoPerformanceTracing: true,  // cold start + navigation
+    enableNativeFramesTracking:   true,  // slow/frozen frame detection
+    tracesSampleRate:             0.3,   // 30% of sessions get full trace
+    // Cast via unknown — our SentryEvent shape is a structural subset of SDK Event
+    beforeSend: scrubEvent as unknown as Parameters<typeof Sentry.init>[0]['beforeSend'],
   });
 }
 

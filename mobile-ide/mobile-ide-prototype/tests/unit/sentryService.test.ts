@@ -27,13 +27,6 @@ describe('init()', () => {
     );
   });
 
-  it('sets attachProps: false', () => {
-    init();
-    expect(Sentry.init).toHaveBeenCalledWith(
-      expect.objectContaining({ attachProps: false })
-    );
-  });
-
   it('sets tracesSampleRate: 0.3', () => {
     init();
     expect(Sentry.init).toHaveBeenCalledWith(
