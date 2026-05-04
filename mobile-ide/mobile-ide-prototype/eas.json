@@ -9,16 +9,28 @@
       "distribution": "internal",
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_SENTRY_DSN": "https://4d0ca8de7cdf9df11b212786fd3af78e@o4511328521551872.ingest.us.sentry.io/4511328528171008"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SENTRY_DSN": "https://4d0ca8de7cdf9df11b212786fd3af78e@o4511328521551872.ingest.us.sentry.io/4511328528171008"
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SENTRY_DSN": "https://4d0ca8de7cdf9df11b212786fd3af78e@o4511328521551872.ingest.us.sentry.io/4511328528171008",
+        "EXPO_PUBLIC_OPENROUTER_API_KEY": "EAS_SECRET",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "EAS_SECRET",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "EAS_SECRET"
+      }
     }
   },
   "submit": {

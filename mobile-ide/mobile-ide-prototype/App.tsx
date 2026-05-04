@@ -58,6 +58,8 @@ import splashImage from './assets/splash.png';
 import { useKeyboardShortcuts } from './src/hooks/useKeyboardShortcuts';
 import type { ShortcutDefinition } from './src/hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsSheet } from './src/components/KeyboardShortcutsSheet';
+import { wrap as sentryWrap } from './src/observability/sentryService';
+import { startMemorySampling } from './src/observability/performanceMonitor';
 
 const APP_VERSION = '0.1.0';
 
@@ -66,7 +68,7 @@ const APP_VERSION = '0.1.0';
 // App
 // ---------------------------------------------------------------------------
 
-export default function App() {
+function App() {
   // ── Theme tokens ──────────────────────────────────────────────────────────
   const t = useTheme();
 
@@ -147,6 +149,12 @@ export default function App() {
   // Load OpenRouter model list + pricing on mount (cached for 24h).
   useEffect(() => {
     useAIStore.getState().loadOpenRouterModels();
+  }, []);
+
+  // Start JS heap memory sampling — reports to Sentry every 30s
+  useEffect(() => {
+    const stopSampling = startMemorySampling();
+    return stopSampling;
   }, []);
 
   // Refresh branch label when workspace or tree changes (e.g. after clone).
@@ -1050,3 +1058,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 });
+
+export default sentryWrap(App);

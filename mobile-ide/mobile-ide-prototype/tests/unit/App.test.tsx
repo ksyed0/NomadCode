@@ -14,6 +14,26 @@ import useSettingsStore from '../../src/stores/useSettingsStore';
 // Mocks
 // ---------------------------------------------------------------------------
 
+jest.mock('@sentry/react-native', () => ({
+  init: jest.fn(),
+  wrap: jest.fn((component: unknown) => component),
+  captureException: jest.fn(),
+  addBreadcrumb: jest.fn(),
+  setContext: jest.fn(),
+}));
+
+jest.mock('../../src/observability/sentryService', () => ({
+  init:          jest.fn(),
+  captureError:  jest.fn(),
+  addBreadcrumb: jest.fn(),
+  setContext:    jest.fn(),
+  wrap:          jest.fn((component: unknown) => component),
+}));
+
+jest.mock('../../src/observability/performanceMonitor', () => ({
+  startMemorySampling: jest.fn(() => jest.fn()),
+}));
+
 const mockHydrate = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../src/stores/useAuthStore', () => ({
   __esModule: true,
