@@ -4,6 +4,122 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 20 — 2026-05-03 (EPIC-0011 App Store GA + EPIC-0015 Crash Reporting)
+
+### What Was Done
+
+**Context:** Two major epics plus PR/branch housekeeping across a long session.
+
+---
+
+#### PR Review & Branch Cleanup
+
+- **PR #125** (EPIC-0011): Fixed unused `AIProvider` import lint error → merged ✅
+- **PR #123** (Expo group bump): Already passing → merged ✅
+- **PR #109** (version bump 0.1.4): Closed — stale, project at 1.0.0
+- **PR #108** (react-dom 19.2.5): Closed — react/react-dom version mismatch caused test failures
+- **PR #111** (eslint-plugin-react-hooks 7.1.1): Closed — plugin throws uncaught exception during AST analysis of GitPanel.tsx (7.1.1 bug, not a code issue)
+- `develop` left clean with zero open PRs after housekeeping
+
+---
+
+#### EPIC-0011 — App Store & EAS Build Delivery (PR #125, merged)
+
+Full implementation via subagent-driven development (13 tasks, worktree `claude/vigorous-colden-368091`):
+
+- **OpenRouter migration**: replaced 3 AI providers (claude/gemini/kimi) with single `openRouterProvider` + live pricing from OpenRouter models API (200+ models, 24h cache)
+- **BYOK system**: `byokProvider` with 5 presets (openrouter/anthropic/google/openai/custom), keys in keychain
+- **ModelSearchSelector**: searchable model picker with FREE badge, wired into SettingsScreen
+- **useAIStore v2**: new fields (builtInModel, byokEnabled, byokConfig, openRouterModels, modelPricingMap), free model quota bypass, store key `nomadcode-ai-store-v2`
+- **PaywallAISheet**: `reason: 'builtin' | 'byok'` prop for two upgrade messages
+- **EAS config**: v1.0.0, iOS Privacy Manifests, production secrets config
+- **GitHub Pages**: Privacy Policy + Support pages at `ksyed0.github.io/NomadCode/privacy/` and `.../support/`
+- Tier gating: Free → paywall, Pro → BYOK only, Pro+AI → full built-in + BYOK
+
+Test baseline: 1194 → **1268** tests (+74 new tests, 62 suites)
+
+**Blocked items (EPIC-0011 Phase 2):**
+- Apple Developer Program: identity verification pending
+- Google Play Console: not enrolled ($25)
+- EAS secrets: OpenRouter + RevenueCat keys needed
+- Screenshots: not yet captured
+
+---
+
+#### EPIC-0015 — Crash Reporting & Observability (PR #127, CI pending)
+
+Full brainstorm → spec → plan → implementation via subagent-driven development.
+
+**Design decisions:**
+- Provider: Sentry (`@sentry/react-native`, Expo config plugin)
+- Scope: crash reporting + automatic metrics only (cold start, API latency, JS heap memory)
+- PII scrubbing: blocklist approach (`beforeSend` hook in `scrubber.ts`)
+- DSN: `https://4d0ca8de7cdf9df11b212786fd3af78e@o4511328521551872.ingest.us.sentry.io/4511328528171008`
+- Org slug: `fablesoft`
+
+**New files:**
+| File | Responsibility |
+|---|---|
+| `src/observability/scrubber.ts` | Pure PII scrubber — regex + truncation, fresh RegExp per call (stateful g-flag fix) |
+| `src/observability/sentryService.ts` | Sentry facade — init, captureError, addBreadcrumb, setContext, wrap |
+| `src/observability/performanceMonitor.ts` | JS heap sampling every 30s, AppState-aware, 5-min rate limit |
+| `global.d.ts` | Hermes `performance.memory` ambient type |
+
+**Modified files:**
+- `index.js`: `sentryService.init()` before `registerRootComponent`
+- `App.tsx`: `sentryWrap(App)` + `startMemorySampling()` useEffect
+- `eas.json`: DSN in all 3 build profiles
+- `app.json`: `@sentry/react-native/expo` config plugin
+
+Test baseline: 1268 → **1302** tests (+34 new, 65 suites)
+
+**Bugs caught during review:**
+- Stateful `g`-flag regex in SENSITIVE_PATTERNS would miss tokens on second call → fixed (fresh RegExp per call)
+- Array values in scrubObject silently converted to plain objects → fixed (explicit Array.isArray branch)
+- GitHub PAT regex `{36}` (exact) → `{36,}` (minimum)
+- Direct `@sentry/react-native` import in App.tsx → moved to `sentryService.wrap` re-export
+
+---
+
+#### Docs created this session
+- `docs/superpowers/specs/2026-05-03-epic-0011-app-store-eas-build-design.md`
+- `docs/superpowers/plans/2026-05-03-epic-0011-app-store-eas-build.md`
+- `docs/superpowers/specs/2026-05-03-epic-0015-crash-reporting-observability-design.md`
+- `docs/superpowers/plans/2026-05-03-epic-0015-crash-reporting-observability.md`
+- `docs/privacy/index.html` + `docs/support/index.html` (GitHub Pages, FableSoft design system)
+- `docs/GITHUB_PAGES_SETUP.md`
+- `docs/prompts/clean-stale-branches.md`
+
+---
+
+### Test Results
+
+| Milestone | Tests | Suites |
+|---|---|---|
+| EPIC-0011 merged (develop) | 1268 | 62 |
+| EPIC-0015 feature branch | 1302 | 65 |
+
+### Current State
+
+| Branch | Status |
+|---|---|
+| `develop` | ✅ Clean — EPIC-0011 merged (PR #125) |
+| `feature/epic-0015-crash-reporting` | 🔵 PR #127 open, CI running |
+
+### Open PRs
+- **PR #127** — EPIC-0015 Crash Reporting → `develop` (CI running, fix pending)
+
+### Next Session Pick-up
+1. Merge PR #127 once CI green
+2. **EPIC-0022 (Code Navigation)** — brainstorm not yet started; Go to Definition, Find References, workspace symbol search via Monaco built-in APIs
+3. Apple Developer Program enrollment to clear → iOS build + submit (EPIC-0011 Phase 2)
+4. Google Play Console signup ($25) → Android build + submit
+5. EAS secrets storage: `EXPO_PUBLIC_OPENROUTER_API_KEY`, RevenueCat keys
+6. Screenshots captured + framed (AppLaunchpad)
+7. GitHub Pages enable in repo Settings → Pages → `develop` → `/docs`
+
+---
+
 ## Session 19 — 2026-05-01 (EPIC-0010 AI Suggestions)
 
 ### What Was Done
