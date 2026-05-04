@@ -27,6 +27,7 @@ jest.mock('../../src/observability/sentryService', () => ({
   captureError:  jest.fn(),
   addBreadcrumb: jest.fn(),
   setContext:    jest.fn(),
+  wrap:          jest.fn((component: unknown) => component),
 }));
 
 jest.mock('../../src/observability/performanceMonitor', () => ({

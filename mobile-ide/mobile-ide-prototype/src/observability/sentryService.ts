@@ -46,3 +46,6 @@ export function setContext(
 ): void {
   Sentry.setContext(key, value);
 }
+
+// Re-export Sentry.wrap so App.tsx never imports @sentry/react-native directly.
+export const wrap: typeof Sentry.wrap = Sentry.wrap;

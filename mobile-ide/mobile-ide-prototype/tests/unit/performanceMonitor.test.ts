@@ -109,4 +109,37 @@ describe('startMemorySampling()', () => {
       expect.any(Function)
     );
   });
+
+  it('pauses interval when AppState transitions to background', () => {
+    let capturedListener: ((state: string) => void) | null = null;
+    (AppState.addEventListener as jest.Mock).mockImplementation((_event, handler) => {
+      capturedListener = handler;
+      return { remove: jest.fn() };
+    });
+
+    startMemorySampling(60, 30_000);
+    jest.advanceTimersByTime(30_000); // first tick fires
+    expect(sentryService.setContext).toHaveBeenCalledTimes(1);
+
+    // Simulate going to background — interval should pause
+    capturedListener!('background');
+    jest.clearAllMocks();
+    jest.advanceTimersByTime(60_000); // two intervals pass
+    expect(sentryService.setContext).not.toHaveBeenCalled(); // no ticks while paused
+  });
+
+  it('resumes interval when AppState transitions back to active', () => {
+    let capturedListener: ((state: string) => void) | null = null;
+    (AppState.addEventListener as jest.Mock).mockImplementation((_event, handler) => {
+      capturedListener = handler;
+      return { remove: jest.fn() };
+    });
+
+    startMemorySampling(60, 30_000);
+    capturedListener!('background'); // pause
+    jest.clearAllMocks();
+    capturedListener!('active'); // resume
+    jest.advanceTimersByTime(30_000); // one interval
+    expect(sentryService.setContext).toHaveBeenCalledTimes(1); // sampling resumed
+  });
 });

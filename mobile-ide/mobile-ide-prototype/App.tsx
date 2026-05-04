@@ -58,7 +58,7 @@ import splashImage from './assets/splash.png';
 import { useKeyboardShortcuts } from './src/hooks/useKeyboardShortcuts';
 import type { ShortcutDefinition } from './src/hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsSheet } from './src/components/KeyboardShortcutsSheet';
-import * as Sentry from '@sentry/react-native';
+import { wrap as sentryWrap } from './src/observability/sentryService';
 import { startMemorySampling } from './src/observability/performanceMonitor';
 
 const APP_VERSION = '0.1.0';
@@ -1059,4 +1059,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Sentry.wrap(App);
+export default sentryWrap(App);
