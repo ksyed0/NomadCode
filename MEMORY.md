@@ -1,23 +1,23 @@
 # MEMORY.md — NomadCode Persistent Knowledge Base
 
 Organized by topic. Update entries in-place; do not append chronologically.
-Last updated: 2026-05-01
+Last updated: 2026-05-03
 
 ---
 
 ## Project Status
 
-- **Phase:** Phase 1 — Foundation (final GA features in progress)
+- **Phase:** Phase 1 — Post-GA (store submission pending external accounts)
 - **Active branch:** `develop` (tracks `origin/develop`)
 - **Main branch:** `main` — protected; merge via PR only
-- **Last merged PR:** #122 (EPIC-0009 IAP & Monetization)
-- **Open PRs:** #124 (EPIC-0010 AI Suggestions) — CI green, ready to merge
-- **Next up:** Merge PR #124 → EPIC-0011 (App Store & EAS Build — last v1.0 GA gate)
-- **Test count on develop:** 1153 passing (1224 on feature/epic-0010 branch)
+- **Last merged PR:** #125 (EPIC-0011 App Store & EAS Build)
+- **Open PRs:** #127 (EPIC-0015 Crash Reporting) — CI running
+- **Test count on develop:** 1268 passing (62 suites)
+- **Test count on EPIC-0015 branch:** 1302 passing (65 suites)
 
 ---
 
-## EPIC Status Summary (as of 2026-05-01)
+## EPIC Status Summary (as of 2026-05-03)
 
 | EPIC | Title | Status |
 |---|---|---|
@@ -29,12 +29,14 @@ Last updated: 2026-05-01
 | EPIC-0006 | Plan Visualizer | Done |
 | EPIC-0007 | Authentication (GitHub OAuth) | Done |
 | EPIC-0008 | Git Integration (isomorphic-git) | Done |
-| EPIC-0009 | IAP & Monetization (RevenueCat) | Done (PR #122) |
-| EPIC-0010 | AI Suggestions | Done (PR #124 — merge pending) |
-| EPIC-0011 | App Store & EAS Build | Planned — **next** |
+| EPIC-0009 | IAP & Monetization (RevenueCat) | Done |
+| EPIC-0010 | AI Suggestions | Done |
+| EPIC-0011 | App Store & EAS Build | Done (PR #125 merged) — store submission pending |
+| EPIC-0015 | Crash Reporting & Observability | In Progress (PR #127) |
 | EPIC-0018 | Foldable Device Support | Done |
-| EPIC-0020 | Advanced Git Workflows | Done (PR #121) |
-| EPIC-0021 | Advanced Editor Features | Done (PR #96) |
+| EPIC-0020 | Advanced Git Workflows | Done |
+| EPIC-0021 | Advanced Editor Features | Done |
+| EPIC-0022 | Code Navigation | Planned — **next brainstorm** |
 
 ---
 
@@ -53,7 +55,7 @@ Source of truth: `docs/ID_REGISTRY.md` — always consult before creating artefa
 
 ---
 
-## Tech Stack (as of 2026-05-01)
+## Tech Stack (as of 2026-05-03)
 
 | Layer | Technology | Version |
 |---|---|---|
@@ -65,6 +67,8 @@ Source of truth: `docs/ID_REGISTRY.md` — always consult before creating artefa
 | Local storage | Expo FileSystem + SQLite | ~18.0.0 |
 | Git | isomorphic-git | ^1.37.x |
 | IAP | RevenueCat (`react-native-purchases`) | latest |
+| AI | OpenRouter (unified, 200+ models) | via @microsoft/fetch-event-source |
+| Crash reporting | Sentry (`@sentry/react-native`) | ^8.10.0 |
 | AI Streaming | `@microsoft/fetch-event-source` | ^2.0.1 |
 | Secure storage | `expo-secure-store` | ~14.0.0 |
 | CI/CD | GitHub Actions + EAS Build | Latest |
