@@ -91,7 +91,7 @@ describe('loadIndex / saveIndex', () => {
   });
 
   it('saveIndex writes JSON string to AsyncStorage', async () => {
-    const data = [{ word: 'bar', filePath: '/b.ts', line: 2, kind: 'class' }];
+    const data = [{ word: 'bar', filePath: '/b.ts', line: 2, kind: 'class' as const }];
     await saveIndex('/ws', data);
     expect(AsyncStorage.setItem).toHaveBeenCalledWith(
       expect.stringContaining('nomadcode_symbol_index'),

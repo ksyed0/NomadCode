@@ -430,9 +430,39 @@ ${defineThemesScript}
           if (breadcrumbTimer) clearTimeout(breadcrumbTimer);
           breadcrumbTimer = setTimeout(function() {
             var content = editor.getValue();
-            var line = e.position.lineNumber;
-            var symbol = getSymbolForBreadcrumb(content, line);
-            post({ type: 'BREADCRUMB_UPDATE', symbol: symbol });
+            var line    = e.position.lineNumber;
+            var symbol  = getSymbolForBreadcrumb(content, line);
+            var pos     = editor.getPosition();
+            var model   = editor.getModel();
+            var word    = model ? model.getWordAtPosition(pos) : null;
+            var lang    = model && model.getLanguageId ? model.getLanguageId() : 'plaintext';
+            var isTsJs  = lang === 'typescript' || lang === 'javascript';
+
+            var symbolAtCursor = {
+              word:          word ? word.word : '',
+              hasDefinition: false,
+              canFindRefs:   !!(word && word.word.length > 1),
+              position:      { line: pos.lineNumber, column: pos.column },
+            };
+
+            if (word && isTsJs) {
+              var capturedLine = pos.lineNumber;
+              var capturedCol  = pos.column;
+              monaco.languages.typescript.getTypeScriptWorker()
+                .then(function(worker) {
+                  return worker.getDefinitionAtPosition(model.uri.toString(), model.getOffsetAt(pos));
+                })
+                .then(function(defs) { symbolAtCursor.hasDefinition = !!(defs && defs.length); })
+                .catch(function() {})
+                .finally(function() {
+                  var cur = editor.getPosition();
+                  if (cur && cur.lineNumber === capturedLine && cur.column === capturedCol) {
+                    post({ type: 'BREADCRUMB_UPDATE', symbol: symbol, symbolAtCursor: symbolAtCursor });
+                  }
+                });
+            } else {
+              post({ type: 'BREADCRUMB_UPDATE', symbol: symbol, symbolAtCursor: symbolAtCursor });
+            }
           }, 150);
         });
 
@@ -470,6 +500,45 @@ ${defineThemesScript}
           window.focus();
           editor.focus();
         }, { passive: true });
+
+        // ── Context menu suppression (prevents iOS magnifier / Android menu) ──
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); }, true);
+
+        // ── Long-press detector (500ms) ───────────────────────────────────────
+        var longPressTimer = null;
+        var longPressStart = null;
+
+        document.getElementById('container').addEventListener('touchstart', function(e) {
+          if (e.touches.length !== 1) return;
+          var touch = e.touches[0];
+          longPressStart = { x: touch.clientX, y: touch.clientY };
+          longPressTimer = setTimeout(function() {
+            var target = editor.getTargetAtClientPoint(longPressStart.x, longPressStart.y);
+            if (!target || !target.position) return;
+            editor.setPosition(target.position);
+            var m = editor.getModel();
+            var word = m ? m.getWordAtPosition(target.position) : null;
+            post({ type: 'LONG_PRESS', x: longPressStart.x, y: longPressStart.y,
+                   word: word ? word.word : '' });
+            longPressTimer = null;
+          }, 500);
+        }, { passive: true });
+
+        ['touchmove', 'touchend'].forEach(function(evt) {
+          document.getElementById('container').addEventListener(evt, function() {
+            if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+          }, { passive: true });
+        });
+
+        // ── ⌘Click detector ───────────────────────────────────────────────────
+        editor.onMouseDown(function(e) {
+          if (e.event.metaKey && e.target && e.target.position) {
+            var m = editor.getModel();
+            var word = m ? m.getWordAtPosition(e.target.position) : null;
+            post({ type: 'CMD_CLICK_SYMBOL', x: e.event.clientX, y: e.event.clientY,
+                   word: word ? word.word : '' });
+          }
+        });
 
         // ── Inline completions provider ──────────────────────────────────
         monaco.languages.registerInlineCompletionsProvider({ pattern: '**' }, {
@@ -745,6 +814,82 @@ ${defineThemesScript}
             pendingCompletion = data.text || null;
             if (pendingCompletion) {
               editor.trigger('keyboard', 'editor.action.inlineSuggest.trigger', {});
+            }
+            break;
+          }
+
+          case 'GO_TO_DEFINITION': {
+            var gtdPos   = editor.getPosition();
+            var gtdModel = editor.getModel();
+            var gtdWord  = gtdModel ? gtdModel.getWordAtPosition(gtdPos) : null;
+            if (!gtdWord) break;
+            var gtdLang   = gtdModel.getLanguageId ? gtdModel.getLanguageId() : 'plaintext';
+            var gtdIsTsJs = gtdLang === 'typescript' || gtdLang === 'javascript';
+            if (!gtdIsTsJs) {
+              post({ type: 'GO_TO_DEF_RESULT', resolved: false, word: gtdWord.word });
+              break;
+            }
+            monaco.languages.typescript.getTypeScriptWorker()
+              .then(function(worker) {
+                return worker.getDefinitionAtPosition(gtdModel.uri.toString(), gtdModel.getOffsetAt(gtdPos));
+              })
+              .then(function(defs) {
+                if (!defs || !defs.length) {
+                  post({ type: 'GO_TO_DEF_RESULT', resolved: false, word: gtdWord.word });
+                  return;
+                }
+                var def        = defs[0];
+                var isSameFile = def.fileName === gtdModel.uri.toString();
+                var isBuiltin  = def.fileName.indexOf('ts:') === 0 ||
+                                 def.fileName.indexOf('node_modules') !== -1;
+                if (isSameFile) {
+                  var defPos = gtdModel.getPositionAt(def.textSpan.start);
+                  editor.revealPositionInCenter(defPos);
+                  editor.setPosition(defPos);
+                  post({ type: 'GO_TO_DEF_RESULT', resolved: true, sameFile: true });
+                } else if (isBuiltin) {
+                  post({ type: 'GO_TO_DEF_RESULT', resolved: true, builtin: true,
+                         fileName: def.fileName, offset: def.textSpan.start });
+                } else {
+                  post({ type: 'GO_TO_DEF_RESULT', resolved: false, word: gtdWord.word });
+                }
+              })
+              .catch(function() {
+                post({ type: 'GO_TO_DEF_RESULT', resolved: false, word: gtdWord.word });
+              });
+            break;
+          }
+
+          case 'GET_MONACO_REFS': {
+            var refsPos   = editor.getPosition();
+            var refsModel = editor.getModel();
+            var refsLang  = refsModel && refsModel.getLanguageId ? refsModel.getLanguageId() : 'plaintext';
+            if (refsLang !== 'typescript' && refsLang !== 'javascript') {
+              post({ type: 'MONACO_REFS_RESULT', matches: [] });
+              break;
+            }
+            monaco.languages.typescript.getTypeScriptWorker()
+              .then(function(worker) {
+                return worker.getReferencesAtPosition(refsModel.uri.toString(), refsModel.getOffsetAt(refsPos));
+              })
+              .then(function(refs) {
+                var matches = (refs || [])
+                  .filter(function(r) { return r.fileName === refsModel.uri.toString(); })
+                  .map(function(r) {
+                    var p = refsModel.getPositionAt(r.textSpan.start);
+                    return { line: p.lineNumber, column: p.column,
+                             lineText: refsModel.getLineContent(p.lineNumber) };
+                  });
+                post({ type: 'MONACO_REFS_RESULT', matches: matches });
+              })
+              .catch(function() { post({ type: 'MONACO_REFS_RESULT', matches: [] }); });
+            break;
+          }
+
+          case 'REVEAL_LINE': {
+            if (editor && data.line) {
+              editor.revealLineInCenter(data.line);
+              editor.setPosition({ lineNumber: data.line, column: 1 });
             }
             break;
           }
