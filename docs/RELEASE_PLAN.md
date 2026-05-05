@@ -158,6 +158,12 @@ Description: Settings sync across devices, shareable code snippet links, and a l
 Release Target: Release 1.2 (Post-Launch)
 Status: Planned
 Dependencies: EPIC-0012, EPIC-0007
+
+EPIC-0028: iOS 26 Liquid Glass UI
+Description: Adopt iOS 26 Liquid Glass visual material on sidebars, panels, toolbars, and overlays using a custom Expo native module. Falls back to .regularMaterial on iOS < 26. Android surfaces use Material You dynamic colour tints on API 31+ with solid surface fallback.
+Release Target: Release 1.1 (Post-Launch)
+Status: Planned
+Dependencies: EPIC-0001, EPIC-0002
 ```
 
 ---
@@ -1321,6 +1327,57 @@ Dependencies: US-0092
 
 ---
 
+### EPIC-0028: iOS 26 Liquid Glass UI
+
+```
+US-0101 (EPIC-0028): As a developer using NomadCode on iOS 26 or later, I want the app's
+chrome — sidebars, panels, toolbars, and overlays — to use the Liquid Glass visual material,
+so that NomadCode feels native to the platform and benefits from the adaptive depth and
+translucency of the new iOS design language.
+Priority: Medium (P1)
+Estimate: M
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0308: On iOS 26+, the sidebar panel, editor toolbar, command palette modal,
+        context menus, and floating action buttons render using the Liquid Glass material
+        (UIVisualEffectView with the iOS 26 UIBlurEffect style) implemented via a custom
+        Expo native module.
+  - [ ] AC-0309: On iOS 18 and below, all surfaces that would use Liquid Glass instead
+        fall back to .regularMaterial (UIBlurEffect .systemMaterial) with no visible
+        artefacts or layout shifts — the fallback is pixel-for-pixel identical in shape
+        and position; only the material differs.
+  - [ ] AC-0310: The iOS version check is performed at runtime using
+        `if #available(iOS 26, *)` in Swift; no compile-time flags are used, so the same
+        binary ships to all supported iOS versions without a separate build target.
+  - [ ] AC-0311: The Liquid Glass surfaces adapt correctly to both Dark Mode and Light Mode;
+        the specular highlight intensity adjusts automatically via the system without
+        additional NomadCode configuration.
+  - [ ] AC-0312: All surfaces that adopt Liquid Glass maintain WCAG AA contrast ratios
+        (4.5:1 for normal text, 3:1 for large text and UI elements) against the blurred
+        background content in both light and dark appearances.
+Dependencies: EPIC-0001, EPIC-0002
+
+US-0102 (EPIC-0028): As a developer using NomadCode on Android, I want the equivalent
+Material You surface treatment on key UI elements, so that the app feels native on Android
+with adaptive colour and elevation rather than a flat iOS-centric aesthetic.
+Priority: Low (P2)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0313: On Android 12+ (API 31+), the sidebar, command palette, and bottom sheet
+        surfaces use Material You Dynamic Color surface tints with elevation overlays
+        (elevation 2dp → surface variant) so they adapt to the user's wallpaper-derived
+        color palette via the MaterialComponents `MaterialCardView` or equivalent.
+  - [ ] AC-0314: On Android < 12, all surfaces fall back to the existing solid surface
+        colours (`#111827` dark / `#F9FAFB` light) with no visible regressions.
+  - [ ] AC-0315: The Android implementation requires no native module — it uses React
+        Native's existing elevation shadow system plus the design-token colours already
+        defined in the NomadCode design system (Deep Slate, Off-White).
+Dependencies: EPIC-0001, EPIC-0002
+```
+
+---
+
 ### EPIC-0027: Collaboration & Sharing
 
 ```
@@ -1395,6 +1452,6 @@ Notes: develop branch created; branch protection on main and develop enabled at 
 | v0.1 Internal Alpha | Core editor + file system on tablet | EPIC-0001, EPIC-0002 | TBD |
 | v0.5 Public Beta | Full feature set for TestFlight/Play Beta | EPIC-0003, EPIC-0004 | TBD |
 | v1.0 GA | Extensions, auth, git, IAP, AI, advanced git workflows, App Store launch | EPIC-0005, EPIC-0007, EPIC-0008, EPIC-0009, EPIC-0010, EPIC-0011, EPIC-0020 | TBD |
-| v1.1 Post-Launch | Cloud sync, multi-language, search, advanced editor, code nav, AI intelligence | EPIC-0012, EPIC-0013, EPIC-0014, EPIC-0015, EPIC-0021, EPIC-0022, EPIC-0023 | TBD |
+| v1.1 Post-Launch | Cloud sync, multi-language, search, crash reporting, advanced editor, code nav, AI intelligence, Liquid Glass | EPIC-0012, EPIC-0013, EPIC-0014, EPIC-0015, EPIC-0021, EPIC-0022, EPIC-0023, EPIC-0028 | TBD |
 | v1.2 Post-Launch | LSP, AI indexing, mobile debugging, collaboration | EPIC-0024, EPIC-0025, EPIC-0026, EPIC-0027 | TBD |
 | v1.2 | Foldable device support, project templates, SSH/remote terminal | EPIC-0016, EPIC-0017, EPIC-0018 | TBD |
