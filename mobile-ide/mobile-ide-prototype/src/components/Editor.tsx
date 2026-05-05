@@ -740,7 +740,9 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
               bounces={false}
               scrollEnabled={false}
               onLayout={() => {
-                webViewRef.current?.measureInWindow((x: number, y: number) => {
+                // measureInWindow is available on the underlying native view
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (webViewRef.current as any)?.measureInWindow((x: number, y: number) => {
                   webViewFrame.current = { x, y };
                 });
               }}

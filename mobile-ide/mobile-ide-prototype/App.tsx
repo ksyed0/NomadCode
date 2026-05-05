@@ -575,7 +575,7 @@ function App() {
     { key: 'n', modifiers: ['cmd'], label: 'New File', action: () => fileExplorerRef.current?.openNewFileDialog() },
     { key: 'p', modifiers: ['cmd'], label: 'Command Palette', action: () => setShowPalette(true) },
     { key: '/', modifiers: ['cmd'], label: 'Keyboard Shortcuts', action: () => setShowShortcutsSheet(true) },
-    { key: 't', modifiers: ['meta'], label: 'Go to Symbol', action: () => {
+    { key: 't', modifiers: ['cmd'], label: 'Go to Symbol', action: () => {
       setPaletteMode('symbolSearch');
       setShowPalette(true);
     }},
