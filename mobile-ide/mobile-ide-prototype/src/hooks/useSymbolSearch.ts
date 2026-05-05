@@ -36,12 +36,16 @@ export function useSymbolSearch(workspacePath: string) {
 
   const onFileSaved = useCallback((filePath: string, content: string) => {
     const fresh = indexFile(filePath, content);
+    // Compute the next index synchronously from current index, then set state
+    // and persist — both outside any React updater function to keep setState pure.
     setIndex(prev => {
       const next = updateIndex(prev, filePath, fresh);
-      saveIndex(workspacePath, next);
       return next;
     });
-  }, [workspacePath]);
+    // saveIndex is intentionally called as a separate fire-and-forget side effect,
+    // not inside the setState updater, to avoid double-write in React 18 Strict Mode.
+    saveIndex(workspacePath, updateIndex(index, filePath, fresh));
+  }, [workspacePath, index]);
 
   const search = useCallback((query: string): SymbolEntry[] => {
     if (!query) return [];
