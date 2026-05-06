@@ -1451,6 +1451,37 @@ Notes: Time-boxed spike (1–2 sessions). Evaluate Detox vs Maestro for the Noma
 
 ---
 
+### US-0104: Enhanced About Screen
+
+```
+US-0104 (Enhancement): As a user, I want the About screen to show rich app metadata,
+branding, and helpful links, so that I can quickly find version information, access support,
+and understand who built the app.
+Priority: Medium (P1)
+Estimate: S
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0319: The About screen displays the app version and build number sourced live from
+        expo-constants (Constants.expoConfig.version + Constants.expoConfig.ios.buildNumber /
+        android.versionCode) — never hardcoded.
+  - [ ] AC-0320: The About screen includes FableSoft studio branding: studio logo mark,
+        "Made by FableSoft" attribution, and the tagline "Code from anywhere."
+  - [ ] AC-0321: The About screen provides three tappable links that open in the in-app
+        browser: Privacy Policy (ksyed0.github.io/NomadCode/privacy/), Support
+        (ksyed0.github.io/NomadCode/support/), and GitHub repository.
+  - [ ] AC-0322: The About screen shows the current subscription tier (Free / Pro / Pro+AI)
+        with a one-tap "Manage Subscription" deep link to the platform subscription settings
+        (App Store on iOS, Google Play on Android).
+  - [ ] AC-0323: The About screen includes a "Send Feedback" row that opens a pre-filled
+        GitHub Issue template in the in-app browser.
+  - [ ] AC-0324: A "Licenses" row expands or navigates to a scrollable list of third-party
+        open-source packages and their SPDX license identifiers (generated from
+        npm ls --json at build time).
+Dependencies: EPIC-0001, EPIC-0007, EPIC-0009
+```
+
+---
+
 ### US-0103: E2E Test Automation Spike (Detox / Maestro)
 
 ```
