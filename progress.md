@@ -44,12 +44,23 @@ LANG=en_US.UTF-8 npx expo run:ios --device 1886F766-DF13-4673-9720-1ACDD534A6B8 
 LANG=en_US.UTF-8 npx expo start --clear
 ```
 
+### Bugs logged this session
+- BUG-0055: File explorer spinner never resolves (High — blocks App Store)
+- BUG-0056: IAP packages unavailable in simulator (config gap — resolves after store setup)
+- BUG-0057: PaywallSheet full-screen on iPad with dead space + small text (UX-9, Medium)
+
+### Stories logged this session
+- US-0103: E2E Test Automation Spike (Detox / Maestro)
+- US-0104: Enhanced About Screen
+
 ### Next Session Pick-up
-1. EPIC-0023 brainstorm (AI Code Intelligence — ⌘K inline edit, project AI rules, AI commit messages)
-2. EAS secrets: store OpenRouter + RevenueCat keys, then run `eas build --platform all`
-3. GitHub Pages: enable in repo Settings → Pages → `develop` → `/docs`
-4. Screenshots for App Store / Play Store
-5. US-0103 spike: Detox vs Maestro E2E testing
+1. **BUG-0055** — fix file explorer infinite spinner (highest priority — blocks App Store)
+2. **BUG-0057** — fix PaywallSheet iPad layout
+3. EPIC-0023 brainstorm (AI Code Intelligence — ⌘K inline edit, project AI rules, AI commit messages)
+4. EAS secrets: store OpenRouter + RevenueCat keys, then run `eas build --platform all`
+5. GitHub Pages: enable in repo Settings → Pages → `develop` → `/docs`
+6. Screenshots for App Store / Play Store
+7. US-0103 spike: Detox vs Maestro E2E testing
 
 ---
 
