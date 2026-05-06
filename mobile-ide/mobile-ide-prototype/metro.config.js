@@ -12,10 +12,22 @@ const config = getDefaultConfig(projectRoot);
 // Explicitly override in case workspace root detection overrides the above
 config.projectRoot = projectRoot;
 
-// Watch the prototype dir and its node_modules (hoisted to workspace root)
+// Watch the prototype dir and its node_modules (hoisted to workspace root).
+// Also include the monorepo root node_modules so packages installed at the
+// top level (e.g. @sentry/react-native hoisted by npm workspaces) are visible
+// to Metro's file watcher and resolver.
 config.watchFolders = [
   projectRoot,
+  path.resolve(projectRoot, '..', 'node_modules'),         // mobile-ide/node_modules
+  path.resolve(projectRoot, '..', '..', 'node_modules'),  // NomadCode/node_modules
+];
+
+// Tell Metro's resolver to also look in the monorepo root node_modules.
+// Without this, packages hoisted above mobile-ide/ are invisible to Metro.
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, 'node_modules'),
   path.resolve(projectRoot, '..', 'node_modules'),
+  path.resolve(projectRoot, '..', '..', 'node_modules'),
 ];
 
 // Resolve native-only packages to empty stubs for web builds.

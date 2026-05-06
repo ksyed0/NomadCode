@@ -22,7 +22,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nomadcode.mobileide",
+      "bundleIdentifier": "com.FableSoft.NomadCode",
       "buildNumber": "1",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Used to secure your stored credentials"
@@ -37,7 +37,7 @@
       }
     },
     "android": {
-      "package": "com.nomadcode.mobileide",
+      "package": "com.FableSoft.NomadCode",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F172A"
@@ -47,14 +47,7 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-web-browser",
-      [
-        "@sentry/react-native/expo",
-        {
-          "project": "nomadcode",
-          "organization": "fablesoft"
-        }
-      ]
+      "expo-web-browser"
     ]
   }
 }
