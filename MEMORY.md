@@ -147,10 +147,22 @@ Source of truth: `docs/ID_REGISTRY.md` — always consult before creating artefa
 
 ## iOS / Android Build
 
-- **iOS build command:** `npx expo run:ios --device 1886F766-DF13-4673-9720-1ACDD534A6B8` (iPad Pro 13-inch M5 — boot first with `xcrun simctl boot <UDID>`)
+- **iOS build command:** `LANG=en_US.UTF-8 npx expo run:ios --device 1886F766-DF13-4673-9720-1ACDD534A6B8 --no-bundler` (iPad Pro 13-inch M5)
+- **Start Metro separately:** `LANG=en_US.UTF-8 npx expo start --clear`
+- **Boot simulator first:** `xcrun simctl boot 1886F766-DF13-4673-9720-1ACDD534A6B8`
 - **Android build command:** `export JAVA_HOME=$(/usr/libexec/java_home -v 21) && npx expo run:android`
 - **Available emulators:** `Pixel_Tablet_API35`, `Medium_Phone_API_35`
-- **Bundle ID:** `com.nomadcode.mobileide`
+- **Bundle ID:** `com.FableSoft.NomadCode` (updated from `com.nomadcode.mobileide`)
+- **LANG=en_US.UTF-8 required** — CocoaPods with Ruby 4.0 fails without it
+
+## SDK 55 Package Hoisting Issue (simulator workaround)
+
+Dependabot bumped several Expo packages to SDK 55 in `mobile-ide/node_modules/` while the project runs SDK 54. Symptoms: `Cannot find native module 'ExpoCryptoAES'` or similar.
+
+- `expo-file-system` fixed: `~19.0.22` pinned in `package.json`
+- `expo-crypto` still `55.x` in `mobile-ide/node_modules/` (pulled by `expo-auth-session`)
+- **Fix already applied:** `metro.config.js` has `SDK54_OVERRIDES` in `resolveRequest`
+- **Permanent fix needed:** upgrade entire project to SDK 55, or configure Dependabot to ignore Expo packages
 
 ---
 
