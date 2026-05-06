@@ -314,3 +314,60 @@ describe('CommandPalette — edge cases', () => {
     expect(screen.queryByPlaceholderText(/Search commands/i)).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// CommandPalette — symbolSearch mode
+// ---------------------------------------------------------------------------
+
+describe('CommandPalette — symbolSearch mode', () => {
+  const SYMBOLS: import('../../src/codeNav/symbolIndexer').SymbolEntry[] = [
+    { word: 'formatDate', filePath: '/src/utils/date.ts', line: 5,  kind: 'function' },
+    { word: 'parseDate',  filePath: '/src/utils/date.ts', line: 12, kind: 'function' },
+    { word: 'DatePicker', filePath: '/src/components/DatePicker.tsx', line: 1, kind: 'class' },
+  ];
+
+  it('renders symbol search header when mode is symbolSearch', () => {
+    const { getByText } = render(
+      <CommandPalette
+        isOpen={true} commands={[]} onClose={jest.fn()} onSelect={jest.fn()}
+        mode="symbolSearch" symbolIndex={SYMBOLS} onNavigateSymbol={jest.fn()}
+      />
+    );
+    expect(getByText(/Go to Symbol/i)).toBeTruthy();
+  });
+
+  it('shows symbol results matching query', () => {
+    const { getByPlaceholderText, getByText } = render(
+      <CommandPalette
+        isOpen={true} commands={[]} onClose={jest.fn()} onSelect={jest.fn()}
+        mode="symbolSearch" symbolIndex={SYMBOLS} onNavigateSymbol={jest.fn()}
+      />
+    );
+    fireEvent.changeText(getByPlaceholderText(/symbol/i), 'format');
+    expect(getByText('formatDate')).toBeTruthy();
+  });
+
+  it('calls onNavigateSymbol with filePath and line when a symbol is selected', () => {
+    const onNavigate = jest.fn();
+    const { getByPlaceholderText, getByText } = render(
+      <CommandPalette
+        isOpen={true} commands={[]} onClose={jest.fn()} onSelect={jest.fn()}
+        mode="symbolSearch" symbolIndex={SYMBOLS} onNavigateSymbol={onNavigate}
+      />
+    );
+    fireEvent.changeText(getByPlaceholderText(/symbol/i), 'format');
+    fireEvent.press(getByText('formatDate'));
+    expect(onNavigate).toHaveBeenCalledWith('/src/utils/date.ts', 5);
+  });
+
+  it('shows kind badge for each symbol', () => {
+    const { getByPlaceholderText, getByText } = render(
+      <CommandPalette
+        isOpen={true} commands={[]} onClose={jest.fn()} onSelect={jest.fn()}
+        mode="symbolSearch" symbolIndex={SYMBOLS} onNavigateSymbol={jest.fn()}
+      />
+    );
+    fireEvent.changeText(getByPlaceholderText(/symbol/i), 'Date');
+    expect(getByText('cls')).toBeTruthy();
+  });
+});

@@ -8,9 +8,11 @@ import {
   Modal,
   StyleSheet,
   Keyboard,
+  Platform,
 } from 'react-native';
 
 import { useTheme } from '../theme/tokens';
+import type { SymbolEntry } from '../codeNav/symbolIndexer';
 
 export interface Command {
   id: string;
@@ -22,22 +24,36 @@ export interface Command {
 
 interface CommandPaletteProps {
   /** Whether the palette is visible */
-  visible: boolean;
+  visible?: boolean;
+  /** Alias for visible — use isOpen or visible (both supported) */
+  isOpen?: boolean;
   commands: Command[];
   /** Dismiss without selecting (back button, backdrop tap) */
   onClose: () => void;
   /** Select a command — parent is responsible for also calling onClose */
   onSelect: (command: Command) => void;
   placeholder?: string;
+  /** Mode: 'commands' (default) or 'symbolSearch' */
+  mode?: 'commands' | 'symbolSearch';
+  /** Symbol index for symbolSearch mode */
+  symbolIndex?: SymbolEntry[];
+  /** Called when a symbol is selected; parent should also call onClose */
+  onNavigateSymbol?: (filePath: string, line: number) => void;
 }
 
-export function CommandPalette({
-  visible,
-  commands,
-  onClose,
-  onSelect,
-  placeholder = 'Search commands…',
-}: CommandPaletteProps) {
+export function CommandPalette(props: CommandPaletteProps) {
+  const {
+    visible,
+    isOpen,
+    commands,
+    onClose,
+    onSelect,
+    placeholder,
+    mode = 'commands',
+    symbolIndex = [],
+    onNavigateSymbol,
+  } = props;
+  const isVisible = visible ?? isOpen ?? false;
   const t = useTheme();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -90,6 +106,30 @@ export function CommandPalette({
     Keyboard.dismiss();
     onClose();
   }, [onClose]);
+
+  const filteredSymbols = useMemo(() => {
+    if (mode !== 'symbolSearch') return symbolIndex;
+    if (!query) return symbolIndex;
+    const q = query.toLowerCase();
+    return symbolIndex
+      .filter(s => s.word.toLowerCase().includes(q))
+      .sort((a, b) => {
+        const aw = a.word.toLowerCase();
+        const bw = b.word.toLowerCase();
+        const aScore = aw === q ? 2 : aw.startsWith(q) ? 1 : 0;
+        const bScore = bw === q ? 2 : bw.startsWith(q) ? 1 : 0;
+        return bScore - aScore;
+      })
+      .slice(0, 50);
+  }, [mode, query, symbolIndex]);
+
+  const KIND_ABBR: Record<SymbolEntry['kind'], string> = {
+    function:  'fn',
+    class:     'cls',
+    const:     'const',
+    interface: 'iface',
+    type:      'type',
+  };
 
   const styles = useMemo(() => StyleSheet.create({
     container: {
@@ -150,6 +190,15 @@ export function CommandPalette({
     },
     shortcutText: { color: t.textMuted, fontSize: 11, fontFamily: 'JetBrains Mono' },
     empty: { color: t.textMuted, textAlign: 'center', padding: 20, fontSize: 14 },
+    modeLabel: { fontSize: 11, paddingHorizontal: 16, paddingBottom: 4, fontStyle: 'italic' },
+    kindBadge: {
+      fontSize: 10,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+      width: 42,
+      marginRight: 8,
+    },
+    label: { fontSize: 14 },
+    desc:  { fontSize: 12, marginTop: 2 },
   }), [t]);
 
   const renderItem = useCallback(({ item, index }: { item: Command; index: number }) => {
@@ -193,7 +242,7 @@ export function CommandPalette({
     <Modal
       transparent
       animationType="fade"
-      visible={visible}
+      visible={isVisible}
       onRequestClose={onClose}
     >
       <View style={styles.container}>
@@ -219,7 +268,7 @@ export function CommandPalette({
               style={styles.searchInput}
               value={query}
               onChangeText={handleQueryChange}
-              placeholder={placeholder}
+              placeholder={mode === 'symbolSearch' ? 'Type a symbol name…' : (placeholder ?? 'Search commands…')}
               placeholderTextColor={t.textMuted}
               autoFocus
               autoCorrect={false}
@@ -229,16 +278,48 @@ export function CommandPalette({
               onKeyPress={handleKeyPress}
             />
           </View>
-          <FlatList
-            data={filtered}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            keyboardShouldPersistTaps="always"
-            style={styles.list}
-            ListEmptyComponent={
-              <Text style={styles.empty}>No commands found</Text>
-            }
-          />
+          {mode === 'symbolSearch' && (
+            <Text style={[styles.modeLabel, { color: t.textMuted }]}>Go to Symbol in Workspace</Text>
+          )}
+          {mode === 'symbolSearch' ? (
+            <FlatList
+              data={filteredSymbols}
+              keyExtractor={(item, i) => `${item.filePath}:${item.line}:${i}`}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.item}
+                  onPress={() => { onNavigateSymbol?.(item.filePath, item.line); onClose(); }}
+                  accessibilityRole="button"
+                >
+                  <Text style={[styles.kindBadge, { color: t.accent }]}>
+                    {KIND_ABBR[item.kind]}
+                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.label, { color: t.text }]}>{item.word}</Text>
+                    <Text style={[styles.desc, { color: t.textMuted }]} numberOfLines={1}>
+                      {item.filePath.split('/').slice(-2).join('/')} :{item.line}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              keyboardShouldPersistTaps="always"
+              style={styles.list}
+              ListEmptyComponent={
+                <Text style={styles.empty}>No symbols found</Text>
+              }
+            />
+          ) : (
+            <FlatList
+              data={filtered}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              keyboardShouldPersistTaps="always"
+              style={styles.list}
+              ListEmptyComponent={
+                <Text style={styles.empty}>No commands found</Text>
+              }
+            />
+          )}
         </TouchableOpacity>
       </View>
     </Modal>

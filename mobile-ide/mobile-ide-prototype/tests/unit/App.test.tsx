@@ -336,6 +336,26 @@ jest.mock('../../src/git/gutterDiff', () => ({
   computeGutterLines: jest.fn().mockReturnValue([]),
 }));
 
+// Mock EPIC-0022 code navigation hooks and components
+jest.mock('../../src/hooks/useSymbolSearch', () => ({
+  useSymbolSearch: () => ({
+    index: [], isBuilding: false, onFileSaved: jest.fn(), search: jest.fn(() => []),
+  }),
+}));
+
+jest.mock('../../src/hooks/useReferencesSearch', () => ({
+  useReferencesSearch: () => ({
+    results: [], isSearching: false, totalCount: 0,
+    search: jest.fn(), cancel: jest.fn(),
+  }),
+}));
+
+jest.mock('../../src/codeNav/definitionResolver', () => ({
+  resolveDefinition: jest.fn(() => null),
+}));
+
+jest.mock('../../src/components/ReferencesPanel', () => 'ReferencesPanel');
+
 // Mock FileSystemBridge + GitBridge (used by App.tsx for file I/O and gutter refresh)
 jest.mock('../../src/utils/FileSystemBridge', () => ({
   FileSystemBridge: {

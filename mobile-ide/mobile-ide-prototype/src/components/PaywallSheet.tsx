@@ -65,36 +65,54 @@ export default function PaywallSheet({
   const isProCurrent = currentTier === 'pro' || currentTier === 'pro_ai';
   const isAICurrent  = currentTier === 'pro_ai';
 
+  // Tablet sizing — see BUG-0057. Phone keeps the bottom-sheet form factor;
+  // tablet renders a centred dialog card with larger typography so the layout
+  // breathes on a 1024pt+ viewport instead of stretching to full screen height.
   const s = StyleSheet.create({
-    overlay:     { flex: 1, backgroundColor: '#00000088', justifyContent: isTablet ? 'center' : 'flex-end', alignItems: isTablet ? 'center' : 'stretch' },
-    sheet:       { backgroundColor: t.bgElevated, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderRadius: isTablet ? 16 : undefined, width: isTablet ? 520 : undefined, maxHeight: '85%', paddingBottom: 24 },
-    handle:      { width: 44, height: 4, backgroundColor: t.border, borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 16 },
-    reason:      { color: '#D97706', fontSize: 12, fontWeight: '600', textAlign: 'center', marginBottom: 4 },
-    title:       { color: t.text, fontSize: 20, fontWeight: '700', textAlign: 'center', marginBottom: 4, paddingHorizontal: 24 },
-    toggle:      { flexDirection: 'row', backgroundColor: t.bg, borderRadius: 8, margin: 16, padding: 3 },
-    toggleBtn:   { flex: 1, paddingVertical: 8, borderRadius: 6, alignItems: 'center' },
-    toggleText:  { fontSize: 13, fontWeight: '600' },
-    savingBadge: { fontSize: 10, fontWeight: '700', color: '#22C55E' },
-    cardsRow:    { flexDirection: isTablet ? 'row' : 'column', gap: 12, paddingHorizontal: 16 },
-    card:        { flex: 1, backgroundColor: t.bg, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: t.border },
+    overlay:     { flex: 1, backgroundColor: '#00000088', justifyContent: isTablet ? 'center' : 'flex-end', alignItems: isTablet ? 'center' : 'stretch', padding: isTablet ? 32 : 0 },
+    sheet:       {
+      backgroundColor: t.bgElevated,
+      borderTopLeftRadius: isTablet ? 20 : 16,
+      borderTopRightRadius: isTablet ? 20 : 16,
+      borderBottomLeftRadius: isTablet ? 20 : 0,
+      borderBottomRightRadius: isTablet ? 20 : 0,
+      width: isTablet ? 680 : undefined,
+      maxHeight: isTablet ? '80%' : '85%',
+      paddingBottom: isTablet ? 32 : 24,
+    },
+    sheetContent: { paddingHorizontal: isTablet ? 8 : 0 },
+    handle:      { width: 44, height: 4, backgroundColor: t.border, borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 16, opacity: isTablet ? 0 : 1 },
+    reason:      { color: '#D97706', fontSize: isTablet ? 14 : 12, fontWeight: '600', textAlign: 'center', marginTop: isTablet ? 24 : 0, marginBottom: isTablet ? 8 : 4 },
+    title:       { color: t.text, fontSize: isTablet ? 28 : 20, fontWeight: '700', textAlign: 'center', marginBottom: isTablet ? 8 : 4, paddingHorizontal: 24 },
+    toggle:      { flexDirection: 'row', backgroundColor: t.bg, borderRadius: 10, margin: isTablet ? 24 : 16, padding: 4 },
+    toggleBtn:   { flex: 1, paddingVertical: isTablet ? 10 : 8, borderRadius: 7, alignItems: 'center' },
+    toggleText:  { fontSize: isTablet ? 15 : 13, fontWeight: '600' },
+    savingBadge: { fontSize: isTablet ? 11 : 10, fontWeight: '700', color: '#22C55E', marginTop: 2 },
+    cardsRow:    { flexDirection: isTablet ? 'row' : 'column', gap: isTablet ? 20 : 12, paddingHorizontal: isTablet ? 24 : 16 },
+    card:        { flex: 1, backgroundColor: t.bg, borderRadius: isTablet ? 16 : 12, padding: isTablet ? 24 : 16, borderWidth: 1, borderColor: t.border },
     cardAI:      { borderColor: '#0D9488', borderWidth: 2 },
-    cardHeader:  { fontSize: 16, fontWeight: '700', marginBottom: 4 },
-    cardPrice:   { fontSize: 24, fontWeight: '800', marginBottom: 2 },
-    cardPeriod:  { fontSize: 11, color: t.textMuted, marginBottom: 10 },
-    cardFeature: { fontSize: 12, color: t.textMuted, marginBottom: 2 },
-    cta:         { borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 12, minHeight: 44, justifyContent: 'center' },
+    cardHeader:  { fontSize: isTablet ? 20 : 16, fontWeight: '700', marginBottom: isTablet ? 6 : 4, letterSpacing: 0.3 },
+    cardPrice:   { fontSize: isTablet ? 40 : 24, fontWeight: '800', marginBottom: 2, letterSpacing: -0.5 },
+    cardPeriod:  { fontSize: isTablet ? 13 : 11, color: t.textMuted, marginBottom: isTablet ? 16 : 10 },
+    cardFeature: { fontSize: isTablet ? 14 : 12, color: t.textMuted, marginBottom: isTablet ? 4 : 2, lineHeight: isTablet ? 20 : 16 },
+    cta:         { borderRadius: isTablet ? 12 : 10, paddingVertical: isTablet ? 16 : 14, alignItems: 'center', marginTop: isTablet ? 18 : 12, minHeight: 44, justifyContent: 'center' },
+    ctaText:     { color: '#fff', fontWeight: '700', fontSize: isTablet ? 16 : 15 },
     currentBadge:{ backgroundColor: t.bgHighlight, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: 12 },
     currentText: { fontSize: 12, fontWeight: '600', color: t.textMuted },
-    footer:      { paddingHorizontal: 24, paddingTop: 16, alignItems: 'center', gap: 8 },
-    restore:     { color: t.accent, fontSize: 13 },
-    terms:       { color: t.textMuted, fontSize: 10, textAlign: 'center', lineHeight: 14 },
+    footer:      { paddingHorizontal: 24, paddingTop: isTablet ? 24 : 16, alignItems: 'center', gap: isTablet ? 12 : 8 },
+    restore:     { color: t.accent, fontSize: isTablet ? 14 : 13, fontWeight: '600' },
+    terms:       { color: t.textMuted, fontSize: isTablet ? 11 : 10, textAlign: 'center', lineHeight: isTablet ? 16 : 14, maxWidth: 480 },
   });
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-          <ScrollView style={s.sheet} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity activeOpacity={1} onPress={() => {}} style={isTablet ? { width: 680, maxHeight: '100%' } : undefined}>
+          <ScrollView
+            style={s.sheet}
+            contentContainerStyle={isTablet ? { paddingBottom: 8 } : undefined}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={s.handle} />
 
             {reason === 'file_limit' && (
@@ -149,7 +167,7 @@ export default function PaywallSheet({
                   >
                     {busy
                       ? <ActivityIndicator color="#fff" />
-                      : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Subscribe to Pro</Text>
+                      : <Text style={s.ctaText}>Subscribe to Pro</Text>
                     }
                   </TouchableOpacity>
                 )}
@@ -176,7 +194,7 @@ export default function PaywallSheet({
                   >
                     {busy
                       ? <ActivityIndicator color="#fff" />
-                      : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Subscribe to Pro+AI</Text>
+                      : <Text style={s.ctaText}>Subscribe to Pro+AI</Text>
                     }
                   </TouchableOpacity>
                 )}

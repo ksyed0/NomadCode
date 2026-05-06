@@ -60,6 +60,11 @@ import type { ShortcutDefinition } from './src/hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsSheet } from './src/components/KeyboardShortcutsSheet';
 import { wrap as sentryWrap } from './src/observability/sentryService';
 import { startMemorySampling } from './src/observability/performanceMonitor';
+import { useSymbolSearch } from './src/hooks/useSymbolSearch';
+import { useReferencesSearch } from './src/hooks/useReferencesSearch';
+import { resolveDefinition } from './src/codeNav/definitionResolver';
+import ReferencesPanel from './src/components/ReferencesPanel';
+import type { ReferenceMatch } from './src/hooks/useReferencesSearch';
 
 const APP_VERSION = '0.1.0';
 
@@ -208,6 +213,13 @@ function App() {
   // ── Sidebar tab ───────────────────────────────────────────────────────────
   const [sidebarTab, setSidebarTab] = useState<'files' | 'search' | 'ai'>('files');
 
+  // ── Code navigation (EPIC-0022) ───────────────────────────────────────────
+  const symbolSearch  = useSymbolSearch(rootPath ?? '');
+  const refSearch     = useReferencesSearch();
+  const [showRefs,    setShowRefs]    = useState(false);
+  const [refsWord,    setRefsWord]    = useState('');
+  const [paletteMode, setPaletteMode] = useState<'commands' | 'symbolSearch'>('commands');
+
   // ── Panel visibility ──────────────────────────────────────────────────────
   const [showTerminal, setShowTerminal] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
@@ -349,6 +361,8 @@ function App() {
       );
       // Refresh meta so the next foreground check won't flag this save as a conflict
       tabMetaRef.current.set(path, { path, loadedAt: Date.now(), contentHash: simpleHash(content) });
+      // Update symbol index for code navigation
+      symbolSearch.onFileSaved(path, content);
       // Fire-and-forget gutter refresh: compare saved content against HEAD to show diff decorations
       const repoDir = rootPath;
       if (repoDir && path) {
@@ -427,6 +441,31 @@ function App() {
     if (!activeTabPath) return;
     updateContent(activeTabPath, text);
   }, [activeTabPath, updateContent]);
+
+  // ── GoToDef result handler (EPIC-0022) ─────────────────────────────────────
+  const handleGoToDefResult = useCallback((result: {
+    resolved: boolean; sameFile?: boolean; builtin?: boolean;
+    word?: string; fileName?: string;
+  }) => {
+    if (result.sameFile) return;
+    if (result.builtin) return; // post-launch: show .d.ts overlay
+    if (!result.word) return;
+    const hit = resolveDefinition(result.word, symbolSearch.index);
+    if (hit) {
+      openFile(hit.filePath);
+      setTimeout(() => editorRef.current?.revealLine(hit.line), 200);
+    }
+  }, [symbolSearch.index, openFile]);
+
+  // ── Find References handler (EPIC-0022) ────────────────────────────────────
+  const handleFindRefs = useCallback(async (word: string) => {
+    if (!rootPath || !activeTabPath) return;
+    setRefsWord(word);
+    setShowRefs(true);
+    const getMonacoRefs = (): Promise<ReferenceMatch[]> =>
+      editorRef.current?.getMonacoRefs() ?? Promise.resolve([]);
+    await refSearch.search(word, activeTabPath, rootPath, getMonacoRefs);
+  }, [rootPath, activeTabPath, refSearch]);
 
   // ── AppState conflict detection ────────────────────────────────────────────
   // When the app returns to the foreground, compare each open tab's stored
@@ -536,6 +575,10 @@ function App() {
     { key: 'n', modifiers: ['cmd'], label: 'New File', action: () => fileExplorerRef.current?.openNewFileDialog() },
     { key: 'p', modifiers: ['cmd'], label: 'Command Palette', action: () => setShowPalette(true) },
     { key: '/', modifiers: ['cmd'], label: 'Keyboard Shortcuts', action: () => setShowShortcutsSheet(true) },
+    { key: 't', modifiers: ['cmd'], label: 'Go to Symbol', action: () => {
+      setPaletteMode('symbolSearch');
+      setShowPalette(true);
+    }},
   ], [saveActiveFile, saveFile, tabs, setShowTerminal, setShowPalette]);
 
   useKeyboardShortcuts(shortcuts);
@@ -773,9 +816,31 @@ function App() {
             onTabViewStateChange={handleTabViewStateChange}
             formatOnSave={formatOnSave}
             onCompletionContext={handleCompletionContext}
+            onGoToDefResult={handleGoToDefResult}
+            onContextMenu={(state) => {
+              if (state.visible && state.actions.includes('findReferences')) {
+                void handleFindRefs(state.word);
+              }
+            }}
           />
         }
-        terminal={<TerminalWebView workingDirectory={rootPath} onCommand={handleCommandComplete} visible={showTerminal} />}
+        terminal={
+          showRefs ? (
+            <ReferencesPanel
+              word={refsWord}
+              results={refSearch.results}
+              isSearching={refSearch.isSearching}
+              totalCount={refSearch.totalCount}
+              onNavigate={(filePath: string, line: number) => {
+                openFile(filePath);
+                setTimeout(() => editorRef.current?.revealLine(line), 200);
+              }}
+              onClose={() => { setShowRefs(false); refSearch.cancel(); }}
+            />
+          ) : (
+            <TerminalWebView workingDirectory={rootPath} onCommand={handleCommandComplete} visible={showTerminal} />
+          )
+        }
         terminalHeight={terminalHeight}
         onTerminalHeightChange={setTerminalHeight}
         onOpenPalette={() => setShowPalette(true)}
@@ -809,8 +874,16 @@ function App() {
       <CommandPalette
         visible={showPalette}
         commands={paletteCommands}
-        onClose={() => setShowPalette(false)}
+        onClose={() => { setShowPalette(false); setPaletteMode('commands'); }}
         onSelect={handlePaletteSelect}
+        mode={paletteMode}
+        symbolIndex={symbolSearch.index}
+        onNavigateSymbol={(filePath: string, line: number) => {
+          openFile(filePath);
+          setTimeout(() => editorRef.current?.revealLine(line), 200);
+          setShowPalette(false);
+          setPaletteMode('commands');
+        }}
       />
 
       {/* ── First-run setup wizard ────────────────────────────────────────── */}

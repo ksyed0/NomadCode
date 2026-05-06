@@ -41,6 +41,9 @@ import type { ThemeTokens } from '../theme/tokens';
 import useSettingsStore from '../stores/useSettingsStore';
 import type { GutterLine } from '../git/gutterDiff';
 import type { BlameLine } from '../git/gitBridge';
+import type { SymbolAtCursor, ContextMenuState, SymbolAction } from '../codeNav/symbolContextMenu';
+import { buildActions } from '../codeNav/symbolContextMenu';
+import type { ReferenceMatch } from '../hooks/useReferencesSearch';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -69,6 +72,9 @@ export interface EditorHandle {
   setGutterDecorations: (lines: GutterLine[]) => void;
   toggleBlame: () => Promise<void>;
   injectMessage: (payload: { type: string } & Record<string, unknown>) => void;
+  triggerGoToDef: () => void;
+  getMonacoRefs: () => Promise<ReferenceMatch[]>;
+  revealLine: (line: number) => void;
 }
 
 interface EditorProps {
@@ -82,6 +88,15 @@ interface EditorProps {
   onTabViewStateChange?: (path: string, viewState: string) => void;
   formatOnSave?: boolean;
   onCompletionContext?: (payload: { prefix: string; suffix: string; language: string }) => void;
+  onGoToDefResult?: (result: {
+    resolved: boolean;
+    sameFile?: boolean;
+    builtin?: boolean;
+    word?: string;
+    fileName?: string;
+    offset?: number;
+  }) => void;
+  onContextMenu?: (state: ContextMenuState) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +344,8 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   onTabViewStateChange,
   formatOnSave,
   onCompletionContext,
+  onGoToDefResult,
+  onContextMenu,
 }, ref) {
   const webViewRef    = useRef<WebView | null>(null);
   const loadedPathRef = useRef<string | null>(null);
@@ -352,20 +369,53 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   const [symbol,      setSymbol]      = useState<string | null>(null);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [symbolAtCursor, setSymbolAtCursor] = useState<SymbolAtCursor | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [contextMenu,    setContextMenu]    = useState<ContextMenuState>({
+    visible: false, screenX: 0, screenY: 0, word: '', actions: [] as SymbolAction[],
+  });
+  const webViewFrame       = useRef({ x: 0, y: 0 });
+  const pendingRefsResolve = useRef<((m: ReferenceMatch[]) => void) | null>(null);
+
   const activeTab      = tabs.find((tab) => tab.path === activeTabPath) ?? null;
   const previewEnabled = activeTab ? canPreview(activeTab.language) : false;
 
   // ── Resolve Monaco source (CDN or local cache) on mount ─────────────────
   // Pass the user's current theme so the editor boots in the right mode
   // and avoids a flash of vs-dark on light themes.
+  //
+  // Resilience (BUG-0055): if any step throws — asset manager, prettier
+  // download, HTML builder — fall back to the CDN with no prettier so the
+  // WebView still mounts. Without this catch a silent throw would leave
+  // monacoHtml=null forever and the "Loading editor…" spinner would hang.
   useEffect(() => {
-    async function init() {
-      const { baseUrl, isOffline: offline } = await MonacoAssetManager.resolve();
+    let cancelled = false;
+    (async () => {
+      let baseUrl = `https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs`;
+      let offline = false;
+      let prettierSource: string | null = null;
+      try {
+        const resolved = await MonacoAssetManager.resolve();
+        baseUrl = resolved.baseUrl;
+        offline = resolved.isOffline;
+      } catch (e) {
+        console.warn('[Editor] MonacoAssetManager.resolve failed; using CDN', e);
+      }
+      try {
+        prettierSource = await MonacoAssetManager.loadPrettierSource();
+      } catch (e) {
+        console.warn('[Editor] loadPrettierSource failed; continuing without prettier', e);
+      }
+      if (cancelled) return;
       setIsOffline(offline);
-      const prettierSource = await MonacoAssetManager.loadPrettierSource();
-      setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme, prettierSource ?? undefined));
-    }
-    init().catch(console.error);
+      try {
+        setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme, prettierSource ?? undefined));
+      } catch (e) {
+        console.error('[Editor] buildMonacoHtml threw; retrying with no prettier', e);
+        setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme));
+      }
+    })();
+    return () => { cancelled = true; };
     // monacoTheme intentionally excluded from deps — Monaco only boots once;
     // subsequent theme changes are handled by the setTheme effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -480,6 +530,34 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
             break;
           case 'BREADCRUMB_UPDATE':
             setSymbol(msg.symbol ?? null);
+            if (msg.symbolAtCursor) setSymbolAtCursor(msg.symbolAtCursor);
+            break;
+
+          case 'LONG_PRESS':
+          case 'CMD_CLICK_SYMBOL': {
+            const word   = msg.word || symbolAtCursor?.word || '';
+            const hasDef = symbolAtCursor?.hasDefinition ?? false;
+            const canRef = word.length > 1;
+            if (!word) break;
+            const newMenuState: ContextMenuState = {
+              visible: true,
+              screenX: msg.x + webViewFrame.current.x,
+              screenY: msg.y + webViewFrame.current.y,
+              word,
+              actions: buildActions({ word, hasDefinition: hasDef, canFindRefs: canRef }),
+            };
+            setContextMenu(newMenuState);
+            onContextMenu?.(newMenuState);
+            break;
+          }
+
+          case 'GO_TO_DEF_RESULT':
+            onGoToDefResult?.(msg);
+            break;
+
+          case 'MONACO_REFS_RESULT':
+            pendingRefsResolve.current?.(msg.matches ?? []);
+            pendingRefsResolve.current = null;
             break;
           case 'FORMAT_COMPLETE':
             if (msg.error) {
@@ -498,7 +576,8 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
         }
       } catch { /* ignore */ }
     },
-    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange, onCompletionContext],
+    [activeTabPath, onContentChange, onSave, setFontSize, onTabViewStateChange, onCompletionContext,
+     symbolAtCursor, onGoToDefResult, onContextMenu],
   );
 
   // ── Expose imperative handle (fold commands, view state, prettier, gutter, blame) ───────
@@ -532,6 +611,18 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
       const { type, ...extra } = payload;
       sendToEditor(type, extra);
     },
+    triggerGoToDef: () => sendToEditor('GO_TO_DEFINITION'),
+    getMonacoRefs: () => new Promise<ReferenceMatch[]>((resolve) => {
+      pendingRefsResolve.current = resolve;
+      sendToEditor('GET_MONACO_REFS');
+      setTimeout(() => {
+        if (pendingRefsResolve.current) {
+          pendingRefsResolve.current([]);
+          pendingRefsResolve.current = null;
+        }
+      }, 3_000);
+    }),
+    revealLine: (line: number) => sendToEditor('REVEAL_LINE', { line }),
   }), [sendToEditor]);
 
   // ── Toolbar action dispatcher ────────────────────────────────────────────
@@ -673,6 +764,13 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
               keyboardDisplayRequiresUserAction={false}
               bounces={false}
               scrollEnabled={false}
+              onLayout={() => {
+                // measureInWindow is available on the underlying native view
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (webViewRef.current as any)?.measureInWindow((x: number, y: number) => {
+                  webViewFrame.current = { x, y };
+                });
+              }}
             />
           )}
         </View>

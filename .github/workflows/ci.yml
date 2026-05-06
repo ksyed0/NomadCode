@@ -43,6 +43,13 @@ jobs:
           cache: npm
           cache-dependency-path: mobile-ide/package-lock.json
 
+      # Pin npm to 11.x — the workspace lockfile is generated with npm 11 and
+      # npm 10 resolves workspace-scoped peer deps differently, producing
+      # spurious "Missing: typescript@5.9.3 from lock file" failures.
+      - name: Pin npm version
+        run: npm install -g npm@11
+        working-directory: .
+
       - name: Install dependencies
         run: npm ci
 
@@ -65,6 +72,13 @@ jobs:
           node-version: '20'
           cache: npm
           cache-dependency-path: mobile-ide/package-lock.json
+
+      # Pin npm to 11.x — the workspace lockfile is generated with npm 11 and
+      # npm 10 resolves workspace-scoped peer deps differently, producing
+      # spurious "Missing: typescript@5.9.3 from lock file" failures.
+      - name: Pin npm version
+        run: npm install -g npm@11
+        working-directory: .
 
       - name: Install dependencies
         run: npm ci
@@ -91,6 +105,13 @@ jobs:
           node-version: '20'
           cache: npm
           cache-dependency-path: mobile-ide/package-lock.json
+
+      # Pin npm to 11.x — the workspace lockfile is generated with npm 11 and
+      # npm 10 resolves workspace-scoped peer deps differently, producing
+      # spurious "Missing: typescript@5.9.3 from lock file" failures.
+      - name: Pin npm version
+        run: npm install -g npm@11
+        working-directory: .
 
       - name: Install dependencies
         run: npm ci
@@ -144,6 +165,13 @@ jobs:
           cache: npm
           cache-dependency-path: mobile-ide/package-lock.json
 
+      # Pin npm to 11.x — the workspace lockfile is generated with npm 11 and
+      # npm 10 resolves workspace-scoped peer deps differently, producing
+      # spurious "Missing: typescript@5.9.3 from lock file" failures.
+      - name: Pin npm version
+        run: npm install -g npm@11
+        working-directory: .
+
       - name: Install dependencies
         run: npm ci
 
@@ -179,6 +207,10 @@ jobs:
           node-version: '20'
           cache: npm
           cache-dependency-path: mobile-ide/package-lock.json
+
+      - name: Pin npm version
+        run: npm install -g npm@11
+        working-directory: .
 
       - name: Install dependencies
         working-directory: mobile-ide

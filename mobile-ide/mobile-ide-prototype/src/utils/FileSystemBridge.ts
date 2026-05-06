@@ -163,6 +163,34 @@ export const FileSystemBridge = {
     await ExpoFS.writeAsStringAsync(path, content, { encoding: ExpoFS.EncodingType.UTF8 });
   },
 
+  /**
+   * Recursively list all file paths under root, excluding node_modules and dot directories.
+   * Returns a flat array of absolute file paths (directories are excluded from results).
+   */
+  async listFilesRecursive(root: string): Promise<string[]> {
+    const SKIP_DIRS = new Set(['node_modules', '.git', '.expo', '__pycache__']);
+    const results: string[] = [];
+
+    async function walk(dir: string): Promise<void> {
+      const normalized = dir.endsWith('/') ? dir : `${dir}/`;
+      const names = await ExpoFS.readDirectoryAsync(normalized).catch(() => [] as string[]);
+      await Promise.all(names.map(async (name: string) => {
+        if (name.startsWith('.') || SKIP_DIRS.has(name)) return;
+        const fullPath = `${normalized}${name}`;
+        const info = await ExpoFS.getInfoAsync(fullPath).catch(() => ({ exists: false, isDirectory: false }));
+        if (!info.exists) return;
+        if (info.isDirectory) {
+          await walk(fullPath);
+        } else {
+          results.push(fullPath);
+        }
+      }));
+    }
+
+    await walk(root);
+    return results;
+  },
+
   /** Create a new empty file (or overwrite with provided content). */
   async createFile(path: string, content = ''): Promise<void> {
     if (getUriType(path) === 'saf') { await safCreateFile(path, content); return; }
