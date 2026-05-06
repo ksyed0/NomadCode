@@ -447,3 +447,4 @@ Updated automatically by the Claude Code stop hook (`tools/capture-cost.js`).
 | 2026-05-06 | ff40dde3-e41c-4bd4-960d-87649ff00fda | claude/unruffled-mclean-66c168 | 0 | 0 | 0 | 0.0000 |
 | 2026-05-06 | ff40dde3-e41c-4bd4-960d-87649ff00fda | claude/unruffled-mclean-66c168 | 0 | 0 | 0 | 0.0000 |
 | 2026-05-06 | ff40dde3-e41c-4bd4-960d-87649ff00fda | claude/unruffled-mclean-66c168 | 0 | 0 | 0 | 0.0000 |
+| 2026-05-05 | bd807657-fa8b-48c7-a955-2d9e21a8df38 | feature/epic-0022-code-navigation | 0 | 0 | 0 | 0.0000 |
