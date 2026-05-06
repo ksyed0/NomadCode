@@ -10,4 +10,4 @@ Always consult before creating a new artefact. Update immediately after assignin
 | TASK | TASK-0006 | TASK-0005 |
 | AC | AC-0325 | AC-0324 |
 | TC | TC-0367 | TC-0366 |
-| BUG | BUG-0056 | BUG-0055 |
+| BUG | BUG-0057 | BUG-0056 |

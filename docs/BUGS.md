@@ -763,6 +763,30 @@ Fix Branch: feature/ui-improvements-phase1
 Notes: Moved to a sticky footer row at the bottom of the sidebar — hairline border separator, row layout with ⚙ glyph + "Settings" label, uniform padding. Applied to both the tablet sidebar and the phone drawer.
 Lesson Encoded: No
 
+BUG-0056: IAP purchase fails with "Package not available" in simulator — RevenueCat not configured
+Severity: Medium
+Related Story: US-0057
+Related Task:
+Steps to Reproduce:
+  1. Run the app in the iOS simulator (development build)
+  2. Navigate to any paywalled feature or the subscription settings
+  3. Attempt to initiate a purchase
+Expected: Subscription packages (Pro, Pro+AI) are displayed and purchasable via StoreKit sandbox
+Actual: Error: "Purchase failed. Package not available. Pull to refresh." — packages never load
+Root Cause: Three compounding causes:
+  (1) EXPO_PUBLIC_REVENUECAT_IOS_KEY is undefined in local simulator runs (only set as EAS_SECRET for production builds) — iapService.configure() is skipped entirely
+  (2) RevenueCat project not yet linked to App Store Connect (com.FableSoft.NomadCode) — no products configured
+  (3) No StoreKit configuration file (.storekit) present — iOS simulator requires this for local IAP testing
+Status: Open — expected in current dev state, will resolve after store setup
+Fix Branch:
+Notes: Not a code defect — this is a configuration gap. Resolution steps:
+  1. Create IAP products in App Store Connect (Pro monthly/annual, Pro+AI monthly/annual)
+  2. Link RevenueCat project to ASC and configure entitlements/products
+  3. Add a NomadCode.storekit configuration file for simulator testing (Xcode → File → New → StoreKit Configuration)
+  4. For local dev, expose EXPO_PUBLIC_REVENUECAT_IOS_KEY via a local .env file (never committed)
+  Unblocks after EAS secrets are stored and products are created in ASC.
+Lesson Encoded: No
+
 BUG-0055: File does not load when selected in the file explorer — tab opens with spinner that never resolves
 Severity: High
 Related Story: US-0001
