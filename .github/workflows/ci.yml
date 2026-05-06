@@ -208,6 +208,10 @@ jobs:
           cache: npm
           cache-dependency-path: mobile-ide/package-lock.json
 
+      - name: Pin npm version
+        run: npm install -g npm@11
+        working-directory: .
+
       - name: Install dependencies
         working-directory: mobile-ide
         run: npm ci

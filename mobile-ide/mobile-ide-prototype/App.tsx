@@ -819,7 +819,7 @@ function App() {
             onGoToDefResult={handleGoToDefResult}
             onContextMenu={(state) => {
               if (state.visible && state.actions.includes('findReferences')) {
-                setRefsWord(state.word);
+                void handleFindRefs(state.word);
               }
             }}
           />
