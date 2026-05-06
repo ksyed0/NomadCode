@@ -763,6 +763,22 @@ Fix Branch: feature/ui-improvements-phase1
 Notes: Moved to a sticky footer row at the bottom of the sidebar — hairline border separator, row layout with ⚙ glyph + "Settings" label, uniform padding. Applied to both the tablet sidebar and the phone drawer.
 Lesson Encoded: No
 
+BUG-0057: PaywallSheet layout broken on iPad — full-screen height with small content, text too small (UX-9)
+Severity: Medium
+Related Story: US-0057
+Related Task:
+Steps to Reproduce:
+  1. Run the app on iPad Pro 13" simulator
+  2. Trigger the paywall (e.g. attempt to open a 4th file on the Free tier)
+  3. Observe the PaywallSheet modal
+Expected: Sheet presents as a compact card or bottom sheet sized to its content; typography and card dimensions scale appropriately for the large iPad display
+Actual: The modal occupies the full screen height leaving ~40% empty dead space below the content; price/feature text (~14–16px) reads as small on the 13" display; plan cards do not expand to use available width
+Root Cause: PaywallSheet is a full-screen Modal with fixed flex layout — no max-height cap or tablet-aware sizing; font sizes and card padding were tuned for phone (375pt wide) and have not been adapted for the 1024pt+ tablet viewport
+Status: Open
+Fix Branch:
+Notes: Fix should: (1) constrain the modal to a centred card on tablet (max-width ~680pt, max-height ~80vh) with rounded corners, similar to a Dialog rather than a sheet; (2) increase heading font to ~28px and price font to ~40px on tablet; (3) use a 2-column card layout only on tablet — already the case, but padding/spacing needs to breathe more at large size. Use TabletResponsive or width-based breakpoint (≥768) already in the codebase.
+Lesson Encoded: No
+
 BUG-0056: IAP purchase fails with "Package not available" in simulator — RevenueCat not configured
 Severity: Medium
 Related Story: US-0057
