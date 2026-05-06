@@ -1441,6 +1441,38 @@ Type: Infra
 Assignee: Agent
 Status: Done
 Notes: develop branch created; branch protection on main and develop enabled at project setup.
+
+TASK-0005 (US-0103): Detox / Maestro E2E simulator spike — evaluate frameworks and author 3 smoke tests
+Type: Spike
+Assignee: Agent
+Status: Planned
+Notes: Time-boxed spike (1–2 sessions). Evaluate Detox vs Maestro for the NomadCode simulator environment; implement 3 smoke tests covering file create/open/save, Git clone, and AI chat. Produce a recommendation doc before full E2E EPIC is scoped.
+```
+
+---
+
+### US-0103: E2E Test Automation Spike (Detox / Maestro)
+
+```
+US-0103 (Infrastructure): As an engineer, I want a time-boxed spike to evaluate Detox and Maestro
+for automated E2E testing on the iOS simulator, so that we can make an informed framework
+choice before investing in a full test suite.
+Priority: Low (P2)
+Estimate: S (spike — 1–2 sessions, time-boxed)
+Status: Planned
+Acceptance Criteria:
+  - [ ] AC-0316: Both Detox and Maestro are installed and configured in a throwaway branch;
+        a brief comparison document covers setup complexity, CI integration, test stability,
+        and React Native/Expo compatibility.
+  - [ ] AC-0317: Three smoke tests are authored in the chosen framework covering:
+        (1) create a new file, type content, and verify it persists after app restart;
+        (2) clone a public GitHub repo and verify the file tree populates;
+        (3) send a message in the AI chat panel and verify a response appears.
+  - [ ] AC-0318: The chosen framework's test run is wired into the CI workflow as an optional
+        (non-blocking) job that runs on pull requests targeting develop, reporting pass/fail
+        against the Pixel_Tablet_API35 Android emulator as the primary CI target (iOS
+        simulator CI requires macOS runner — deferred to follow-on work).
+Dependencies: EPIC-0001, EPIC-0002, EPIC-0008
 ```
 
 ---

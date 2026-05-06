@@ -4,6 +4,55 @@ Running log of what was done each session, errors, test results, and blockers.
 
 ---
 
+## Session 21 — 2026-05-06 (iOS Simulator + Store Prep + EPIC-0022 Code Navigation)
+
+### What Was Done
+
+**iOS Simulator — unblocked and working**
+- Apple Developer Program enrollment completed ✅
+- Fixed Sentry module resolution: symlinked `@sentry/react-native` into prototype `node_modules/`; added `resolveRequest` redirect in `metro.config.js`
+- Fixed `expo-file-system 55.0.17` (SDK 55 / Dependabot regression): downgraded to `~19.0.22` in `package.json`, regenerated `mobile-ide/package-lock.json`
+- Fixed `ExpoCryptoAES` native module error: `expo-auth-session` in `mobile-ide/node_modules/` was pulling `expo-crypto 55.0.14`; added `SDK54_OVERRIDES` map in `metro.config.js` `resolveRequest`
+- Fixed CocoaPods Ruby UTF-8 encoding error: always use `LANG=en_US.UTF-8` prefix
+- Clean pod install required after Podfile.lock drift from Dependabot
+- **App now runs in iPad Pro 13" (M5) simulator** ✅
+
+**App Store / Play Store prep**
+- Bundle ID updated: `com.nomadcode.mobileide` → `com.FableSoft.NomadCode`
+- Apple Team ID confirmed: `PKWYR4P7K5`
+- App Store Connect App ID: `6766877851` (filled into `eas.json`)
+- SKU confirmed: `NOMADCODE001`
+- Sentry DSN: `https://4d0ca8de7cdf9df11b212786fd3af78e@...` (filled in spec + eas.json)
+- `eas.json` submit.production.ios fully configured
+- Google Play Console: registered, $25 paid, `com.FableSoft.NomadCode` created
+
+**EPIC-0022 Code Navigation — merged**
+- PR #133 merged ✅ (+72 new tests → 1373 total)
+- Go to Definition (long-press / ⌘Click), Find All References (ReferencesPanel), Workspace Symbol Search (⌘T)
+
+**EPIC-0028 — iOS 26 Liquid Glass**
+- Added to release plan (US-0101 iOS Liquid Glass, US-0102 Android Material You)
+
+**US-0103 — E2E Test Automation Spike**
+- Logged in release plan (Detox vs Maestro, 3 smoke tests, CI integration)
+
+**Root cause documented**: Dependabot has been bumping individual Expo packages to SDK 55 while the project is on SDK 54. Temporary fix in metro.config.js; permanent fix = SDK 55 upgrade or Dependabot config.
+
+### Simulator Run Commands (updated)
+```bash
+LANG=en_US.UTF-8 npx expo run:ios --device 1886F766-DF13-4673-9720-1ACDD534A6B8 --no-bundler
+LANG=en_US.UTF-8 npx expo start --clear
+```
+
+### Next Session Pick-up
+1. EPIC-0023 brainstorm (AI Code Intelligence — ⌘K inline edit, project AI rules, AI commit messages)
+2. EAS secrets: store OpenRouter + RevenueCat keys, then run `eas build --platform all`
+3. GitHub Pages: enable in repo Settings → Pages → `develop` → `/docs`
+4. Screenshots for App Store / Play Store
+5. US-0103 spike: Detox vs Maestro E2E testing
+
+---
+
 ## Session 20 — 2026-05-03 (EPIC-0011 App Store GA + EPIC-0015 Crash Reporting)
 
 ### What Was Done
