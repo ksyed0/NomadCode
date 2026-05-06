@@ -763,6 +763,23 @@ Fix Branch: feature/ui-improvements-phase1
 Notes: Moved to a sticky footer row at the bottom of the sidebar — hairline border separator, row layout with ⚙ glyph + "Settings" label, uniform padding. Applied to both the tablet sidebar and the phone drawer.
 Lesson Encoded: No
 
+BUG-0055: File does not load when selected in the file explorer — tab opens with spinner that never resolves
+Severity: High
+Related Story: US-0001
+Related Task:
+Steps to Reproduce:
+  1. Open the app on iPad Pro 13" simulator (or device)
+  2. Open a workspace with files in the file explorer
+  3. Tap any file in the file explorer
+  4. Observe the editor panel
+Expected: The selected file's content loads in the editor tab within ~500ms
+Actual: A new tab opens for the file and the loading spinner begins, but the file content never appears — spinner continues indefinitely
+Root Cause: Unknown — likely a FileSystemBridge.readFile regression from the expo-file-system downgrade (55.x → 19.x in Session 21), or a timing issue in the App.tsx openFile → setContent → Editor.tsx sequence
+Status: Open
+Fix Branch:
+Notes: Discovered during first successful simulator run (Session 21, 2026-05-06). Blocks App Store submission — file loading is core functionality. Investigate: (1) FileSystemBridge.readFile with expo-file-system 19.0.22, (2) App.tsx openFile callback, (3) Editor.tsx setContent/RESTORE_VIEW_STATE sequence.
+Lesson Encoded: No
+
 BUG-0054: Terminal FAB shows no active/inactive visual distinction — user cannot tell if terminal panel is open (UX-8)
 Severity: Medium
 Related Story: US-0012
