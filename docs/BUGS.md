@@ -774,9 +774,9 @@ Steps to Reproduce:
 Expected: Sheet presents as a compact card or bottom sheet sized to its content; typography and card dimensions scale appropriately for the large iPad display
 Actual: The modal occupies the full screen height leaving ~40% empty dead space below the content; price/feature text (~14–16px) reads as small on the 13" display; plan cards do not expand to use available width
 Root Cause: PaywallSheet is a full-screen Modal with fixed flex layout — no max-height cap or tablet-aware sizing; font sizes and card padding were tuned for phone (375pt wide) and have not been adapted for the 1024pt+ tablet viewport
-Status: Open
-Fix Branch:
-Notes: Fix should: (1) constrain the modal to a centred card on tablet (max-width ~680pt, max-height ~80vh) with rounded corners, similar to a Dialog rather than a sheet; (2) increase heading font to ~28px and price font to ~40px on tablet; (3) use a 2-column card layout only on tablet — already the case, but padding/spacing needs to breathe more at large size. Use TabletResponsive or width-based breakpoint (≥768) already in the codebase.
+Status: Fixed
+Fix Branch: claude/unruffled-mclean-66c168
+Notes: Tablet (≥768pt) now renders a centred 680pt-wide dialog card with 32px outer padding, 28px headings, 40px prices, 24px card padding, 20px card gap, and a contentContainerStyle that lets the ScrollView shrink to content rather than stretch to maxHeight. Phone form factor (bottom sheet, 16/20px typography) is unchanged. All 17 existing PaywallSheet tests still pass.
 Lesson Encoded: No
 
 BUG-0056: IAP purchase fails with "Package not available" in simulator — RevenueCat not configured
@@ -814,10 +814,14 @@ Steps to Reproduce:
   4. Observe the editor panel
 Expected: The selected file's content loads in the editor tab within ~500ms
 Actual: A new tab opens for the file and the loading spinner begins, but the file content never appears — spinner continues indefinitely
-Root Cause: Unknown — likely a FileSystemBridge.readFile regression from the expo-file-system downgrade (55.x → 19.x in Session 21), or a timing issue in the App.tsx openFile → setContent → Editor.tsx sequence
-Status: Open
-Fix Branch:
-Notes: Discovered during first successful simulator run (Session 21, 2026-05-06). Blocks App Store submission — file loading is core functionality. Investigate: (1) FileSystemBridge.readFile with expo-file-system 19.0.22, (2) App.tsx openFile callback, (3) Editor.tsx setContent/RESTORE_VIEW_STATE sequence.
+Root Cause: The "Loading editor…" overlay is gated by editorReady && monacoHtml. Three latent defects in MonacoAssetManager.buildMonacoHtml + Editor.tsx init() could each leave that gate stuck closed indefinitely.
+Status: Partially Fixed — needs simulator verification
+Fix Branch: claude/unruffled-mclean-66c168
+Notes: Three concrete defects fixed:
+  (1) `<script src=loader.js onerror="onLoaderError()">` referenced a function that lived inside the next IIFE (function-scoped), so the onerror attribute could never resolve it. If loader.js failed there was no CDN fallback and no error surfaced. onLoaderError is now defined on `window` BEFORE the loader script tag, and bootEditor is exposed as `window.__nomadBootEditor` so the fallback can call it.
+  (2) Editor.tsx init() awaited resolve() + loadPrettierSource() + buildMonacoHtml() with a single trailing `.catch(console.error)`. Any throw left monacoHtml=null forever (= permanent spinner). Each step is now wrapped individually with sane fallbacks (CDN baseUrl, no prettier, retry buildMonacoHtml without prettier).
+  (3) The SET_INLINE_COMPLETION case read `data.text`, but the parsed payload variable is `msg`. ReferenceError was swallowed by the outer try/catch; AI completions silently never appeared. Now reads `msg.text`. Not a root cause of the spinner but a real adjacent regression.
+Still to verify on simulator: whether the actual symptom on iPad Pro M5 was fix #1 or fix #2 (or something else entirely — e.g. expo-file-system 19.0.22 readAsStringAsync behaviour). Run on simulator and confirm spinner resolves; if not, instrument the WebView's `ready` post and check console for loader errors.
 Lesson Encoded: No
 
 BUG-0054: Terminal FAB shows no active/inactive visual distinction — user cannot tell if terminal panel is open (UX-8)

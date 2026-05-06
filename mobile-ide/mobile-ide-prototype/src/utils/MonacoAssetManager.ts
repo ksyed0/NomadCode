@@ -240,6 +240,19 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: ThemeId = 'noma
   <div id="mc-overlay" title="Tap to place additional cursor — press ✕ to exit"></div>
 
   ${prettierSource ? `<script>${prettierSource}</script>` : '<!-- prettier not loaded -->'}
+  <script>
+    // BUG-0055: expose a CDN-fallback hook on window BEFORE the loader script tag
+    // is parsed. The previous version defined onLoaderError() inside the IIFE
+    // below (i.e. function-scoped), so the loader's onerror="onLoaderError()"
+    // attribute could never reach it — a failed loader.js silently became a
+    // never-resolving "Loading editor…" spinner with no fallback to CDN.
+    window.onLoaderError = function () {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@${MONACO_VERSION}/min/vs/loader.js';
+      s.onload = function () { if (window.__nomadBootEditor) window.__nomadBootEditor(); };
+      document.head.appendChild(s);
+    };
+  </script>
   <script src="${vsBaseUrl}/loader.js" onerror="onLoaderError()"></script>
   <script>
   (function () {
@@ -350,14 +363,6 @@ export function buildMonacoHtml(vsBaseUrl: string, initialTheme: ThemeId = 'noma
         }
       }
       return lastMatch;
-    }
-
-    // ── Loader error fallback (offline → CDN) ─────────────────────────────
-    function onLoaderError() {
-      var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@${MONACO_VERSION}/min/vs/loader.js';
-      s.onload = bootEditor;
-      document.head.appendChild(s);
     }
 
     // ── Loading bar progress ───────────────────────────────────────────────
@@ -493,10 +498,14 @@ ${defineThemesScript}
       });
     }
 
+    // Expose bootEditor on window so the (window-scoped) onLoaderError fallback
+    // can invoke it once the CDN loader.js finishes loading.
+    window.__nomadBootEditor = bootEditor;
     if (typeof require !== 'undefined') {
       bootEditor();
     }
-    // If loader.js failed synchronously, onLoaderError() will call bootEditor.
+    // If loader.js failed synchronously, window.onLoaderError() loads the CDN
+    // loader and then calls window.__nomadBootEditor (= bootEditor).
 
     // ── Pinch-to-zoom (Pointer Events API) ────────────────────────────────
     var pointers = {};
@@ -742,7 +751,11 @@ ${defineThemesScript}
           }
 
           case 'SET_INLINE_COMPLETION': {
-            pendingCompletion = data.text || null;
+            // BUG-0055 fix: previous version read 'data.text' but data is undefined
+            // in this scope (the parsed payload is 'msg'). The ReferenceError was
+            // swallowed by the outer try/catch, so AI completions silently never
+            // appeared.
+            pendingCompletion = msg.text || null;
             if (pendingCompletion) {
               editor.trigger('keyboard', 'editor.action.inlineSuggest.trigger', {});
             }

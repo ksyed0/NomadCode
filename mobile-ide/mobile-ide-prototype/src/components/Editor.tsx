@@ -358,14 +358,39 @@ const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({
   // ── Resolve Monaco source (CDN or local cache) on mount ─────────────────
   // Pass the user's current theme so the editor boots in the right mode
   // and avoids a flash of vs-dark on light themes.
+  //
+  // Resilience (BUG-0055): if any step throws — asset manager, prettier
+  // download, HTML builder — fall back to the CDN with no prettier so the
+  // WebView still mounts. Without this catch a silent throw would leave
+  // monacoHtml=null forever and the "Loading editor…" spinner would hang.
   useEffect(() => {
-    async function init() {
-      const { baseUrl, isOffline: offline } = await MonacoAssetManager.resolve();
+    let cancelled = false;
+    (async () => {
+      let baseUrl = `https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs`;
+      let offline = false;
+      let prettierSource: string | null = null;
+      try {
+        const resolved = await MonacoAssetManager.resolve();
+        baseUrl = resolved.baseUrl;
+        offline = resolved.isOffline;
+      } catch (e) {
+        console.warn('[Editor] MonacoAssetManager.resolve failed; using CDN', e);
+      }
+      try {
+        prettierSource = await MonacoAssetManager.loadPrettierSource();
+      } catch (e) {
+        console.warn('[Editor] loadPrettierSource failed; continuing without prettier', e);
+      }
+      if (cancelled) return;
       setIsOffline(offline);
-      const prettierSource = await MonacoAssetManager.loadPrettierSource();
-      setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme, prettierSource ?? undefined));
-    }
-    init().catch(console.error);
+      try {
+        setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme, prettierSource ?? undefined));
+      } catch (e) {
+        console.error('[Editor] buildMonacoHtml threw; retrying with no prettier', e);
+        setMonacoHtml(buildMonacoHtml(baseUrl, monacoTheme));
+      }
+    })();
+    return () => { cancelled = true; };
     // monacoTheme intentionally excluded from deps — Monaco only boots once;
     // subsequent theme changes are handled by the setTheme effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
