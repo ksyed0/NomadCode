@@ -143,7 +143,8 @@ describe('renderHtml — coverage below target', () => {
   it('renders red coverage when below 80%', () => {
     const dataLowCoverage = { ...sampleData, coverage: { lines: 70, overall: 70, meetsTarget: false } };
     const html = renderHtml(dataLowCoverage);
-    expect(html).toMatch(/FCA5A5/);
+    // covClass applies Tailwind text-red-400 (was previously an inline hex #FCA5A5)
+    expect(html).toMatch(/text-red-400/);
   });
 });
 

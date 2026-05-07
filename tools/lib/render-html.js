@@ -80,7 +80,7 @@ function renderTopBar(data) {
           <div class="text-xs mt-0.5" style="color:rgba(255,255,255,0.65)">AI Actual</div>
         </div>
         <div class="rounded-xl px-4 py-3 text-center min-w-[80px] topbar-tile" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);backdrop-filter:blur(8px)" aria-label="Coverage: ${covLabel} overall, ${branchSubtitle}">
-          <div class="text-2xl font-bold topbar-tile-num" style="color:${(cov.available !== false) ? (cov.meetsTarget ? '#6EE7B7' : '#FCA5A5') : 'rgba(255,255,255,0.5)'}">${covLabel}</div>
+          <div class="text-2xl font-bold topbar-tile-num ${covClass}">${covLabel}</div>
           <div class="text-xs mt-0.5" style="color:rgba(255,255,255,0.65)">${branchSubtitle}</div>
         </div>
       </div>
