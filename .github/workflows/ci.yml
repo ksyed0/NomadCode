@@ -325,7 +325,7 @@ jobs:
 
       # Cache the Pods directory keyed on npm deps (expo/RN version drives pod versions)
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: mobile-ide/mobile-ide-prototype/ios/Pods
           key: pods-${{ hashFiles('mobile-ide/package-lock.json') }}
@@ -405,7 +405,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: AVD cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: avd-cache
         with:
           path: |
