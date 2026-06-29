@@ -22,7 +22,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@expo/metro-runtime": "~6.1.2",
+    "@expo/metro-runtime": "~56.0.15",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@sentry/react-native": "^8.10.0",
