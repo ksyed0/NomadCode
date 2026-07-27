@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.0",
-    "@size-limit/preset-app": "^12.1.0",
+    "@size-limit/preset-app": "^13.0.1",
     "@testing-library/react-native": "^12.8.0",
     "@types/jest": "^29.5.0",
     "@types/react": "~19.1.10",
