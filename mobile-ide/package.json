@@ -31,6 +31,6 @@
     "cacache": ">=20.0.0"
   },
   "dependencies": {
-    "@sentry/react-native": "^8.10.0"
+    "@sentry/react-native": "^8.30.0"
   }
 }
